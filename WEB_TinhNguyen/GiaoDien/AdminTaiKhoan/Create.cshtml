@@ -1,0 +1,166 @@
+@model WEB_TinhNguyen.MoHinh.AdminTaiKhoanCreateViewModel
+@using WEB_TinhNguyen.MoHinh
+@{
+    ViewData["Title"] = "Thêm Tài khoản Quản trị & Phân quyền";
+    Layout = "~/GiaoDien/Shared/_AdminLayout.cshtml";
+    var selectedQuyen = new HashSet<string>(Model?.DanhSachQuyen ?? new List<string>(), StringComparer.OrdinalIgnoreCase);
+}
+
+<div class="max-w-5xl mx-auto my-6 px-4 sm:px-6 lg:px-8 space-y-6">
+
+    <!-- HEADER -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-200 pb-5">
+        <div>
+            <nav class="flex items-center gap-2 text-xs text-gray-500 mb-2 font-medium">
+                <a href="@Url.Action("Index", "Admin", new { area = "" })" class="hover:text-emerald-600 transition">Quản trị</a>
+                <span>/</span>
+                <a href="@Url.Action("Index", "AdminTaiKhoan", new { area = "" })" class="hover:text-emerald-600 transition">Tài khoản &amp; Phân quyền</a>
+                <span>/</span>
+                <span class="text-emerald-700 font-semibold">Thêm tài khoản mới</span>
+            </nav>
+            <h1 class="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
+                <span class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-lg">
+                    <i class="fas fa-user-plus"></i>
+                </span>
+                <span>Thêm Tài khoản Quản trị &amp; Phân quyền Chức năng</span>
+            </h1>
+        </div>
+        <a href="@Url.Action("Index", "AdminTaiKhoan", new { area = "" })"
+           class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition">
+            <i class="fas fa-arrow-left"></i> Quay lại danh sách
+        </a>
+    </div>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="p-4 rounded-2xl bg-red-50 border border-red-200 text-sm text-red-700 space-y-1">
+            <div class="font-bold flex items-center gap-2">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Vui lòng kiểm tra lại thông tin nhập:</span>
+            </div>
+            <div asp-validation-summary="All" class="list-disc pl-5"></div>
+        </div>
+    }
+
+    <form asp-action="Create" asp-controller="AdminTaiKhoan" method="post" class="space-y-6">
+        @Html.AntiForgeryToken()
+
+        <!-- THÔNG TIN ĐĂNG NHẬP & HỒ SƠ -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 space-y-5">
+            <h2 class="text-base font-bold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-3">
+                <i class="fas fa-id-card text-emerald-600"></i>
+                <span>1. Thông tin tài khoản đăng nhập</span>
+            </h2>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-600 mb-1.5">Tên đăng nhập <span class="text-red-500">*</span></label>
+                    <input asp-for="TenDangNhap" required placeholder="Ví dụ: biên_tập_tin_tức, ql_cuahang..."
+                           class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 text-sm outline-none transition" />
+                    <span asp-validation-for="TenDangNhap" class="text-xs text-red-600 mt-1 block"></span>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-600 mb-1.5">Họ và tên người quản lý <span class="text-red-500">*</span></label>
+                    <input asp-for="HoTen" required placeholder="Ví dụ: Nguyễn Văn A - Phụ trách Tin tức"
+                           class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 text-sm outline-none transition" />
+                    <span asp-validation-for="HoTen" class="text-xs text-red-600 mt-1 block"></span>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-600 mb-1.5">Mật khẩu <span class="text-red-500">*</span></label>
+                    <input asp-for="MatKhau" type="password" required placeholder="Tối thiểu 6 ký tự"
+                           class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 text-sm outline-none transition" />
+                    <span asp-validation-for="MatKhau" class="text-xs text-red-600 mt-1 block"></span>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-600 mb-1.5">Xác nhận mật khẩu <span class="text-red-500">*</span></label>
+                    <input asp-for="XacNhanMatKhau" type="password" required placeholder="Nhập lại mật khẩu"
+                           class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 text-sm outline-none transition" />
+                    <span asp-validation-for="XacNhanMatKhau" class="text-xs text-red-600 mt-1 block"></span>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-600 mb-1.5">Địa chỉ Email</label>
+                    <input asp-for="Email" type="email" placeholder="example@trangsanglangbiang.org"
+                           class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 text-sm outline-none transition" />
+                </div>
+
+                <div class="flex items-center pt-5">
+                    <label class="inline-flex items-center gap-3 cursor-pointer select-none">
+                        <input asp-for="TrangThaiHoatDong" type="checkbox" class="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500" />
+                        <span class="text-sm font-semibold text-gray-800">Kích hoạt tài khoản ngay sau khi tạo</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- PHÂN QUYỀN TRUY CẬP CÁC PHÂN HỆ -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-gray-100 pb-4">
+                <div>
+                    <h2 class="text-base font-bold text-gray-900 flex items-center gap-2">
+                        <i class="fas fa-key text-emerald-600"></i>
+                        <span>2. Phân quyền chức năng được phép truy cập</span>
+                    </h2>
+                    <p class="text-xs text-gray-500 mt-0.5">
+                        Khi tài khoản này đăng nhập, hệ thống sẽ chỉ hiển thị menu và cho phép truy cập đúng các chức năng được đánh dấu bên dưới.
+                    </p>
+                </div>
+
+                <label class="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl bg-amber-50 border border-amber-200 cursor-pointer select-none">
+                    <input asp-for="ToanQuyen" type="checkbox" id="chkToanQuyen" onchange="toggleAllPermissions(this.checked)"
+                           class="w-4 h-4 rounded text-amber-600 focus:ring-amber-500" />
+                    <span class="text-xs font-bold text-amber-900">
+                        <i class="fas fa-crown text-amber-600 mr-1"></i> Toàn quyền cấu hình hệ thống (ALL)
+                    </span>
+                </label>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5" id="modulePermissionsGrid">
+                @foreach (var phanHe in QuyenAdmin.DanhSachPhanHe)
+                {
+                    bool isChecked = Model?.ToanQuyen == true || selectedQuyen.Contains(phanHe.MaPhanHe);
+                    <label class="flex items-start gap-3 p-3.5 rounded-xl border border-gray-200 hover:border-emerald-400 hover:bg-emerald-50/40 cursor-pointer transition select-none">
+                        <input type="checkbox"
+                               name="DanhSachQuyen"
+                               value="@phanHe.MaPhanHe"
+                               @(isChecked ? "checked" : "")
+                               class="perm-checkbox mt-1 w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500" />
+                        <div class="text-xs">
+                            <div class="font-bold text-gray-900 flex items-center gap-1.5">
+                                <i class="fas @phanHe.Icon text-emerald-600"></i>
+                                <span>@phanHe.TenHienThi</span>
+                            </div>
+                            <p class="text-gray-500 mt-0.5 leading-relaxed">@phanHe.MoTa</p>
+                        </div>
+                    </label>
+                }
+            </div>
+        </div>
+
+        <!-- SUBMIT -->
+        <div class="flex items-center justify-end gap-3">
+            <a href="@Url.Action("Index", "AdminTaiKhoan", new { area = "" })"
+               class="px-5 py-2.5 rounded-xl text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 transition">
+                Hủy bỏ
+            </a>
+            <button type="submit"
+                    class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-700 hover:to-green-800 shadow-md transition">
+                <i class="fas fa-save"></i>
+                <span>Tạo tài khoản &amp; Lưu phân quyền</span>
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    function toggleAllPermissions(checked) {
+        var boxes = document.querySelectorAll('.perm-checkbox');
+        boxes.forEach(function (cb) {
+            cb.checked = checked;
+        });
+    }
+</script>
+

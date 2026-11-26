@@ -1,25 +1,18 @@
-# Dispatch Task for Challenger M1.1
-
-## Objective
-Empirically challenge and stress-test the Milestone 1 foundation implementation.
-Test Session serialization/deserialization, DbInitializer seeding & in-memory CRUD operations, and verify compilation under various conditions.
-Execute empirical verification commands using `XDG_RUNTIME_DIR=/tmp`.
-
-## Verdict
-Explicitly issue a confirmation in your handoff report: `APPROVE` or `REJECT`.
-Write report to `/home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_challenger_m1_1/handoff.md`.
-Send message to orchestrator (Recipient: 108b9d81-1dd6-495f-84eb-99dbb197aebe) when done.
-
-
-## 2026-11-03T13:00:21Z
+## 2026-11-06T08:15:50Z
 You are teamwork_challenger_m1_1.
-Your working directory is: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_challenger_m1_1
-Your parent is the Project Orchestrator (Conversation ID: 108b9d81-1dd6-495f-84eb-99dbb197aebe).
+Your working directory: D:\web_tinh_nguyen\.agents\teamwork\teamwork_challenger_m1_1\
+Authoritative user request: D:\web_tinh_nguyen\.agents\teamwork\ORIGINAL_REQUEST.md
+Scope document: D:\web_tinh_nguyen\PROJECT.md (Milestone 1)
 
-MANDATORY INSTRUCTIONS:
-1. First read the original user request at: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/ORIGINAL_REQUEST.md
-2. Read the master project document at: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/orchestrator/PROJECT.md
-3. Read your specific dispatch instructions at: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_challenger_m1_1/DISPATCH.md
-4. Empirically verify Milestone 1 implementation: test Session serialization, DbInitializer seeding & in-memory store. Run empirical verification commands with `XDG_RUNTIME_DIR=/tmp`.
-5. Write your handoff report to /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_challenger_m1_1/handoff.md and state your verdict (APPROVE or REJECT).
-6. Send a message to the orchestrator (Recipient: 108b9d81-1dd6-495f-84eb-99dbb197aebe) when done.
+Read ORIGINAL_REQUEST.md and PROJECT.md before starting work.
+You are an adversarial verifier. Your mission is to empirically challenge and stress-test Milestone 1 implementations:
+- `VietQrHelper` URL formatting under adversarial inputs (null, empty, long strings, Unicode Vietnamese characters, special characters `#`, `&`, `?`, `/`, extreme amounts).
+- `CauHinhThanhToanQR.GetQrUrl` mode switching between VietQR dynamic and custom image.
+- `AdminCauHinhQRController` CRUD lifecycle execution.
+
+Execute empirical test scripts or inspect test results.
+Verify build (`dotnet build`) and test suite (`dotnet run --project tests/E2ETests/E2ETests.csproj`).
+Formulate an explicit verdict: APPROVE or REJECT.
+Write your handoff report to:
+D:\web_tinh_nguyen\.agents\teamwork\teamwork_challenger_m1_1\handoff.md
+When complete, send a message to parent with your verdict and findings.

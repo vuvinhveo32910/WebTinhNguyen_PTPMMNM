@@ -1,24 +1,16 @@
-# Progress — Worker 1
+# Progress Log - Worker 1
 
-Last visited: 2026-11-05T07:13:00Z
+**Last visited**: 2026-11-06T12:41:00Z  
+**Current Status**: Completed all tasks, build & tests passing 100% (469/469)  
 
-- [x] Initialized DISPATCH.md and BRIEFING.md
-- [x] Read survey reports and PROJECT.md
-- [x] Inspected Entities.cs, ApplicationDbContext.cs, and ApplicationDbContextModelSnapshot.cs
-- [x] Implemented [NotMapped] and 2-way proxies in Entities.cs:
-  - `CauHinhTrangChu`: mapped physical DB columns (`LinkAnhBia`, `FontTieuDe`, `FontNoiDung`, `HienThiCanvas3D`, `VeDuAn_LinkAnh`, `HienThiMascot`, `LinkAnhMascot`, `ViTriMascot`), marked 8 invalid column names (`DuongDanAnhBia`, `DuongDanAnhLinhVat`, `HienThiHieuUng3D`, `HienThiLinhVat`, `KieuChuNoiDung`, `KieuChuTieuDe`, `VeDuAn_DuongDanAnh`, `ViTriLinhVat`) with `[NotMapped]` and bidirectional getter/setter proxies.
-  - `CauHinhKyUc`: mapped `LinkAnhBia`, `FontTieuDe`, `FontTieuDeTongKet`; marked `DuongDanAnhBia`, `KieuChuTieuDe`, `KieuChuTieuDeTongKet` with `[NotMapped]`.
-  - `CauHinhChuongTrinh`: mapped `FontTieuDe`, marked `KieuChuTieuDe` with `[NotMapped]`.
-  - `CauHinhGayQuy`: mapped `FontTieuDe`, `FontNoiDung`, marked `KieuChuTieuDe`, `KieuChuNoiDung` with `[NotMapped]`.
-  - `CauHinhBanToChuc`: mapped `FontTieuDe`, `FontNoiDung`, marked `KieuChuTieuDe`, `KieuChuNoiDung` with `[NotMapped]`.
-  - `CauHinhTinTuc`: mapped `FontTieuDe`, `FontNoiDung`, marked `KieuChuTieuDe`, `KieuChuNoiDung` with `[NotMapped]`.
-- [x] Added defense-in-depth Fluent API `.Ignore(...)` and explicit property mapping in `ApplicationDbContext.OnModelCreating`.
-- [x] Synchronized `ApplicationDbContextModelSnapshot.cs` removing invalid column scalar properties and registering physical columns.
-- [x] Verified controllers and viewmodels compile cleanly without any CS0103, CS1061 errors.
-- [x] Built project `WEB_TinhNguyen.slnx` with 0 errors.
-- [x] Ran automated test suites:
-  - `tests/run_e2e_tests.sh --all`: 337 / 337 PASSED (100%).
-  - `tests/M1Challenger`: 67 / 67 PASSED (100%).
-  - `tests/M3Challenger2`: 128 / 128 PASSED (100%).
-- [x] Empirically validated EF Core model and generated SQL string: ZERO invalid column names present, ALL physical column names queried.
-- [ ] Write handoff.md and notify parent
+### Task Checklist
+- [x] Inspect `_AdminLayout.cshtml` and `Admin/Index.cshtml`
+- [x] Inspect 6 campaign controllers (`AdminTrangChu`, `AdminChuongTrinh`, `AdminGayQuy`, `AdminKyUc`, `AdminBanToChuc`, `AdminTinTuc`)
+- [x] Inspect existing `tests/E2ETests/`
+- [x] Implement Task 1: Navigation and routing in `_AdminLayout.cshtml`
+- [x] Implement Task 2: Fix shortcut link in `Admin/Index.cshtml`
+- [x] Implement Task 3: Enhance controller offline resilience (try/catch returning `new List<ChienDich>()`)
+- [x] Implement Task 4: Optional UI Polish (align theme for `AdminChuongTrinh/Index.cshtml` and `AdminKyUc/Index.cshtml`)
+- [x] Implement Task 5: Automated Test Suite in `tests/E2ETests/` (Feature 19, 16 tests)
+- [x] Build & Test verification (`dotnet build`: 0 errors, `dotnet run --project tests/E2ETests`: 469/469 passed)
+- [x] Document in `changes.md` and `handoff.md`

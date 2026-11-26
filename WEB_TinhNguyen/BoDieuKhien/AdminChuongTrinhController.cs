@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Hosting;
@@ -12,6 +13,8 @@ using WEB_TinhNguyen.MoHinh;
 
 namespace WEB_TinhNguyen.BoDieuKhien
 {
+    [Authorize]
+    [PhanQuyenAdmin(QuyenAdmin.ChuongTrinh)]
     public class AdminChuongTrinhController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -22,6 +25,8 @@ namespace WEB_TinhNguyen.BoDieuKhien
             _context = context;
             _env = env;
         }
+
+        private bool BiChanQuyen() => User?.Identity?.IsAuthenticated == true && !User.CoQuyen(QuyenAdmin.ChuongTrinh);
 
         private async Task<string> UploadFileAsync(IFormFile file)
         {
@@ -39,13 +44,22 @@ namespace WEB_TinhNguyen.BoDieuKhien
 
         public async Task<IActionResult> Index()
         {
-            var chienDichs = await _context.ChienDichs.OrderByDescending(c => c.Nam).ToListAsync();
-            return View(chienDichs);
+            if (BiChanQuyen()) return StatusCode(StatusCodes.Status403Forbidden);
+            try
+            {
+                var chienDichs = await _context.ChienDichs.OrderByDescending(c => c.Nam).ToListAsync();
+                return View(chienDichs);
+            }
+            catch
+            {
+                return View(new List<ChienDich>());
+            }
         }
 
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
+            if (BiChanQuyen()) return StatusCode(StatusCodes.Status403Forbidden);
             var cd = await _context.ChienDichs.FindAsync(id);
             if (cd == null) return NotFound();
 
@@ -98,6 +112,7 @@ namespace WEB_TinhNguyen.BoDieuKhien
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(CauHinhChuongTrinhVM vm)
         {
+            if (BiChanQuyen()) return StatusCode(StatusCodes.Status403Forbidden);
             var keys = ModelState.Keys.ToList();
             foreach (var key in keys) { ModelState.Remove(key); }
 

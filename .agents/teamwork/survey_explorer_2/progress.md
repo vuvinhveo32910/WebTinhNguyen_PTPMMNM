@@ -1,0 +1,33 @@
+# Progress — survey_explorer_2
+
+- Last visited: 2026-11-07T09:22:00Z
+- Status: Completed
+- Completed:
+  - Initialized DISPATCH.md and BRIEFING.md
+  - Read authoritative user request
+  - Enumerated all controllers (both root and CuaHang area)
+  - Identified Admin boundary vs Public views
+  - Inspected all public views and layouts:
+    - `GiaoDien/Shared/_Layout.cshtml`
+    - `GiaoDien/Home/Index.cshtml`
+    - `GiaoDien/Home/ChuongTrinh.cshtml`
+    - `GiaoDien/Home/GayQuy.cshtml`
+    - `GiaoDien/Home/BanToChuc.cshtml`
+    - `GiaoDien/Home/TinTuc.cshtml`
+    - `GiaoDien/Home/KyUc.cshtml`
+    - `GiaoDien/Home/LoiChuc.cshtml`
+    - `GiaoDien/Home/ComingSoon.cshtml`
+    - `GiaoDien/Home/Privacy.cshtml`
+    - `GiaoDien/Shared/Error.cshtml`
+    - `Areas/CuaHang/Views/Shared/_CuaHangLayout.cshtml`
+    - `Areas/CuaHang/Views/CuaHang/Index.cshtml`
+    - `Areas/CuaHang/Views/CuaHang/ChiTiet.cshtml`
+    - `Areas/CuaHang/Views/GioHang/Index.cshtml`
+    - `Areas/CuaHang/Views/GioHang/DatHangThanhCong.cshtml`
+  - Validated build pipeline (`dotnet build`, Tailwind CSS compilation)
+  - Verified test suite status:
+    - 536/536 E2E tests passing
+    - 201/201 adversarial final stress tests passing
+    - 109/109 store isolation tests passing
+  - Compiled and published 5-Component Handoff Report (`handoff.md`)
+- Current step: Sending completion message to caller.

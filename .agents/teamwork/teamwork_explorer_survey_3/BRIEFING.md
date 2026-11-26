@@ -1,49 +1,49 @@
-# BRIEFING — 2026-11-03T12:39:00Z
+# BRIEFING — 2026-11-06T07:47:00Z
 
 ## Mission
-Investigate storefront capabilities, shopping cart implementation patterns (session/cookie), fundraising product domain entities & seed data mechanisms, and build/run verification (`dotnet build`) for the fundraising store feature.
+Comprehensive survey of the Donation / Fundraising / Campaign (Ủng hộ / Gây quỹ / Quyên góp) subsystem at D:\web_tinh_nguyen to identify all controllers, views, viewmodels, QR display points, hardcoded bank account/QR values, transfer syntax, VietQR generation mechanisms, and architecture needed for dynamic QR configuration.
 
 ## 🔒 My Identity
 - Archetype: explorer
 - Roles: investigation, synthesis
-- Working directory: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_explorer_survey_3
-- Original parent: 108b9d81-1dd6-495f-84eb-99dbb197aebe
-- Milestone: initial_survey
+- Working directory: D:\web_tinh_nguyen\.agents\teamwork\teamwork_explorer_survey_3
+- Original parent: 3ebaa881-f84a-47af-9d40-eda26cf6ddcc
+- Milestone: survey_donation_subsystem
 
 ## 🔒 Key Constraints
 - Read-only investigation — do NOT implement
-- Do NOT copy code from existing open-source projects for core logic
-- Integrity mode: demo
-- Write only inside working directory
+- Do NOT modify any source code or execute disruptive operations
+- Write findings to handoff.md in own directory
 
 ## Current Parent
-- Conversation ID: 108b9d81-1dd6-495f-84eb-99dbb197aebe
-- Updated: 2026-11-03T12:39:00Z
+- Conversation ID: 3ebaa881-f84a-47af-9d40-eda26cf6ddcc
+- Updated: 2026-11-06T07:47:00Z
 
 ## Investigation State
 - **Explored paths**:
-  - `WEB_TinhNguyen/Program.cs` (state, routing, middleware)
-  - `WEB_TinhNguyen/WEB_TinhNguyen.csproj` (net10.0, EF Core 10.0.12, Tailwind MSBuild target)
-  - `WEB_TinhNguyen/Data/ApplicationDbContext.cs` & `Models/Entities.cs`
-  - `WEB_TinhNguyen/Controllers/` (Admin and Home controllers, lazy seeding patterns)
-  - `WEB_TinhNguyen/Views/Shared/_Layout.cshtml` & `_AdminLayout.cshtml` (Header, Liquid Bottom Nav, Sidebar)
-  - `tailwind.config.js` & `package.json`
-  - Peer explorer reports from explorer 1 and explorer 2
+  - `BoDieuKhien\HomeController.cs` (GayQuy, Index, ChuongTrinh actions)
+  - `BoDieuKhien\AdminGayQuyController.cs` (Index, Edit GET/POST, lazy seeding of KenhDongGop)
+  - `MoHinh\Entities.cs` (CauHinhGayQuy, KenhDongGop, NhaTaiTroGayQuy, DonHangGayQuy)
+  - `MoHinh\CauHinhTrangChuVM.cs` (CauHinhGayQuyVM, KenhDongGopVM, NhaTaiTroGayQuyVM)
+  - `DuLieu\ApplicationDbContext.cs` (DbSets, OnModelCreating mappings)
+  - `GiaoDien\Home\GayQuy.cshtml` (Hero, Ways to contribute, #qrModal, #sponsorModal)
+  - `GiaoDien\AdminGayQuy\Index.cshtml` & `Edit.cshtml` (Tabs, Repeater, QR inputs, templateChannel)
+  - `Areas\CuaHang\Controllers\GioHangController.cs` & `AdminDonHangController.cs`
+  - `Areas\CuaHang\Views\GioHang\DatHangThanhCong.cshtml` & `AdminDonHang\ChiTiet.cshtml`
+  - `tests\E2ETests\` (Tiers 1-5, ReferenceOracles, 337 tests verified)
 - **Key findings**:
-  - `dotnet build` succeeds 100% (0 errors) using `XDG_RUNTIME_DIR=/tmp` (avoiding mutex lock on `/run/user/1000`).
-  - Session/Cache not configured in `Program.cs`. Needs `AddDistributedMemoryCache()`, `AddSession()`, `UseSession()`, and `MapControllerRoute("areas", ...)`.
-  - No existing Product, Cart, or Order entities. Designed `SanPhamGayQuy`, `DonHangGayQuy`, `ChiTietDonHangGayQuy`.
-  - Existing seed data pattern is lazy controller-level seeding; designed 2-tier robust seeding with 4 Langbiang 2026 charity products.
-  - Designed clean `Areas/CuaHang` encapsulating storefront, cart, checkout with dynamic VietQR, and Admin CRUD.
-- **Unexplored areas**: None within the survey scope.
+  - Two distinct donation/payment subsystems exist: Kênh Đóng Góp (`/Home/GayQuy`) and Cửa Hàng Gây Quỹ (`/CuaHang/GioHang/DatHangThanhCong`).
+  - `/Home/GayQuy` uses static images (`kenh.LinkAnhQR`), seeds hardcoded MBBank `0924044283` (NGUYỄN ANH HÀO).
+  - `/CuaHang/GioHang/DatHangThanhCong` uses `img.vietqr.io` standard URL but with hardcoded MBBank `0924044283` (NGUYEN THAI VINH).
+  - Admin does not currently have a unified QR management system across both channels.
+  - Test `Tier1_AdminOrderTests.cs` lines 238 & 244 asserts "0924044283" and "NGUYEN THAI VINH" in `ChiTiet.cshtml`.
+- **Unexplored areas**: None within survey scope.
 
 ## Key Decisions Made
-- Recommend Session-based shopping cart with JSON extensions and 60-minute timeout.
-- Encapsulate all feature controllers, models, and views in `Areas/CuaHang` per R3 requirement.
-- Propose 4 rich seed products tailored to "Trăng Sáng Langbiang 2026".
-- Provide dynamic VietQR payment integration for charity transparency matching BTC bank info.
+- Structured complete catalog of all 6 mission questions with verbatim line references and code extracts.
+- Formulated recommended database and service design (`CauHinhThanhToanQR` or unified QR service) for R1 & R2 compliance.
 
 ## Artifact Index
-- DISPATCH.md — Task instructions from orchestrator
-- progress.md — Liveness heartbeat and step tracking
-- handoff.md — 5-component comprehensive survey report for orchestrator
+- DISPATCH.md — incoming mission dispatch
+- progress.md — liveness and heartbeat log
+- handoff.md — final comprehensive report

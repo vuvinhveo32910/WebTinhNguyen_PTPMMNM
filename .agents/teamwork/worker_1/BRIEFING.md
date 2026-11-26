@@ -1,65 +1,69 @@
-# BRIEFING — 2026-11-05T07:13:00Z
+# BRIEFING — 2026-11-06T12:41:00Z
 
 ## Mission
-Fix EF Core schema mismatch in CauHinhTrangChu and other CauHinh entities by mapping physical database columns (`LinkAnhBia`, `FontTieuDe`, `FontNoiDung`, `HienThiCanvas3D`, `VeDuAn_LinkAnh`, `HienThiMascot`, `LinkAnhMascot`, `ViTriMascot`, etc.), marking old column names as `[NotMapped]` with 2-way property proxying, adding Fluent API `.Ignore(...)` in ApplicationDbContext, updating ApplicationDbContextModelSnapshot.cs, and verifying clean build and 100% test pass.
+Fix navigation, routing, and offline resilience for 8 Admin routes and establish automated test coverage.
 
 ## 🔒 My Identity
 - Archetype: implementer
 - Roles: implementer, qa, specialist
-- Working directory: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/worker_1/
-- Original parent: 13941881-5ddb-4ef5-85c6-23bd414f7662
-- Milestone: M1 - Entity, DbContext & ModelSnapshot Synchronization
+- Working directory: D:\web_tinh_nguyen\.agents\teamwork\worker_1
+- Original parent: b6af13b7-74cd-4678-82d1-0f30054e44dc
+- Milestone: M1 & M2 (Fix Admin Navigation & Routing, Automated Test Suite)
 
 ## 🔒 Key Constraints
-- Exclusive write ownership:
-  - WEB_TinhNguyen/MoHinh/Entities.cs
-  - WEB_TinhNguyen/DuLieu/ApplicationDbContext.cs
-  - WEB_TinhNguyen/Migrations/ApplicationDbContextModelSnapshot.cs
-  - Admin controllers & CauHinhTrangChuVM if needed
-- Genuine implementation only, no cheating or hardcoding.
-- Build command: `TMPDIR=/tmp XDG_RUNTIME_DIR=/tmp DOTNET_CLI_HOME=/tmp dotnet build WEB_TinhNguyen.slnx`
-- Test command: `TMPDIR=/tmp XDG_RUNTIME_DIR=/tmp DOTNET_CLI_HOME=/tmp HOME=/tmp bash tests/run_e2e_tests.sh --all`
+- Minimal change principle.
+- No hardcoding test results, no dummy implementations.
+- Maintain real state and produce real behavior.
+- Use explicit new { area = "" } for root admin links to prevent cross-area pollution.
+- All 8 Admin routes must return ViewResult / HTTP 200.
+- Layout links must have zero occurrences of GiaoDien/ or %2F.
+- Run build and test to confirm 100% pass before completion.
 
 ## Current Parent
-- Conversation ID: 13941881-5ddb-4ef5-85c6-23bd414f7662
-- Updated: 2026-11-05T07:13:00Z
+- Conversation ID: b6af13b7-74cd-4678-82d1-0f30054e44dc
+- Updated: 2026-11-06T12:35:00Z
 
 ## Task Summary
-- **What to build**: Realigned EF Core entities and DB schema for CauHinhTrangChu, CauHinhKyUc, CauHinhChuongTrinh, CauHinhGayQuy, CauHinhBanToChuc, CauHinhTinTuc, ensuring none of the 8 invalid column names are queried by EF Core while preserving full backward compatibility for controllers and views.
-- **Success criteria**: 0 build errors, 100% E2E test pass, zero invalid column names in SQL queries.
-- **Interface contracts**: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/orchestrator_1/PROJECT.md
+- **What to build**: Fix navigation & routing in _AdminLayout.cshtml, Admin/Index.cshtml, add offline DB resilience in 6 controllers, polish UI wrappers if needed, and add/extend automated tests in tests/E2ETests/.
+- **Success criteria**: 0 build errors, 100% test pass, clean URLs, HTTP 200 for all 8 admin pages.
+- **Interface contracts**: PROJECT.md § Interface Contracts
+- **Code layout**: PROJECT.md § Code Layout & Ownership
 
 ## Key Decisions Made
-- Realigned primary mapped auto-properties in `Entities.cs` to match physical database columns:
-  - `CauHinhTrangChu`: `LinkAnhBia`, `FontTieuDe`, `FontNoiDung`, `HienThiCanvas3D`, `VeDuAn_LinkAnh`, `HienThiMascot`, `LinkAnhMascot`, `ViTriMascot`.
-  - Decorated the 8 invalid column names with `[NotMapped]` and implemented bidirectional getter/setter proxies so all consumer code (controllers, viewmodels, tests) works seamlessly without modification.
-  - Applied the same mapping/proxying pattern to `CauHinhKyUc`, `CauHinhChuongTrinh`, `CauHinhGayQuy`, `CauHinhBanToChuc`, and `CauHinhTinTuc`.
-- Added defense-in-depth Fluent API `.Ignore(...)` calls in `ApplicationDbContext.OnModelCreating` for all invalid/unmapped column names and explicit `.Property(...)` mappings for real columns.
-- Synchronized `ApplicationDbContextModelSnapshot.cs` to match the exact schema.
+- Replaced `"GiaoDien/<Controller>"` with pure controller names in `@Url.Action` inside `_AdminLayout.cshtml`.
+- Added explicit `new { area = "" }` to all root admin links to prevent ambient area inheritance from `CuaHang`.
+- Fixed active menu checks for `AdminChuongTrinh` and `AdminGayQuy`.
+- Updated dead shortcut link `href="#"` in `Admin/Index.cshtml` to `AdminTinTuc`.
+- Added defensive `try/catch` fallback returning `new List<ChienDich>()` in `Index()` across all 6 campaign controllers for guaranteed offline resilience.
+- Adjusted padding wrapper in `AdminChuongTrinh/Index.cshtml` and `AdminKyUc/Index.cshtml` for theme alignment.
+- Added 16 automated tests in `Tier1_AdminRoutingTests.cs` (Tier 1, Feature 19).
 
 ## Artifact Index
-- DISPATCH.md — Task instructions from orchestrator
-- BRIEFING.md — Persistent working memory
-- progress.md — Heartbeat and progress log
-- handoff.md — Final 5-component report
+- changes.md — list of modifications
+- handoff.md — 5-component handoff report
+- progress.md — liveness heartbeat and progress tracking
+- DISPATCH.md — received tasks and instructions
 
 ## Change Tracker
 - **Files modified**:
-  - `WEB_TinhNguyen/MoHinh/Entities.cs`: mapped physical DB columns and set `[NotMapped]` on invalid column aliases with 2-way proxies.
-  - `WEB_TinhNguyen/DuLieu/ApplicationDbContext.cs`: added Fluent API `.Ignore(...)` and property mappings.
-  - `WEB_TinhNguyen/Migrations/ApplicationDbContextModelSnapshot.cs`: synchronized EF Core model snapshot.
-- **Build status**: `dotnet build WEB_TinhNguyen.slnx` -> Succeeded with 0 errors.
-- **Pending issues**: None.
+  - `WEB_TinhNguyen/GiaoDien/Shared/_AdminLayout.cshtml` (fixed pure controller names, explicit area="", active checks)
+  - `WEB_TinhNguyen/GiaoDien/Admin/Index.cshtml` (fixed AdminTinTuc quick link)
+  - `WEB_TinhNguyen/BoDieuKhien/AdminTrangChuController.cs` (try/catch DB offline fallback)
+  - `WEB_TinhNguyen/BoDieuKhien/AdminChuongTrinhController.cs` (try/catch DB offline fallback)
+  - `WEB_TinhNguyen/BoDieuKhien/AdminGayQuyController.cs` (try/catch DB offline fallback)
+  - `WEB_TinhNguyen/BoDieuKhien/AdminKyUcController.cs` (try/catch DB offline fallback)
+  - `WEB_TinhNguyen/BoDieuKhien/AdminBanToChucController.cs` (try/catch DB offline fallback)
+  - `WEB_TinhNguyen/BoDieuKhien/AdminTinTucController.cs` (try/catch DB offline fallback)
+  - `WEB_TinhNguyen/GiaoDien/AdminChuongTrinh/Index.cshtml` (theme alignment)
+  - `WEB_TinhNguyen/GiaoDien/AdminKyUc/Index.cshtml` (theme alignment)
+  - `tests/E2ETests/Tier1/Tier1_AdminRoutingTests.cs` (16 automated tests)
+- **Build status**: Succeeded (0 errors)
+- **Pending issues**: None
 
 ## Quality Status
-- **Build/test result**:
-  - `dotnet build`: Succeeded, 0 errors.
-  - `tests/run_e2e_tests.sh --all`: 337 / 337 Passed (100%).
-  - `tests/M1Challenger`: 67 / 67 Passed (100%).
-  - `tests/M3Challenger2`: 128 / 128 Passed (100%).
-  - SQL verification: EF Core generated SQL contains 0 invalid column names and queries all physical DB columns.
-- **Lint status**: Clean (0 compilation errors).
-- **Tests added/modified**: Validated against comprehensive existing test suites and verified EF Core query string generation.
+- **Build/test result**: Pass (469 passed, 0 failed, 0 skipped)
+- **Lint status**: 0 violations
+- **Tests added/modified**: 16 new automated tests in Tier 1 Feature 19
 
 ## Loaded Skills
-None
+- None

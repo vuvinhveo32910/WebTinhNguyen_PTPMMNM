@@ -4,7 +4,7 @@ set -euo pipefail
 # -----------------------------------------------------------------------------
 # WEB_TinhNguyen E2E Test Suite Standalone Runner
 # -----------------------------------------------------------------------------
-# Runs Tiers 1-4 E2E requirement-driven tests.
+# Runs Tiers 1-5 E2E requirement-driven tests and adversarial challenger harnesses.
 # Supports passing arguments directly to the runner engine:
 #   ./run_e2e_tests.sh --all
 #   ./run_e2e_tests.sh --tier 1

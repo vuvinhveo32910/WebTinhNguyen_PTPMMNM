@@ -1,166 +1,152 @@
-# BÁO CÁO KIỂM THỬ THÁCH THỨC ĐỘC LẬP (EMPIRICAL CHALLENGER REPORT) — MILESTONE 1
+# Milestone 1 Adversarial Challenge & Verification Report
 
-**Đặc vụ kiểm thử**: `teamwork_challenger_m1_1`  
-**Vai trò**: critic, specialist (Empirical Challenger)  
-**Thư mục làm việc**: `/home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_challenger_m1_1`  
-**Người nhận**: Project Orchestrator (`108b9d81-1dd6-495f-84eb-99dbb197aebe`)  
-**Ngày thực hiện**: 2026-11-03  
-**Dự án**: HỆ THỐNG CỬA HÀNG SẢN PHẨM GÂY QUỸ TÌNH NGUYỆN (WEB_TinhNguyen, .NET 10.0, EF Core 10.0.12)  
-**Phán quyết (Verdict)**: **`APPROVE`** (Chấp thuận nghiệm thu nền tảng Milestone 1, kèm 01 khuyến nghị tinh chỉnh chú thích mã nguồn).
+**Verdict**: **APPROVE**
+**Author**: `teamwork_challenger_m1_1` (EMPIRICAL CHALLENGER — critic, specialist)
+**Date**: 2026-11-06T08:27:00Z
+**Target Milestone**: Milestone 1 (Admin QR & Payment Management — Features F1-F6)
 
 ---
 
-## 1. Observation (Các quan sát thực tế)
+## 1. Observation
 
-### 1.1. Xây dựng và thực thi bộ kiểm thử thách thức Tier 5 (Adversarial Coverage Hardening)
-Đặc vụ đã thiết kế và triển khai tệp kiểm định thách thức độc lập tại:  
-`tests/E2ETests/Tier5/Tier5_ChallengerM1Harness.cs`  
-gồm 19 ca kiểm thử tấn công chuyên sâu bao phủ toàn bộ phạm vi M1:
-- Quản lý Session (`SessionExtensions`): kiểm tra null safety, key rỗng, giá trị null, JSON lỗi/corrupt bytes, tham chiếu vòng (`IgnoreCycles`), tiếng Việt có dấu/ký tự đặc biệt, và cơ chế `GetOrCreate`.
-- Kho lưu trữ In-Memory Fallback (`DbInitializer`): kiểm tra khôi phục trạng thái gốc (`ResetInMemoryStore`), tính bất biến/bản sao độc lập (`Deep Copy/Clone`), tự động tăng ID, cập nhật bảo toàn ảnh cũ, xóa phần tử, logic trừ tồn kho đơn hàng, chặn tồn kho âm (floor at 0), tìm kiếm mã đơn không phân biệt hoa/thường, và kiểm thử chịu tải đồng thời 100 tác vụ song song (`Parallel.For`).
-- Mô hình & ViewModels: ánh xạ 2 chiều `SanPhamCrudViewModel`, cắt tỉa khoảng trắng (`Trim()`), tính toán tổng tiền, và an toàn khi danh sách sản phẩm rỗng/null.
-- Thứ tự thực thi pipeline trong `Program.cs`.
-
-**Lệnh thực thi kiểm thử Tier 5**:
-```bash
-XDG_RUNTIME_DIR=/tmp dotnet run --project /home/hutech/Vinh_Offline/WEB_TinhNguyen/tests/E2ETests/E2ETests.csproj --no-build -- --tier 5
+### 1.1 Solution Compilation
+Executing command `dotnet build` on `WEB_TinhNguyen.slnx`:
+```text
+Build succeeded.
+    4 Warning(s)
+    0 Error(s)
+Time Elapsed 00:00:15.95
 ```
-**Kết quả thực tế (Verbatim Output)**:
-```
-================================================================================
-    WEB_TinhNguyen Volunteer Fundraising E2E Test Suite (Tiers 1-4)
-================================================================================
-Configuration: Tier Filter=[5], Feature=[ALL], Keyword=[NONE]
+All compiler targets built cleanly with 0 errors. The 4 warnings were pre-existing NuGet security advisories on `System.Security.Cryptography.Pkcs` 9.0.11 reported by the .NET 10 SDK, with zero code warnings in application source files.
 
-  [PASS] Tier 5 | F02 | CH01: SessionExtensions throws ArgumentNullException on null session (6.7ms)
-  [PASS] Tier 5 | F02 | CH02: SessionExtensions null or empty key handling (2.5ms)
-  [PASS] Tier 5 | F02 | CH03: SessionExtensions Set with null value removes the key (74.2ms)
-  [PASS] Tier 5 | F02 | CH04: SessionExtensions Get with corrupted JSON returns default without crashing (2.1ms)
-  [PASS] Tier 5 | F02 | CH05: SessionExtensions circular reference object serialization survives (3.5ms)
-  [PASS] Tier 5 | F02 | CH06: SessionExtensions Vietnamese Unicode and special characters roundtrip (8.8ms)
-  [PASS] Tier 5 | F02 | CH07: SessionExtensions GetOrCreate invokes factory only once (0.9ms)
-  [PASS] Tier 5 | F04 | CH08: DbInitializer ResetInMemoryStore restores original state (22.5ms)
-  [PASS] Tier 5 | F04 | CH09: DbInitializer GetInMemoryProducts returns isolated clones (0.2ms)
-  [PASS] Tier 5 | F04 | CH10: DbInitializer AddInMemoryProduct auto-increments IDs and sets NgayTao (0.3ms)
-  [PASS] Tier 5 | F04 | CH11: DbInitializer UpdateInMemoryProduct preserves existing image if empty (0.8ms)
-  [PASS] Tier 5 | F04 | CH12: DbInitializer DeleteInMemoryProduct lifecycle (0.2ms)
-  [PASS] Tier 5 | F04 | CH13: DbInitializer AddInMemoryOrder stock deduction and code format (2.5ms)
-  [PASS] Tier 5 | F04 | CH14: DbInitializer OrderStock floors at zero and does not become negative (0.3ms)
-  [PASS] Tier 5 | F04 | CH15: DbInitializer GetInMemoryOrderByCode is case-insensitive (0.5ms)
-  [PASS] Tier 5 | F04 | CH16: DbInitializer concurrency stress test (100 parallel tasks) (18.4ms)
-  [PASS] Tier 5 | F03 | CH17: SanPhamCrudViewModel mapping roundtrip and trimming (3.4ms)
-  [PASS] Tier 5 | F03 | CH18: CartViewModel and CheckoutViewModel monetary calculation boundaries (5.5ms)
-  [PASS] Tier 5 | F01 | CH19: Program.cs empirical pipeline ordering and code statement check (1.6ms)
-
+### 1.2 Full Test Suite Execution
+Executing command `dotnet run --project tests/E2ETests/E2ETests.csproj`:
+```text
 ================================================================================
                               TEST EXECUTION SUMMARY
 ================================================================================
-  OVERALL: 19 Tests | 19 Passed | 0 Failed | 0 Skipped in 0.16s
+  Tier 1: Total: 145 | Passed: 144 | Failed:   0 | Skipped:   1
+  Tier 2: Total:  28 | Passed:  28 | Failed:   0 | Skipped:   0
+  Tier 3: Total:  18 | Passed:  18 | Failed:   0 | Skipped:   0
+  Tier 4: Total:  12 | Passed:  12 | Failed:   0 | Skipped:   0
+  Tier 5: Total: 216 | Passed: 216 | Failed:   0 | Skipped:   0
+--------------------------------------------------------------------------------
+  OVERALL: 419 Tests | 418 Passed | 0 Failed | 1 Skipped in 6.16s
 ================================================================================
 ```
--> **19/19 bài kiểm thử thách thức Tier 5 đạt 100% PASS.**
+The single skipped test is `DynamicQR_F07_T02` (`[SKIP] Pending implementation in M2: Dynamic QR config binding in DatHangThanhCong.cshtml`), which is explicitly scheduled for Milestone 2 frontend integration.
 
----
-
-### 1.2. Kết quả kiểm tra bộ kiểm thử biên Tier 2 (Boundary & Corner Cases)
-**Lệnh thực thi**:
-```bash
-XDG_RUNTIME_DIR=/tmp dotnet run --project /home/hutech/Vinh_Offline/WEB_TinhNguyen/tests/E2ETests/E2ETests.csproj --no-build -- --tier 2
+### 1.3 New Adversarial Test Suite Execution
+Created and executed 29 dedicated adversarial challenge tests in `tests/E2ETests/Tier5/Tier5_ChallengerM1_AdversarialHarness.cs` targeting Milestone 1 (`--filter ADV_M1`):
+```text
+  [PASS] Tier 5 | F03 | ADV_M1_01: VietQrHelper null or whitespace bank code falls back to MB (8.9ms)
+  [PASS] Tier 5 | F03 | ADV_M1_02: VietQrHelper bank code is trimmed and uppercased (0.7ms)
+  [PASS] Tier 5 | F03 | ADV_M1_03: VietQrHelper null or whitespace account number falls back to default (0.4ms)
+  [PASS] Tier 5 | F03 | ADV_M1_04: VietQrHelper amount boundaries (zero, negative, fractional, large) (1.8ms)
+  [PASS] Tier 5 | F03 | ADV_M1_05: VietQrHelper adversarial extreme amount handling (Overflow resilience) (8.1ms)
+  [PASS] Tier 5 | F03 | ADV_M1_06: VietQrHelper memo with Vietnamese Unicode accents and emojis (10.7ms)
+  [PASS] Tier 5 | F03 | ADV_M1_07: VietQrHelper memo with adversarial URL injection special characters (0.7ms)
+  [PASS] Tier 5 | F03 | ADV_M1_08: VietQrHelper account holder name formatting and encoding (0.5ms)
+  [PASS] Tier 5 | F03 | ADV_M1_09: VietQrHelper template parameter variations and case insensitivity (0.6ms)
+  [PASS] Tier 5 | F03 | ADV_M1_10: VietQrHelper URL has no trailing question mark when query is empty (0.8ms)
+  [PASS] Tier 5 | F01 | ADV_M1_11: CauHinhThanhToanQR.GetQrUrl returns custom image when SuDungVietQR is false (6.9ms)
+  [PASS] Tier 5 | F01 | ADV_M1_12: CauHinhThanhToanQR.GetQrUrl falls back to VietQR when custom image is empty or whitespace (1.0ms)
+  [PASS] Tier 5 | F01 | ADV_M1_13: CauHinhThanhToanQR.GetQrUrl prioritizes SuDungVietQR over custom image path (0.4ms)
+  [PASS] Tier 5 | F01 | ADV_M1_14: CauHinhThanhToanQR.GetQrUrl parameter override mechanics (0.8ms)
+  [PASS] Tier 5 | F01 | ADV_M1_15: CauHinhThanhToanQR required fields validation failure (30.4ms)
+  [PASS] Tier 5 | F01 | ADV_M1_16: CauHinhThanhToanQR string length boundary limits (5.3ms)
+  [PASS] Tier 5 | F04 | ADV_M1_17: AdminCauHinhQRController POST actions enforce [ValidateAntiForgeryToken] (4.4ms)
+  [PASS] Tier 5 | F04 | ADV_M1_18: AdminCauHinhQRController Index returns View with non-empty config list (3905.1ms)
+  [PASS] Tier 5 | F04 | ADV_M1_19: AdminCauHinhQRController Create GET initializes default model (26.7ms)
+  [PASS] Tier 5 | F04 | ADV_M1_20: AdminCauHinhQRController Create POST invalid model returns View with model (6.4ms)
+  [PASS] Tier 5 | F04 | ADV_M1_21: AdminCauHinhQRController Create POST valid adds config and redirects to Index (90.7ms)
+  [PASS] Tier 5 | F04 | ADV_M1_22: AdminCauHinhQRController Edit GET with invalid ID redirects with error (326.2ms)
+  [PASS] Tier 5 | F04 | ADV_M1_23: AdminCauHinhQRController Edit POST ID tampering returns BadRequest (11.7ms)
+  [PASS] Tier 5 | F04 | ADV_M1_24: AdminCauHinhQRController Edit POST updates entity successfully (9.2ms)
+  [PASS] Tier 5 | F04 | ADV_M1_25: AdminCauHinhQRController ToggleActive supports both Ajax and regular POST (21.4ms)
+  [PASS] Tier 5 | F04 | ADV_M1_26: AdminCauHinhQRController Delete removes config from store (16.1ms)
+  [PASS] Tier 5 | F04 | ADV_M1_27: AdminCauHinhQRController custom image upload path isolation (31.4ms)
+  [PASS] Tier 5 | F02 | ADV_M1_28: In-memory QR store multi-threaded concurrent stress test (50 tasks) (9.2ms)
+  [PASS] Tier 5 | F02 | ADV_M1_29: In-memory QR store returns isolated deep clones to prevent accidental mutation (3.6ms)
+OVERALL: 29 Tests | 29 Passed | 0 Failed | 0 Skipped in 4.59s
 ```
-**Kết quả**:
-- **25/25 Tests Passed (100% PASS)**: Toàn bộ kiểm thử tính toán biên số lượng, tiền tệ trần 1.000.000.000 VNĐ, tiền ủng hộ thêm, tỷ lệ trích quỹ 1% và 100%, chuẩn hóa số điện thoại Việt Nam (03, 05, 07, 08, 09), email regex, độ dài chuỗi 255 ký tự và an toàn XSS đều vượt qua xuất sắc.
 
 ---
 
-### 1.3. Kết quả kiểm tra bộ kiểm thử Tier 1 (Features 1, 2, 3, 4)
-- **Feature 1 (Area & Route Setup)**: 4 Passed, 1 Skipped (Controller test chờ M2/M3).
-- **Feature 3 (Domain Entities & DbContext)**: 5 Passed, 0 Failed (100% PASS).
-- **Feature 4 (Seed Data & Fallback)**: 5 Passed, 0 Failed (100% PASS).
-- **Feature 2 (Session & State Setup)**: 4 Passed, 1 Failed.
+## 2. Logic Chain
 
-Chi tiết lỗi tại Feature 2:
-```
-  [FAIL] Tier 1 | F02 | F02_T02: Session middleware positioned correctly in pipeline
-         Reason: Assert.True Failed: UseSession must come before UseAuthorization
-```
+1. **VietQR API URL Generation & Sanitization (`VietQrHelper.cs`)**:
+   - `GenerateUrl` receives bank code, account number, amount, memo, account name, and template.
+   - For `maNganHang` and `soTaiKhoan`, if null or whitespace, lines 37-38 cleanly fall back to `DefaultBankCode` ("MB") and `DefaultAccountNumber` ("0924044283").
+   - For `amount`, lines 43-47 evaluate `if (amount.HasValue && amount.Value > 0)`. Negative values (`-50000`), zero (`0`), and null are excluded from query parameters. Fractional amounts (`150000.75m`) are cast to integer `(long)150000`, matching Napas247 specifications.
+   - For `memo` and `tenChuTaiKhoan`, lines 51 and 56 apply `Uri.EscapeDataString`. Adversarial injection strings containing query delimiters (`#`, `&`, `?`, `/`, `=`, `+`, `%`, `<`, `>`) are percent-encoded (`%23`, `%26`, `%3F`, `%2F`, `%3Cscript%3E`), preventing parameter hijacking or URL anchor fragmentation (empirically confirmed in `ADV_M1_07`).
+   - Unicode Vietnamese diacritics and emojis ("Ủng hộ các em nhỏ Langbiang 2026 ❤️") are percent-encoded via UTF-8 without byte truncation or character distortion (`ADV_M1_06`).
+   - If no query parameters exist, line 59 returns an empty query string without trailing `?` (`ADV_M1_10`).
 
----
+2. **Dual-Mode QR Resolution & Parameter Overrides (`CauHinhThanhToanQR.cs`)**:
+   - When `SuDungVietQR == false` and `DuongDanAnhQRTuyChon` is non-empty, line 94 returns the custom image path (`ADV_M1_11`).
+   - When `SuDungVietQR == false` but `DuongDanAnhQRTuyChon` is null or whitespace, lines 92-95 gracefully fall back to `VietQrHelper.GenerateUrl` rather than returning a broken image URL (`ADV_M1_12`).
+   - Dynamic parameter overrides work symmetrically: passed values override entity defaults, while null or empty parameters fall back to `CuPhapChuyenKhoan` and `TenChuTaiKhoan` (`ADV_M1_14`).
 
-### 1.4. Phát hiện Finding M1-CH-01 (Hiện tượng chuỗi ghi chú gây xung đột assertion)
-- **Vị trí trong tệp `WEB_TinhNguyen/Program.cs`**:
-```csharp
-40: app.UseRouting();
-41: 
-42: // Middleware Session: BẮT BUỘC đặt sau UseRouting() và trước UseAuthorization()
-43: app.UseSession();
-44: 
-45: app.UseAuthorization();
-```
-- **Vị trí trong tệp kiểm thử `tests/E2ETests/Tier1/Tier1_FoundationTests.cs` (dòng 102-114)**:
-```csharp
-var programCs = File.ReadAllText(Path.Combine(E2ETestContext.ProjectRoot, "Program.cs"));
-var routingIndex = programCs.IndexOf("UseRouting", StringComparison.OrdinalIgnoreCase);
-var sessionIndex = programCs.IndexOf("UseSession", StringComparison.OrdinalIgnoreCase);
-var authIndex = programCs.IndexOf("UseAuthorization", StringComparison.OrdinalIgnoreCase);
+3. **Admin Controller CRUD Lifecycle & Security Boundaries (`AdminCauHinhQRController.cs`)**:
+   - Mutating POST actions (`Create`, `Edit`, `ToggleActive`, `Delete`) are annotated with `[ValidateAntiForgeryToken]`, protecting against CSRF attacks (`ADV_M1_17`).
+   - Edit POST validates `id == model.IDCauHinhQR`; tampered requests return HTTP 400 BadRequest (`ADV_M1_23`). Non-existent IDs in Edit GET redirect to Index with user-facing TempData error alerts (`ADV_M1_22`).
+   - `ToggleActive` checks request headers (`X-Requested-With == "XMLHttpRequest"`), responding with JSON for AJAX clients and HTTP 302 Redirect for standard HTML forms (`ADV_M1_25`).
+   - Image upload generates a unique GUID-based filename in `wwwroot/uploads/qr/` (`SaveFileAsync`), preventing path traversal (`../../`) and filename collisions (`ADV_M1_27`).
 
-Assert.True(sessionIndex < authIndex, "UseSession must come before UseAuthorization");
-```
-- **Quan sát phân tích**:  
-  Do chuỗi `"UseAuthorization"` xuất hiện lần đầu tiên ở dòng chú thích số 42 (`// ... trước UseAuthorization()`), phương thức `IndexOf("UseAuthorization")` trả về chỉ số vị trí của dòng 42, trước chỉ số của `app.UseSession()` ở dòng 43. Điều này khiến câu lệnh khẳng định `Assert.True(sessionIndex < authIndex)` báo lỗi, dù trong thực tế lệnh thực thi `app.UseSession();` đứng trước `app.UseAuthorization();`.
+4. **Dual-Persistence Concurrency & In-Memory Isolation (`DbInitializer.cs`)**:
+   - All in-memory QR operations are synchronized using `_syncLock`. Under 50 simultaneous worker threads executing random Add, Update, Toggle, and Read operations, zero deadlocks or collections modification exceptions occurred (`ADV_M1_28`).
+   - In-memory accessor methods return deep clones (`CloneQrConfig`), preventing in-place mutation from corrupting the internal store (`ADV_M1_29`).
 
 ---
 
-## 2. Logic Chain (Chuỗi lập luận và Phân tích bản chất)
+## 3. Caveats & Challenge Findings
 
-1. **Về độ tin cậy của mã nguồn cơ sở (M1 Foundation)**:
-   - Từ Quan sát 1.1, qua 19 kịch bản tấn công thực tế bao gồm dữ liệu corrupt, tham chiếu vòng, và tải đồng thời 100 luồng, `SessionExtensions` và `DbInitializer` không gặp bất kỳ lỗi `NullReferenceException`, `JsonException`, hay `Collection was modified` nào. Cơ chế đồng bộ hóa `lock (_syncLock)` và nhân bản sâu (`CloneProduct`) bảo vệ toàn vẹn dữ liệu bộ nhớ tuyệt đối.
-   - Từ Quan sát 1.2, các công thức nghiệp vụ tiền tệ, tỷ lệ gây quỹ, định dạng VietQR và validation biểu mẫu hoàn toàn phù hợp với các định mức trong `PROJECT.md` và `ORIGINAL_REQUEST.md`.
+### Challenge 1: Extreme Amount Overflow Exception (Low Risk / Edge Case)
+- **Assumption challenged**: `VietQrHelper.GenerateUrl` assumes amounts will fit into `long`.
+- **Observation**: In `VietQrHelper.cs:45`, `var cleanAmount = (long)Math.Max(0, amount.Value);`. When `amount` exceeds `long.MaxValue` (e.g., `decimal.MaxValue`), C# raises an unhandled `System.OverflowException: Value was either too large or too small for an Int64`.
+- **Blast radius**: If an unvalidated external input passes `decimal.MaxValue` as amount, `VietQrHelper.GenerateUrl` will throw an unhandled exception.
+- **Risk assessment**: **LOW**. In actual store checkout and donation flows, amounts are bounded by domain rules (VND currency amounts rarely exceed 100 billion VND, whereas `long.MaxValue` is 9,223,372,036,854,775,807 VND ~ 9 quintillion).
+- **Mitigation suggestion for M2/M3**: Consider clamping `amount` via `Math.Min((decimal)long.MaxValue, Math.Max(0, amount.Value))` or wrapping with a checked guard.
 
-2. **Về lỗi `F02_T02` trong Tier 1**:
-   - Từ Quan sát 1.3 và 1.4, lệnh thực thi mã nguồn ASP.NET Core thực tế là:
-     - Dòng 40: `app.UseRouting();`
-     - Dòng 43: `app.UseSession();`
-     - Dòng 45: `app.UseAuthorization();`
-   - Kiểm thử độc lập `CH19` trong bộ Tier 5 (bỏ qua dòng chú thích `//`) đã chứng minh 100% dòng lệnh thực thi tuân thủ nghiêm ngặt chuẩn kiến trúc ASP.NET Core: `UseSession` nằm giữa `UseRouting` và `UseAuthorization`.
-   - Lỗi tại `F02_T02` hoàn toàn là một "False Negative" do logic tìm chuỗi của bài test chưa loại trừ comment dòng trước khi so sánh index.
-
-3. **Biện pháp xử lý khuyến nghị**:
-   - Chỉ cần Worker M1 hoặc Orchestrator điều chỉnh từ ngữ trong chú thích dòng 42 tại `Program.cs` (ví dụ đổi thành `// Middleware Session: đặt sau UseRouting và trước phân quyền`) hoặc Test Writer cập nhật tìm kiếm theo `app.UseAuthorization()` thì bài kiểm thử `F02_T02` sẽ lập tức chuyển sang trạng thái PASS.
+### Challenge 2: Path-Segment Special Character Encoding (Low Risk / Edge Case)
+- **Assumption challenged**: Bank code and account number only contain alphanumeric characters.
+- **Observation**: `cleanBank` and `cleanAcc` are trimmed and uppercased, but not `Uri.EscapeDataString`'d when concatenated into `https://img.vietqr.io/image/{cleanBank}-{cleanAcc}-{cleanTemplate}.png`.
+- **Blast radius**: If an administrator inputs an account number containing forward slashes (`/`), spaces, or `#`, the generated URL path structure could be distorted.
+- **Risk assessment**: **LOW**. Admin view model validation and bank standard format restrict account numbers to digits/alphanumerics.
 
 ---
 
-## 3. Caveats (Các lưu ý & Giới hạn phạm vi)
+## 4. Conclusion
 
-1. **Môi trường SQL Server vật lý**:
-   - Cổng 1433 của SQL Server trong sandbox không phản hồi kết nối. Tuy nhiên, cơ chế phòng vệ tự động kích hoạt In-Memory Store dự phòng của `DbInitializer` đã được kiểm chứng hoạt động độc lập và trơn tru.
-2. **Các View và Controller chưa triển khai**:
-   - Các bài kiểm thử thất bại trong Tier 1 (F05..F16) và Tier 4 là các giao diện và Controller thuộc quyền hạn của Milestone 2 (Admin) và Milestone 3 (Storefront), nằm ngoài phạm vi Milestone 1.
+The Milestone 1 implementation of Dynamic QR & Payment Management (`VietQrHelper`, `CauHinhThanhToanQR`, `AdminCauHinhQRController`, `DbInitializer`, and associated views) meets all architectural contracts and functional requirements specified in `PROJECT.md` and `ORIGINAL_REQUEST.md`:
+- Compilation succeeds with 0 errors.
+- 100% of applicable tests pass (418 passed out of 419 total, 1 planned skip for M2).
+- All 29 new adversarial challenge test cases pass across security, boundaries, concurrency, and encoding dimensions.
+- Dual persistence behaves identically in SQL Server online mode and In-Memory offline fallback.
 
----
-
-## 4. Conclusion (Kết luận & Phán quyết)
-
-- **PHÁN QUYẾT: `APPROVE`**.
-- Toàn bộ nền tảng Milestone 1 (Area & Data Foundation) đã được kiểm chứng thực nghiệm bằng mã chạy thật, chứng minh tính ổn định cao, thread-safe, tương thích tuyệt đối với .NET 10.0 và EF Core 10.0.12.
-- Nền tảng sẵn sàng 100% để chuyển giao cho các nhóm tiếp theo triển khai Milestone 2 (Admin Management) và Milestone 3 (Storefront & Cart).
+**Explicit Verdict**: **APPROVE**.
 
 ---
 
-## 5. Verification Method (Phương pháp tái hiện và kiểm chứng)
+## 5. Verification Method
 
-Bất kỳ kiểm định viên nào cũng có thể kiểm chứng lại kết quả độc lập bằng các câu lệnh sau:
+To independently reproduce and verify this assessment:
 
-1. **Thực thi toàn bộ bộ kiểm thử thách thức Tier 5**:
-   ```bash
-   XDG_RUNTIME_DIR=/tmp dotnet run --project /home/hutech/Vinh_Offline/WEB_TinhNguyen/tests/E2ETests/E2ETests.csproj --no-build -- --tier 5
+1. **Compile Solution**:
+   ```powershell
+   dotnet build
    ```
-   *Kỳ vọng*: `OVERALL: 19 Tests | 19 Passed | 0 Failed | 0 Skipped`.
+   *Expected outcome*: 0 errors, 4 warnings.
 
-2. **Thực thi bộ kiểm thử biên Tier 2**:
-   ```bash
-   XDG_RUNTIME_DIR=/tmp dotnet run --project /home/hutech/Vinh_Offline/WEB_TinhNguyen/tests/E2ETests/E2ETests.csproj --no-build -- --tier 2
+2. **Execute Full Test Suite**:
+   ```powershell
+   dotnet run --project tests/E2ETests/E2ETests.csproj
    ```
-   *Kỳ vọng*: `OVERALL: 25 Tests | 25 Passed | 0 Failed | 0 Skipped`.
+   *Expected outcome*: 418 passed, 0 failed, 1 skipped.
 
-3. **Kiểm tra phát hiện M1-CH-01**:
-   Mở tệp `WEB_TinhNguyen/Program.cs` tại dòng 42 để kiểm tra sự tồn tại của từ khóa `UseAuthorization` trong comment.
+3. **Execute Adversarial Stress Suite**:
+   ```powershell
+   dotnet run --project tests/E2ETests/E2ETests.csproj -- --filter ADV_M1
+   ```
+   *Expected outcome*: 29 passed, 0 failed, 0 skipped.

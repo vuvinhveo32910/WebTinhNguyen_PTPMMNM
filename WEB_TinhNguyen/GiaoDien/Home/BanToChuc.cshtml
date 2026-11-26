@@ -261,7 +261,7 @@
                     @Model.SoDo_Nhan
                 </span>
             }
-            <h1 class="org-heading-font text-3xl sm:text-5xl font-black tracking-tight mb-5 text-volunteer-text dark:text-white">
+            <h1 class="org-heading-font text-2xl sm:text-4xl md:text-5xl font-black tracking-tight mb-5 text-volunteer-text dark:text-white">
                 @(string.IsNullOrEmpty(Model?.SoDo_TieuDe) ? (Model?.SangLap_TieuDe ?? "Cơ Cấu Ban Tổ Chức") : Model.SoDo_TieuDe)
             </h1>
 
@@ -291,7 +291,7 @@
 
                     <div class="flex flex-col items-center">
                         <!-- Thẻ ngang Cấp 1 giống hệt ô "BÀ NGUYỄN ĐINH MINH PHƯƠNG" -->
-                        <div class="relative bg-white rounded-2xl px-6 py-6 sm:px-10 sm:py-7 shadow-md max-w-2xl w-full flex flex-col sm:flex-row items-center gap-6 transition duration-300 hover:shadow-xl"
+                        <div class="relative bg-white rounded-2xl p-5 sm:px-10 sm:py-7 shadow-md max-w-2xl w-full flex flex-col sm:flex-row items-center gap-4 sm:gap-6 transition duration-300 hover:shadow-xl"
                              style="border: 1.8px solid @rootColor;">
 
                             <!-- Ảnh tròn bên trái -->
@@ -303,8 +303,8 @@
                                 @if (!string.IsNullOrEmpty(root.LinkFacebook))
                                 {
                                     <a href="@root.LinkFacebook" target="_blank" title="Facebook của @root.HoTen"
-                                       class="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-[#1877F2] text-white flex items-center justify-center shadow-md hover:scale-110 transition">
-                                        <svg class="h-4 w-4 fill-current" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"></path></svg>
+                                       class="absolute bottom-0 right-0 h-10 w-10 min-w-[40px] min-h-[40px] rounded-full bg-[#1877F2] text-white flex items-center justify-center shadow-md hover:scale-110 transition focus:outline-none focus:ring-2 focus:ring-[#1877F2]">
+                                        <svg class="h-4.5 w-4.5 fill-current" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"></path></svg>
                                     </a>
                                 }
                             </div>
@@ -312,7 +312,7 @@
                             <!-- Thông tin bên phải -->
                             <div class="flex-1 text-center">
                                 <!-- Viên thuốc (Pill) nền màu đỏ/cam chứa Họ Tên IN HOA -->
-                                <div class="inline-block px-6 py-1.5 rounded-full text-white font-bold text-sm sm:text-base uppercase tracking-wide shadow-sm"
+                                <div class="inline-block px-4 sm:px-6 py-1 sm:py-1.5 rounded-full text-white font-bold text-xs sm:text-base uppercase tracking-wide shadow-sm max-w-full truncate"
                                      style="background-color: @rootColor;">
                                     @root.HoTen
                                 </div>
@@ -324,7 +324,7 @@
                                     </p>
                                 }
 
-                                <h2 class="mt-2 text-lg sm:text-2xl font-extrabold uppercase tracking-wide"
+                                <h2 class="mt-2 text-base sm:text-2xl font-extrabold uppercase tracking-wide break-words"
                                     style="color: @rootColor;">
                                     @(string.IsNullOrEmpty(root.ChucVuChinh) ? "TRƯỞNG BAN TỔ CHỨC" : root.ChucVuChinh)
                                 </h2>
@@ -411,8 +411,8 @@
                                     @if (!string.IsNullOrEmpty(item.LinkFacebook))
                                     {
                                         <a href="@item.LinkFacebook" target="_blank" title="Facebook của @item.HoTen"
-                                           class="absolute bottom-0 right-0 h-6 w-6 rounded-full bg-[#1877F2] text-white flex items-center justify-center shadow hover:scale-110 transition">
-                                            <svg class="h-3 w-3 fill-current" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"></path></svg>
+                                           class="absolute -bottom-1 -right-1 h-10 w-10 min-w-[40px] min-h-[40px] rounded-full bg-[#1877F2] text-white flex items-center justify-center shadow-md hover:scale-110 transition focus:outline-none focus:ring-2 focus:ring-[#1877F2]">
+                                            <svg class="h-4 w-4 fill-current" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"></path></svg>
                                         </a>
                                     }
                                 </div>
@@ -492,7 +492,7 @@
                 </div>
 
                 <!-- Khung chứa các Thẻ Thành viên Cấp 3 -->
-                <div class="mt-4 lg:mt-0 bg-white/70 backdrop-blur-md rounded-3xl p-6 sm:p-8 shadow-sm"
+                <div class="mt-4 lg:mt-0 bg-white/70 backdrop-blur-md rounded-2xl sm:rounded-3xl p-3 sm:p-6 md:p-8 shadow-sm"
                      style="border: 1.5px solid @(lineColor)40;">
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                         @for (int i = 0; i < cap3Members.Count; i++)
@@ -501,7 +501,7 @@
                             bool isHidden = i >= initialShow;
                             var memColor = defaultPalette[i % defaultPalette.Length];
 
-                            <div class="btc-member-card @(isHidden ? "hidden" : "flex") flex-col justify-between bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition duration-300 hover:-translate-y-0.5"
+                            <div class="btc-member-card @(isHidden ? "hidden" : "flex") flex-col justify-between bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-sm hover:shadow-md transition duration-300 hover:-translate-y-0.5"
                                  style="border-top: 3px solid @memColor; border-left: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb;">
                                 <div class="flex items-center gap-3.5">
                                     <div class="relative flex-shrink-0">
@@ -525,8 +525,8 @@
                                     @if (!string.IsNullOrEmpty(mem.LinkFacebook))
                                     {
                                         <a href="@mem.LinkFacebook" target="_blank" title="Facebook của @mem.HoTen"
-                                           class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-[#1877F2]/10 text-[#1877F2] hover:bg-[#1877F2] hover:text-white transition">
-                                            <svg class="h-3.5 w-3.5 fill-current" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"></path></svg>
+                                           class="flex h-10 w-10 min-w-[40px] min-h-[40px] flex-shrink-0 items-center justify-center rounded-full bg-[#1877F2]/10 text-[#1877F2] hover:bg-[#1877F2] hover:text-white transition focus:outline-none focus:ring-2 focus:ring-[#1877F2]">
+                                            <svg class="h-4 w-4 fill-current" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"></path></svg>
                                         </a>
                                     }
                                 </div>
@@ -538,7 +538,7 @@
                     {
                         <div class="mt-8 text-center">
                             <button type="button" id="btnShowMoreMembers" onclick="toggleMoreMembers()"
-                                    class="rounded-full bg-white px-7 py-2.5 text-xs sm:text-sm font-bold shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                                    class="inline-flex items-center justify-center min-h-[44px] rounded-full bg-white px-7 py-3 text-xs sm:text-sm font-bold shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2"
                                     style="color: @lineColor; border: 1.5px solid @lineColor;">
                                 Xem thêm @(cap3Members.Count - initialShow) thành viên khác ▼
                             </button>
@@ -557,7 +557,7 @@
                 @(Model?.CTA_MoTa ?? "Muốn trở thành một phần của đội ngũ mùa 2026?")
             </p>
             <a href="@(Model?.CTA_LinkNut ?? "/#register")"
-               class="inline-block rounded-full px-8 py-3.5 font-bold text-white shadow-md transition hover:-translate-y-0.5 hover:brightness-110"
+               class="inline-flex items-center justify-center min-h-[44px] rounded-full px-8 py-3.5 font-bold text-white shadow-md transition hover:-translate-y-0.5 hover:brightness-110"
                style="background: linear-gradient(to right, #2e7d32, #7cc34a);">
                 @(Model?.CTA_TextNut ?? "Đăng ký làm tình nguyện viên")
             </a>

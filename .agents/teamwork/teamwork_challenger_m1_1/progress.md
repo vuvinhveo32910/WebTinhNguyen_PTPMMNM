@@ -1,17 +1,18 @@
-# Progress Log - teamwork_challenger_m1_1
+# Progress
 
-Last visited: 2026-11-03T13:07:30Z
+**Status**: Completed Adversarial Verification
+**Last visited**: 2026-11-06T08:26:20Z
 
-## Status
-- [x] Initialized BRIEFING.md and DISPATCH.md
-- [x] Reviewed PROJECT.md, ORIGINAL_REQUEST.md, and worker_m1 handoff.md
-- [x] Inspected source code of M1 components (SessionExtensions, DbInitializer, Models, ApplicationDbContext, Program.cs)
-- [x] Designed empirical stress test scenarios & attack vectors
-- [x] Implemented Tier 5 Adversarial Stress Harness (`tests/E2ETests/Tier5/Tier5_ChallengerM1Harness.cs` - 19 tests)
-- [x] Executed empirical verification tests with `XDG_RUNTIME_DIR=/tmp`:
-  - Tier 5 (Adversarial stress): 19/19 PASSED (100%)
-  - Tier 2 (Boundary & Corner): 25/25 PASSED (100%)
-  - Tier 1 Features 1, 3, 4: 14/14 PASSED (100%)
-  - Tier 1 Feature 2: 4/5 PASSED (1 failure due to comment string collision on line 42 in Program.cs)
-- [x] Identified Finding M1-CH-01 (comment collision triggering test assertion failure)
-- [x] Prepared handoff.md with verdict (APPROVE) and notify orchestrator
+## Plan
+1. [x] Initialize briefing, dispatch, progress
+2. [x] Read `ORIGINAL_REQUEST.md` and `PROJECT.md`
+3. [x] Inspect Milestone 1 code and test files
+4. [x] Run build (`dotnet build`) -> Succeeded (0 errors)
+5. [x] Run existing tests (`dotnet run --project tests/E2ETests/E2ETests.csproj`) -> 381 passed, 0 failed, 1 skipped
+6. [x] Design and execute adversarial stress tests in `Tier5_ChallengerM1_AdversarialHarness.cs` (29 new tests):
+   - [x] VietQrHelper: null/empty bank/account, Unicode accents, special chars (`#`, `&`, `?`, `/`, space, newlines), extreme/negative/zero amounts, long descriptions
+   - [x] CauHinhThanhToanQR: mode switching (VietQR dynamic vs custom image), missing fields fallback, null handling
+   - [x] AdminCauHinhQRController: authorization, CRUD operations, concurrency / active toggle logic, validation
+7. [x] Document findings and evaluate risk
+8. [x] Formulate verdict (APPROVE) and write `handoff.md`
+9. [ ] Send message to parent

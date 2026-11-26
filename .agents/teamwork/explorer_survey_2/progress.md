@@ -1,11 +1,12 @@
-# Progress Tracking — Explorer 2 (Models and DbContext Analyst)
+# Explorer Survey 2 Progress
+Last visited: 2026-11-07T02:25:30Z
 
-- Last visited: 2026-11-05T06:55:00Z
-- Status: COMPLETED
-- Summary of Work:
-  1. Completed thorough codebase survey of the 8 invalid columns: `DuongDanAnhBia`, `DuongDanAnhLinhVat`, `HienThiHieuUng3D`, `HienThiLinhVat`, `KieuChuNoiDung`, `KieuChuTieuDe`, `VeDuAn_DuongDanAnh`, `ViTriLinhVat`.
-  2. Identified all declaring Model/Entity classes (`CauHinhTrangChu`, `CauHinhKyUc`, `CauHinhChuongTrinh`, `CauHinhGayQuy`, `CauHinhBanToChuc`, `CauHinhTinTuc`) and ViewModels.
-  3. Identified root cause: Absence of `[NotMapped]` on these 8 properties in entities, while `[NotMapped]` was placed on legacy aliases (`LinkAnhBia`, `FontTieuDe`, etc.), causing EF Core to project missing columns into SQL `SELECT` queries.
-  4. Identified that `ApplicationDbContext.OnModelCreating` lacks Fluent API mapping for these configuration entities.
-  5. Formulated and verified architectural recommendation: Apply `[NotMapped]` to all 8 properties across all entities, add Fluent API `.Ignore()` in `ApplicationDbContext.OnModelCreating`, and remove them from `ApplicationDbContextModelSnapshot.cs`.
-  6. Generated complete 5-component report at `/home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/explorer_survey_2/handoff.md`.
+- [x] Read DISPATCH and ORIGINAL_REQUEST.md
+- [x] Survey folder structure (Areas/Admin, WEB_TinhNguyen, BoDieuKhien, etc.)
+- [x] Check Program.cs / routing configuration (MapControllerRoute, MapAreaControllerRoute, auth middleware)
+- [x] Inventory all Admin controllers & endpoints (routes, action methods, HTTP verbs, views)
+- [x] Inventory all CRUD actions across all controllers (including any client/admin mutation endpoints)
+- [x] Inspect existing authorization attributes / filters / session checks
+- [x] Investigate existing login/logout views, account controllers, auth cookie/session handling
+- [x] Synthesize findings, logic chain, and recommendations into handoff.md
+- [x] Update BRIEFING.md and notify parent

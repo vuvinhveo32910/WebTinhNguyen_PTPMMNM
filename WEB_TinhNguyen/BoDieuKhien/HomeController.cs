@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
+using WEB_TinhNguyen.Areas.CuaHang.Helpers;
 
 namespace WEB_TinhNguyen.BoDieuKhien
 {
@@ -82,6 +84,32 @@ namespace WEB_TinhNguyen.BoDieuKhien
                 .FirstOrDefaultAsync(c => c.IDChienDich == cd.IDChienDich);
 
             ViewBag.Nam = cd.Nam;
+
+            // Query active donation payment configs (Milestone 2 - Requirement R2)
+            List<CauHinhThanhToanQR> donationQrConfigs = new List<CauHinhThanhToanQR>();
+            try
+            {
+                if (_context.Database.CanConnect())
+                {
+                    donationQrConfigs = await _context.CauHinhThanhToanQRs
+                        .Where(q => q.ApDungChoQuyenGop && q.TrangThaiHoatDong)
+                        .OrderBy(q => q.ThuTu)
+                        .ThenBy(q => q.IDCauHinhQR)
+                        .ToListAsync();
+                }
+            }
+            catch
+            {
+                // Fallback khi database offline
+            }
+
+            if (!donationQrConfigs.Any())
+            {
+                donationQrConfigs = DbInitializer.GetActiveDonationQrConfigs();
+            }
+
+            ViewBag.CauHinhQRDongGop = donationQrConfigs;
+
             return View(config ?? new CauHinhGayQuy());
         }
 

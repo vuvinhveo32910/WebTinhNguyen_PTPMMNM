@@ -1,22 +1,32 @@
-## 2026-11-05T07:15:36Z
-You are Reviewer 2 (Application Runtime and Test Suite Reviewer).
-Your working directory is: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/reviewer_2/
-Write only to your working directory (e.g. progress.md, handoff.md). Do not modify source code.
+## 2026-11-06T12:42:46Z
+You are teamwork_reviewer (Reviewer 2).
+Working directory: D:\web_tinh_nguyen\.agents\teamwork\reviewer_2
 
-Read:
-- /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/ORIGINAL_REQUEST.md
-- /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/orchestrator_1/PROJECT.md
-- /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/worker_1/handoff.md
+MANDATORY FIRST STEP:
+Read the verbatim user request at:
+D:\web_tinh_nguyen\.agents\teamwork\ORIGINAL_REQUEST.md
 
-Review tasks:
-1. Examine project buildability and test suite health:
-   - Run `TMPDIR=/tmp XDG_RUNTIME_DIR=/tmp DOTNET_CLI_HOME=/tmp dotnet build WEB_TinhNguyen.slnx`
-   - Run `TMPDIR=/tmp XDG_RUNTIME_DIR=/tmp DOTNET_CLI_HOME=/tmp HOME=/tmp bash tests/run_e2e_tests.sh --all`
-   - Run `TMPDIR=/tmp XDG_RUNTIME_DIR=/tmp DOTNET_CLI_HOME=/tmp HOME=/tmp dotnet run --no-build --project tests/M1Challenger/M1Challenger.csproj`
-   - Run `TMPDIR=/tmp XDG_RUNTIME_DIR=/tmp DOTNET_CLI_HOME=/tmp HOME=/tmp dotnet run --no-build --project tests/M3Challenger2/M3Challenger2.csproj`
-2. Verify that Razor views (`GiaoDien/`) correctly display and bind without runtime exceptions.
-3. Verify that Controllers (`AdminTrangChuController`, `AdminKyUcController`, etc.) operate without compilation or runtime errors.
-4. Verify that no `SqlException: Invalid column name` can be produced by EF Core.
-5. Provide an explicit verdict in your handoff.md: APPROVE or REQUEST_CHANGES.
-6. Write your handoff report to /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/reviewer_2/handoff.md and update progress.md.
-7. When complete, send a message to parent with your verdict and handoff path.
+CONTEXT & WORKER ARTIFACTS:
+- Project Plan: D:\web_tinh_nguyen\.agents\teamwork\PROJECT.md
+- Worker Changes: D:\web_tinh_nguyen\.agents\teamwork\worker_1\changes.md
+- Worker Handoff: D:\web_tinh_nguyen\.agents\teamwork\worker_1\handoff.md
+
+YOUR MISSION:
+Independently conduct an adversarial and objective review of the work completed by Worker 1.
+1. Inspect the source code changes:
+   - Check all 8 admin endpoints for interface conformance, correct `@Url.Action` usage, area isolation, and absence of malformed URLs.
+   - Verify that `_AdminLayout.cshtml` properly handles all navigation items.
+   - Verify that controllers have robust error handling and don't introduce regressions.
+   - Verify that `Tier1_AdminRoutingTests.cs` thoroughly covers all 8 admin routes and is not a trivial test.
+2. Run build and tests:
+   - Execute `dotnet build "D:\web_tinh_nguyen\WEB_TinhNguyen.slnx"`
+   - Execute `dotnet run --project "D:\web_tinh_nguyen\tests\E2ETests\E2ETests.csproj"`
+   - Verify zero build warnings/errors that violate requirements and all tests pass.
+3. Check Acceptance Criteria from `ORIGINAL_REQUEST.md`.
+4. Issue a clear, explicit verdict: `APPROVE` or `REQUEST_CHANGES`.
+
+OUTPUT REQUIREMENTS:
+- Write your evaluation report to `D:\web_tinh_nguyen\.agents\teamwork\reviewer_2\review.md`
+- Write your self-contained handoff report with explicit verdict (`APPROVE` or `REQUEST_CHANGES`) to `D:\web_tinh_nguyen\.agents\teamwork\reviewer_2\handoff.md`
+- Update `D:\web_tinh_nguyen\.agents\teamwork\reviewer_2\progress.md`
+- Send completion message to orchestrator when finished.

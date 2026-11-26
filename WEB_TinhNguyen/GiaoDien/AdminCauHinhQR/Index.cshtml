@@ -1,0 +1,290 @@
+@model IEnumerable<WEB_TinhNguyen.MoHinh.CauHinhThanhToanQR>
+@{
+    ViewData["Title"] = "Cấu hình Thanh toán QR & VietQR";
+    Layout = "~/GiaoDien/Shared/_AdminLayout.cshtml";
+}
+
+<div class="max-w-7xl mx-auto my-6 px-4 sm:px-6 lg:px-8 space-y-6">
+
+    <!-- BREADCRUMB & HEADER -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-200 pb-5">
+        <div>
+            <nav class="flex items-center gap-2 text-xs text-gray-500 mb-2 font-medium">
+                <a href="@Url.Action("Index", "Admin")" class="hover:text-emerald-600 transition flex items-center gap-1">
+                    <i class="fas fa-home"></i> Quản trị
+                </a>
+                <span>/</span>
+                <span class="text-emerald-700 font-semibold">Cấu hình Thanh toán QR</span>
+            </nav>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
+                <span class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-lg shadow-sm">
+                    <i class="fas fa-qrcode"></i>
+                </span>
+                <span>Quản lý Cấu hình Thanh toán QR</span>
+            </h1>
+            <p class="mt-1 text-sm text-gray-500">
+                Quản lý động danh sách tài khoản ngân hàng, mã VietQR tự động hoặc ảnh quét tùy chọn áp dụng cho Cửa hàng và Kênh quyên góp.
+            </p>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <a href="@Url.Action("Create", "AdminCauHinhQR")"
+               class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold rounded-xl text-white bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-700 hover:to-green-800 shadow-md hover:shadow-lg transition">
+                <i class="fas fa-plus"></i>
+                <span>Thêm cấu hình QR mới</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="flex items-center p-4 text-sm text-emerald-800 border border-emerald-200 rounded-2xl bg-emerald-50 shadow-sm transition">
+            <i class="fas fa-check-circle text-emerald-600 text-lg mr-3"></i>
+            <div><span class="font-bold">Thành công!</span> @TempData["Success"]</div>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="flex items-center p-4 text-sm text-red-800 border border-red-200 rounded-2xl bg-red-50 shadow-sm transition">
+            <i class="fas fa-exclamation-circle text-red-600 text-lg mr-3"></i>
+            <div><span class="font-bold">Lỗi!</span> @TempData["Error"]</div>
+        </div>
+    }
+
+    <!-- STATS OVERVIEW CARDS -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shrink-0">
+                <i class="fas fa-list-check"></i>
+            </div>
+            <div>
+                <span class="text-xs text-gray-400 uppercase font-semibold">Tổng cấu hình</span>
+                <p class="text-xl font-bold text-gray-800">@Model.Count()</p>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl shrink-0">
+                <i class="fas fa-store"></i>
+            </div>
+            <div>
+                <span class="text-xs text-gray-400 uppercase font-semibold">Dùng cho Cửa hàng</span>
+                <p class="text-xl font-bold text-gray-800">@Model.Count(q => q.ApDungChoCuaHang && q.TrangThaiHoatDong)</p>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl shrink-0">
+                <i class="fas fa-hand-holding-heart"></i>
+            </div>
+            <div>
+                <span class="text-xs text-gray-400 uppercase font-semibold">Dùng cho Quyên góp</span>
+                <p class="text-xl font-bold text-gray-800">@Model.Count(q => q.ApDungChoQuyenGop && q.TrangThaiHoatDong)</p>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl shrink-0">
+                <i class="fas fa-bolt"></i>
+            </div>
+            <div>
+                <span class="text-xs text-gray-400 uppercase font-semibold">Đang hoạt động</span>
+                <p class="text-xl font-bold text-gray-800">@Model.Count(q => q.TrangThaiHoatDong)</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN TABLE CARD -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex items-center gap-2">
+                <span class="font-bold text-gray-800">Danh sách tài khoản & Mã QR</span>
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">@Model.Count() mục</span>
+            </div>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="p-12 text-center text-gray-400 space-y-4">
+                <i class="fas fa-qrcode text-5xl text-gray-300"></i>
+                <p class="text-base text-gray-600 font-medium">Chưa có cấu hình thanh toán QR nào.</p>
+                <a href="@Url.Action("Create", "AdminCauHinhQR")" class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-semibold hover:bg-emerald-700 transition">
+                    <i class="fas fa-plus"></i> Thêm cấu hình đầu tiên
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50/80">
+                        <tr>
+                            <th class="py-3.5 px-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-16">Thứ tự</th>
+                            <th class="py-3.5 px-6 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Cấu hình & Áp dụng</th>
+                            <th class="py-3.5 px-6 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tài khoản thụ hưởng</th>
+                            <th class="py-3.5 px-6 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Xem trước QR</th>
+                            <th class="py-3.5 px-6 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                            <th class="py-3.5 px-6 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 bg-white">
+                        @foreach (var item in Model)
+                        {
+                            var qrPreviewUrl = item.GetQrUrl(50000, "TEST-QR", item.TenChuTaiKhoan);
+
+                            <tr class="hover:bg-gray-50/80 transition">
+                                <td class="py-4 px-4 whitespace-nowrap text-center">
+                                    <span class="inline-block px-2.5 py-1 rounded-lg bg-gray-100 text-gray-700 font-mono font-bold text-xs">
+                                        #@item.ThuTu
+                                    </span>
+                                </td>
+                                <td class="py-4 px-6">
+                                    <div class="font-bold text-gray-900 text-sm">@item.TenCauHinh</div>
+                                    <div class="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                                        @if (item.ApDungChoCuaHang)
+                                        {
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/60">
+                                                <i class="fas fa-shopping-bag text-[10px]"></i> Cửa hàng
+                                            </span>
+                                        }
+                                        @if (item.ApDungChoQuyenGop)
+                                        {
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                                                <i class="fas fa-heart text-[10px]"></i> Quyên góp
+                                            </span>
+                                        }
+                                        @if (!string.IsNullOrEmpty(item.CuPhapChuyenKhoan))
+                                        {
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-mono bg-amber-50 text-amber-700 border border-amber-200/60" title="Cú pháp chuyển khoản">
+                                                <i class="fas fa-comment-dots text-[10px]"></i> @item.CuPhapChuyenKhoan
+                                            </span>
+                                        }
+                                    </div>
+                                </td>
+                                <td class="py-4 px-6">
+                                    <div class="font-bold text-gray-900 text-sm flex items-center gap-2">
+                                        <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-xs font-mono font-bold">@item.MaNganHang</span>
+                                        <span>@item.TenNganHang</span>
+                                    </div>
+                                    <div class="mt-1 flex items-center gap-2">
+                                        <span class="text-xs text-gray-500">STK:</span>
+                                        <span class="font-mono font-extrabold text-emerald-700 text-sm">@item.SoTaiKhoan</span>
+                                    </div>
+                                    <div class="text-xs text-gray-600 uppercase font-medium">
+                                        Chủ TK: <span class="font-bold text-gray-800">@item.TenChuTaiKhoan</span>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-6 whitespace-nowrap text-center">
+                                    <div class="inline-flex flex-col items-center">
+                                        <button type="button"
+                                                onclick="showQrModal('@qrPreviewUrl', '@item.TenCauHinh', '@item.TenNganHang', '@item.SoTaiKhoan', '@item.TenChuTaiKhoan')"
+                                                class="group relative inline-block p-1 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-emerald-500 transition">
+                                            <img src="@qrPreviewUrl" alt="Mã QR @item.TenCauHinh" class="w-14 h-14 object-contain rounded-lg" loading="lazy" />
+                                            <span class="absolute inset-0 bg-black/40 rounded-xl opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs transition font-semibold">
+                                                <i class="fas fa-search-plus"></i>
+                                            </span>
+                                        </button>
+                                        <span class="text-[10px] text-gray-400 mt-1 font-mono">
+                                            @(item.SuDungVietQR ? $"VietQR ({item.MauVietQR})" : "Ảnh tùy chọn")
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-6 whitespace-nowrap text-center">
+                                    <form asp-action="ToggleActive" asp-route-id="@item.IDCauHinhQR" method="post" class="inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit"
+                                                class="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-full text-xs font-semibold transition cursor-pointer @(item.TrangThaiHoatDong ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" : "bg-gray-100 text-gray-500 hover:bg-gray-200")"
+                                                title="Nhấn để bật/tắt">
+                                            <span class="w-2 h-2 rounded-full @(item.TrangThaiHoatDong ? "bg-emerald-500 animate-pulse" : "bg-gray-400")"></span>
+                                            <span>@(item.TrangThaiHoatDong ? "Hoạt động" : "Tạm khóa")</span>
+                                        </button>
+                                    </form>
+                                </td>
+                                <td class="py-4 px-6 whitespace-nowrap text-center">
+                                    <div class="inline-flex items-center gap-2">
+                                        <a href="@Url.Action("Edit", "AdminCauHinhQR", new { id = item.IDCauHinhQR })"
+                                           class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-600 hover:text-white rounded-lg transition"
+                                           title="Chỉnh sửa cấu hình">
+                                            <i class="fas fa-edit"></i>
+                                            <span>Sửa</span>
+                                        </a>
+
+                                        <form asp-action="Delete" asp-route-id="@item.IDCauHinhQR" method="post" class="inline"
+                                              onsubmit="return confirm('Bạn có chắc chắn muốn xóa cấu hình thanh toán này không?');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit"
+                                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-600 hover:text-white rounded-lg transition"
+                                                    title="Xóa cấu hình">
+                                                <i class="fas fa-trash-alt"></i>
+                                                <span>Xóa</span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+</div>
+
+<!-- QR PREVIEW MODAL -->
+<div id="qrModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-all">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl relative animate-scaleUp">
+        <button type="button" onclick="closeQrModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+            <i class="fas fa-times"></i>
+        </button>
+
+        <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl mx-auto">
+            <i class="fas fa-qrcode"></i>
+        </div>
+
+        <h3 id="modalTitle" class="text-lg font-bold text-gray-900">Xem trước mã QR</h3>
+
+        <div class="bg-gradient-to-b from-gray-50 to-white p-4 rounded-2xl border border-gray-100 inline-block shadow-inner">
+            <img id="modalQrImg" src="" alt="Mã QR" class="w-56 h-56 object-contain mx-auto rounded-xl" />
+        </div>
+
+        <div class="bg-gray-50 p-3.5 rounded-xl text-left text-xs space-y-1.5">
+            <div><span class="text-gray-500">Ngân hàng:</span> <strong id="modalBank" class="text-gray-800"></strong></div>
+            <div><span class="text-gray-500">Số tài khoản:</span> <strong id="modalAcc" class="text-emerald-700 font-mono font-bold text-sm"></strong></div>
+            <div><span class="text-gray-500">Chủ tài khoản:</span> <strong id="modalHolder" class="text-gray-800 uppercase"></strong></div>
+        </div>
+
+        <button type="button" onclick="closeQrModal()" class="w-full py-2.5 rounded-xl bg-gray-100 text-gray-700 font-bold text-sm hover:bg-gray-200 transition">
+            Đóng
+        </button>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function showQrModal(imgUrl, title, bank, acc, holder) {
+            document.getElementById('modalQrImg').src = imgUrl;
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalBank').innerText = bank;
+            document.getElementById('modalAcc').innerText = acc;
+            document.getElementById('modalHolder').innerText = holder;
+
+            const modal = document.getElementById('qrModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeQrModal() {
+            const modal = document.getElementById('qrModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // Đóng khi click ngoài backdrop
+        document.getElementById('qrModal').addEventListener('click', function (e) {
+            if (e.target === this) closeQrModal();
+        });
+    </script>
+}

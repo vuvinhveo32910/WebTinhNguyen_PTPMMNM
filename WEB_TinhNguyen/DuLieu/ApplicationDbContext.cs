@@ -45,6 +45,17 @@ namespace WEB_TinhNguyen.DuLieu
         public DbSet<DonHangGayQuy> DonHangGayQuys { get; set; }
         public DbSet<ChiTietDonHangGayQuy> ChiTietDonHangGayQuys { get; set; }
 
+        // =========================================================================
+        // PHÂN HỆ: CẤU HÌNH THANH TOÁN QR & VIETQR ĐỘNG
+        // =========================================================================
+        public DbSet<CauHinhThanhToanQR> CauHinhThanhToanQRs { get; set; }
+
+        // =========================================================================
+        // PHÂN HỆ: QUẢN TRỊ VIÊN & PHÂN QUYỀN (ADMIN AUTHENTICATION & AUTHORIZATION)
+        // =========================================================================
+        public DbSet<TaiKhoanAdmin> TaiKhoanAdmins { get; set; }
+        public DbSet<TaiKhoanAdmin> TaiKhoanAdmin { get => TaiKhoanAdmins; set => TaiKhoanAdmins = value; }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);
@@ -204,6 +215,29 @@ namespace WEB_TinhNguyen.DuLieu
                       .WithMany(p => p.ChiTietDonHangs)
                       .HasForeignKey(d => d.IDSanPham)
                       .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // Cấu hình bảng CauHinhThanhToanQR
+            modelBuilder.Entity<CauHinhThanhToanQR>(entity =>
+            {
+                entity.ToTable("CauHinhThanhToanQR");
+            });
+
+            // Cấu hình bảng TaiKhoanAdmin
+            modelBuilder.Entity<TaiKhoanAdmin>(entity =>
+            {
+                entity.ToTable("TaiKhoanAdmin");
+                entity.HasKey(e => e.IDTaiKhoan);
+                entity.Property(e => e.IDTaiKhoan).ValueGeneratedOnAdd();
+                entity.HasIndex(e => e.TenDangNhap).IsUnique();
+                entity.Property(e => e.TenDangNhap).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.MatKhauHash).IsRequired().HasMaxLength(500);
+                entity.Property(e => e.MuoiBaoMat).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.HoTen).HasMaxLength(150);
+                entity.Property(e => e.Email).HasMaxLength(150);
+                entity.Property(e => e.VaiTro).IsRequired().HasMaxLength(50).HasDefaultValue("Admin");
+                entity.Property(e => e.PhanQuyen).HasDefaultValue("ALL");
+                entity.Property(e => e.TrangThaiHoatDong).HasDefaultValue(true);
             });
         }
     }

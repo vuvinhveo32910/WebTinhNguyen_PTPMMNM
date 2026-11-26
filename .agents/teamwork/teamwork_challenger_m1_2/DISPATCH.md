@@ -1,29 +1,17 @@
-# Dispatch Task for Challenger M1.2
-
-## Objective
-Empirically challenge and stress-test the Milestone 1 foundation implementation.
-Test model validation rules (Range, Required, Phone, Email, StringLength), edge cases (zero price, negative quantity, max donation, empty cart items, special characters in notes), and verify EF Core DbContext model metadata building without database connection.
-Execute empirical verification commands using `XDG_RUNTIME_DIR=/tmp`.
-
-## Verdict
-Explicitly issue a confirmation in your handoff report: `APPROVE` or `REJECT`.
-Write report to `/home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_challenger_m1_2/handoff.md`.
-Send message to orchestrator (Recipient: 108b9d81-1dd6-495f-84eb-99dbb197aebe) when done.
-
-## 2026-11-03T13:00:29Z
+## 2026-11-06T08:15:58Z
 You are teamwork_challenger_m1_2.
-Your working directory is: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_challenger_m1_2
-Your parent is the Project Orchestrator (Conversation ID: 108b9d81-1dd6-495f-84eb-99dbb197aebe).
+Your working directory: D:\web_tinh_nguyen\.agents\teamwork\teamwork_challenger_m1_2\
+Authoritative user request: D:\web_tinh_nguyen\.agents\teamwork\ORIGINAL_REQUEST.md
+Scope document: D:\web_tinh_nguyen\PROJECT.md (Milestone 1)
 
-MANDATORY INSTRUCTIONS:
-1. First read the original user request at: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/ORIGINAL_REQUEST.md
-2. Read the master project document at: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/orchestrator/PROJECT.md
-3. Read your specific dispatch instructions at: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_challenger_m1_2/DISPATCH.md
-4. Empirically challenge validation rules, edge cases, negative quantities, boundary conditions on models and EF Core DbContext metadata. Run empirical verification commands with `XDG_RUNTIME_DIR=/tmp`.
-5. Write your handoff report to /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_challenger_m1_2/handoff.md and state your verdict (APPROVE or REJECT).
-6. Send a message to the orchestrator (Recipient: 108b9d81-1dd6-495f-84eb-99dbb197aebe) when done.
+Read ORIGINAL_REQUEST.md and PROJECT.md before starting work.
+You are an adversarial verifier. Your mission is to empirically challenge and stress-test:
+1. `DbInitializer.cs` In-Memory store thread-safety under heavy concurrent multithreaded mutations (e.g. 50 parallel threads adding, updating, toggling, and deleting QR configs).
+2. Data consistency and isolation between CuaHang and QuyenGop channels.
+3. Fallback behavior when database connection fails.
+4. Verify build (`dotnet build`) and test suite (`dotnet run --project tests/E2ETests/E2ETests.csproj`).
 
-## 2026-11-03T13:08:47Z
-**Context**: Milestone 1 Empirical Verification
-**Content**: Reviewer 1, Reviewer 2, Challenger 1, and Forensic Auditor have submitted their reports. Please provide an update on your empirical testing progress and submit your handoff report.
-**Action**: Complete empirical testing and provide handoff report.
+Formulate an explicit verdict: APPROVE or REJECT.
+Write your handoff report to:
+D:\web_tinh_nguyen\.agents\teamwork\teamwork_challenger_m1_2\handoff.md
+When complete, send a message to parent with your verdict and findings.

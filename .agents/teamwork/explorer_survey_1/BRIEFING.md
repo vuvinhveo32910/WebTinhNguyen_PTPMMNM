@@ -1,45 +1,49 @@
-# BRIEFING — 2026-11-05T06:58:30Z
+# BRIEFING — 2026-11-07T02:23:30Z
 
 ## Mission
-Investigate database schema, appsettings, DbContext, and SQL scripts to determine tables and columns involved with the 8 invalid column errors.
+Comprehensive survey of the existing codebase at D:\web_tinh_nguyen (tech stack, project structure, dependencies, app configuration, auth setup, build status) to inform Admin Auth and feature implementation.
 
 ## 🔒 My Identity
 - Archetype: explorer
-- Roles: Database and Schema Researcher
-- Working directory: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/explorer_survey_1
-- Original parent: 13941881-5ddb-4ef5-85c6-23bd414f7662
-- Milestone: Database Schema & Entity Discrepancy Survey
+- Roles: Architecture & Tech Stack Explorer
+- Working directory: D:\web_tinh_nguyen\.agents\teamwork\explorer_survey_1
+- Original parent: 8cd06411-5097-4e95-b532-893861716fb8
+- Milestone: Survey & Architecture Discovery
 
 ## 🔒 Key Constraints
-- Read-only investigation — do NOT implement
-- Write only to working directory (/home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/explorer_survey_1/)
-- Never write or modify source code
+- Read-only investigation — do NOT implement or modify source code
+- Files for content delivery, messages for coordination
+- Handoff report in handoff.md following 5-component format
 
 ## Current Parent
-- Conversation ID: 13941881-5ddb-4ef5-85c6-23bd414f7662
-- Updated: 2026-11-05T06:55:52Z
+- Conversation ID: 8cd06411-5097-4e95-b532-893861716fb8
+- Updated: 2026-11-07T02:23:30Z
 
 ## Investigation State
 - **Explored paths**:
-  - `SQLQuery1.sql` (Baseline DB schema)
-  - `WEB_TinhNguyen/Migrations/` (All 14 EF Core migrations including `20261104000000_XoaCotMauVaVietHoaTenBangCot.cs`)
-  - `WEB_TinhNguyen/MoHinh/Entities.cs` (C# Entity definitions)
-  - `WEB_TinhNguyen/DuLieu/ApplicationDbContext.cs` (DbContext model & mapping)
-  - `WEB_TinhNguyen/GiaoDien/Shared/_Layout.cshtml`, `Areas/CuaHang/Views/Shared/_CuaHangLayout.cshtml`, `BoDieuKhien/HomeController.cs` (LINQ query entry points)
-  - `tests/` test suites (`E2ETests`, `M1Challenger`, `M3Challenger2`)
+  - `ORIGINAL_REQUEST.md`, `PROJECT.md`, `TEST_INFRA.md`, `TEST_READY.md`, `SQLQuery1.sql`
+  - `WEB_TinhNguyen.slnx`, `WEB_TinhNguyen/WEB_TinhNguyen.csproj`, `package.json`
+  - `WEB_TinhNguyen/Program.cs`, `appsettings.json`, `appsettings.Development.json`
+  - `WEB_TinhNguyen/DuLieu/ApplicationDbContext.cs`, `WEB_TinhNguyen/MoHinh/Entities.cs`
+  - `WEB_TinhNguyen/Areas/CuaHang/Helpers/DbInitializer.cs`
+  - Controllers in `WEB_TinhNguyen/BoDieuKhien/` and `WEB_TinhNguyen/Areas/CuaHang/Controllers/`
+  - Views in `WEB_TinhNguyen/GiaoDien/` and `WEB_TinhNguyen/Areas/CuaHang/Views/`
+  - `tests/E2ETests/`, `tests/M1Challenger/`, `tests/M3Challenger2/`
 - **Key findings**:
-  - All 8 invalid column names (`DuongDanAnhBia`, `DuongDanAnhLinhVat`, `HienThiHieuUng3D`, `HienThiLinhVat`, `KieuChuNoiDung`, `KieuChuTieuDe`, `VeDuAn_DuongDanAnh`, `ViTriLinhVat`) belong to table `CauHinhTrangChu`.
-  - The actual columns existing in the database are: `LinkAnhBia`, `LinkAnhMascot`, `HienThiCanvas3D`, `HienThiMascot`, `FontNoiDung`, `FontTieuDe`, `VeDuAn_LinkAnh`, `ViTriMascot`.
-  - Migration `20261104000000_XoaCotMauVaVietHoaTenBangCot` was written to rename them, but was never applied to the SQL database.
-  - In `Entities.cs`, the actual DB columns were marked `[NotMapped]` and new column names were mapped without `[Column]`, causing EF Core to emit `SqlException: Invalid column name`.
-- **Unexplored areas**: None within the survey scope.
+  - Tech Stack: ASP.NET Core .NET 10.0 (`net10.0`), EF Core 10.0.12, Razor View Engine, Tailwind CSS 3.4.3.
+  - Auth Status: Completely missing. No Cookie Auth, No Identity, No JWT, No `app.UseAuthentication()`, zero `[Authorize]` attributes.
+  - User/Admin Model: None exists in DB or code.
+  - Pipeline Ordering Contract: `UseRouting()` -> `UseSession()` -> `UseAuthorization()`. `CH19` verifies this strictly. `UseAuthentication()` must be inserted between `UseSession()` and `UseAuthorization()`.
+  - Dual-Mode Persistence: SQL Server raw idempotent DDL + In-Memory fallback store in `DbInitializer.cs`.
+  - Critical Test Constraints: `E2ETests` (477 passing tests); `M3Challenger2` asserts SHA-256 hashes of 12 views under `Areas/CuaHang/Views/` (must not touch these views!).
+  - Build Status: `dotnet build` succeeds (0 errors, 47 warnings).
+- **Unexplored areas**: None. Codebase survey complete.
 
 ## Key Decisions Made
-- Completed root cause analysis and mapped the 8 invalid columns to existing DB table and column names.
-- Documented mapping matrix and fix recommendations in handoff.md.
+- Recommend Cookie Authentication (`CookieAuthenticationDefaults.AuthenticationScheme`) with custom `TaiKhoanAdmin` entity, PBKDF2 / SHA-256 password hashing with salt, and dual-mode persistence (SQL Server raw DDL + In-Memory store).
+- Recommend protecting all admin controllers via `[Authorize]` and mapping `/admin/login` / `/admin/logout` in `AdminController.cs`.
 
 ## Artifact Index
-- DISPATCH.md — Incoming dispatch messages
-- BRIEFING.md — Persistent context & state
-- progress.md — Liveness heartbeat & task progress
-- handoff.md — Final 5-component handoff report
+- handoff.md — Comprehensive Survey Report
+- progress.md — Liveness & step tracking
+- DISPATCH.md — Task assignment log

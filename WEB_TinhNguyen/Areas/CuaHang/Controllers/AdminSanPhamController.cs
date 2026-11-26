@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -10,6 +11,8 @@ using Microsoft.EntityFrameworkCore;
 using WEB_TinhNguyen.DuLieu;
 using WEB_TinhNguyen.Areas.CuaHang.Models;
 using WEB_TinhNguyen.Areas.CuaHang.Helpers;
+using WEB_TinhNguyen.BoDieuKhien;
+using WEB_TinhNguyen.MoHinh;
 
 namespace WEB_TinhNguyen.Areas.CuaHang.Controllers
 {
@@ -19,6 +22,8 @@ namespace WEB_TinhNguyen.Areas.CuaHang.Controllers
     /// bảo vệ dữ liệu với Anti-Forgery Token và tự động fallback sang In-Memory Store khi chạy offline.
     /// </summary>
     [Area("CuaHang")]
+    [Authorize]
+    [PhanQuyenAdmin(QuyenAdmin.SanPham)]
     public class AdminSanPhamController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -30,12 +35,15 @@ namespace WEB_TinhNguyen.Areas.CuaHang.Controllers
             _env = env;
         }
 
+        private bool BiChanQuyen() => User?.Identity?.IsAuthenticated == true && !User.CoQuyen(QuyenAdmin.SanPham);
+
         // =========================================================================
         // 1. DANH SÁCH SẢN PHẨM (INDEX)
         // =========================================================================
         [HttpGet]
         public async Task<IActionResult> Index()
         {
+            if (BiChanQuyen()) return StatusCode(StatusCodes.Status403Forbidden);
             List<SanPhamGayQuy> products;
 
             try
@@ -84,6 +92,7 @@ namespace WEB_TinhNguyen.Areas.CuaHang.Controllers
         [HttpGet]
         public IActionResult Create()
         {
+            if (BiChanQuyen()) return StatusCode(StatusCodes.Status403Forbidden);
             var model = new SanPhamCrudViewModel
             {
                 GiaBan = 0,
@@ -101,6 +110,7 @@ namespace WEB_TinhNguyen.Areas.CuaHang.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(SanPhamCrudViewModel model)
         {
+            if (BiChanQuyen()) return StatusCode(StatusCodes.Status403Forbidden);
             // Kiểm tra định dạng tệp tải lên nếu có
             if (model.FileHinhAnh != null && model.FileHinhAnh.Length > 0)
             {
@@ -168,6 +178,7 @@ namespace WEB_TinhNguyen.Areas.CuaHang.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
+            if (BiChanQuyen()) return StatusCode(StatusCodes.Status403Forbidden);
             if (id <= 0)
             {
                 TempData["Error"] = "Mã sản phẩm không hợp lệ.";
@@ -208,6 +219,7 @@ namespace WEB_TinhNguyen.Areas.CuaHang.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, SanPhamCrudViewModel model)
         {
+            if (BiChanQuyen()) return StatusCode(StatusCodes.Status403Forbidden);
             if (id != model.IDSanPham)
             {
                 TempData["Error"] = "Mã sản phẩm không hợp lệ hoặc đã bị thay đổi.";
@@ -296,6 +308,7 @@ namespace WEB_TinhNguyen.Areas.CuaHang.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
+            if (BiChanQuyen()) return StatusCode(StatusCodes.Status403Forbidden);
             if (id <= 0)
             {
                 TempData["Error"] = "Mã sản phẩm không hợp lệ.";

@@ -1,131 +1,152 @@
-# BÁO CÁO KIỂM THỬ THÁCH THỨC THỰC NGHIỆM MILESTONE 1 (EMPIRICAL CHALLENGER REPORT)
+# Adversarial Challenger Handoff Report: Milestone 1 Verification
 
-**Người thực hiện**: `teamwork_challenger_m1_2`  
-**Vai trò**: critic, specialist (Empirical Challenger)  
-**Thư mục làm việc**: `/home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_challenger_m1_2`  
-**Người nhận**: Project Orchestrator (`108b9d81-1dd6-495f-84eb-99dbb197aebe`)  
-**Thời gian**: 2026-11-03  
-**Dự án**: HỆ THỐNG CỬA HÀNG SẢN PHẨM GÂY QUỸ TÌNH NGUYỆN (WEB_TinhNguyen, .NET 10.0, EF Core 10.0.12)  
-**Phán quyết (Verdict)**: **`APPROVE`**
+**Agent**: `teamwork_challenger_m1_2`  
+**Role**: Empirical Challenger (critic, specialist)  
+**Working Directory**: `D:\web_tinh_nguyen\.agents\teamwork\teamwork_challenger_m1_2\`  
+**Date**: 2026-11-06  
+**Verdict**: **APPROVE**  
 
 ---
 
-## 1. Observation (Các quan sát thực nghiệm trực tiếp)
+## 1. Observation
 
-1. **Biên dịch và thực thi bộ kiểm thử thách thức Tier 5**:
-   - Tệp kiểm thử được triển khai: `/home/hutech/Vinh_Offline/WEB_TinhNguyen/tests/E2ETests/Tier5/Tier5_ChallengerTests.cs` (gồm 47 ca kiểm thử chuyên sâu C01-C47 bổ sung cho các ca CH01-CH19 của Challenger 1, tổng cộng 66 ca kiểm thử Tier 5).
-   - Lệnh thực thi thực nghiệm:
-     ```bash
-     XDG_RUNTIME_DIR=/tmp dotnet run --no-restore --project /home/hutech/Vinh_Offline/WEB_TinhNguyen/tests/E2ETests/E2ETests.csproj -- --tier 5 --verbose
-     ```
-   - Kết quả đầu ra nguyên văn:
-     ```
-     ================================================================================
-         WEB_TinhNguyen Volunteer Fundraising E2E Test Suite (Tiers 1-4)
-     ================================================================================
-     Configuration: Tier Filter=[5], Feature=[ALL], Keyword=[NONE]
-     ...
-     ================================================================================
-                                   TEST EXECUTION SUMMARY
-     ================================================================================
-     --------------------------------------------------------------------------------
-       OVERALL: 66 Tests | 66 Passed | 0 Failed | 0 Skipped in 1.74s
-     ================================================================================
-     ```
-     Toàn bộ 66/66 kịch bản kiểm thử biên và stress test đều **ĐẠT (PASS 100%)**.
+### 1.1 Empirical Verification Test Suite Construction
+To empirically challenge and verify the Milestone 1 Dynamic QR and payment persistence implementations without altering production code, a dedicated stress test harness was implemented in:
+- `tests/E2ETests/Tier5/Tier5_ChallengerM1_2_DynamicQrStressHarness.cs`
 
-2. **Kiểm thử DataAnnotations & Quy tắc Xác thực Mô hình (Validator.TryValidateObject)**:
-   - **`SanPhamGayQuy`**:
-     - Tên rỗng/null: Bị từ chối bởi `[Required]`, báo lỗi `TenSanPham`.
-     - Giá bán âm (-1 VNĐ): Bị từ chối bởi `[Range(0, 1000000000)]`.
-     - Giá bán 0 VNĐ: Được chấp nhận (phục vụ quà tặng tri ân gây quỹ).
-     - Biên giá bán cực đại (1.000.000.000 VNĐ): Chấp nhận tại ngưỡng 1 tỷ, từ chối khi vượt trần (1.000.000.001 VNĐ).
-     - Giá niêm yết cũ âm (-5.000 VNĐ): Bị từ chối bởi `[Range]`.
-     - Tỷ lệ đóng góp quỹ `PhanTramDongGop`: 0% bị từ chối, 1% đạt, 100% đạt, 101% bị từ chối, -10% bị từ chối.
-     - Số lượng tồn kho `SoLuongTon`: -1 bị từ chối, 0 đạt, 1.000.000 đạt, 1.000.001 bị từ chối.
-     - Giới hạn độ dài chuỗi: `MoTaNgan` > 500 ký tự bị từ chối; `ThongDiepGayQuy` > 500 ký tự bị từ chối; `LinkHinhAnh` > 1000 ký tự bị từ chối.
-     - Thuộc tính `[NotMapped]`: `ConHang` trả về `false` khi `SoLuongTon == 0`, `true` khi `> 0`; `TienDongGopTrenMoiSp` tính chính xác `GiaBan * PhanTramDongGop / 100`.
-   - **`SanPhamCrudViewModel`**:
-     - Giá âm hoặc tồn kho âm bị từ chối.
-     - `ToEntity()`: Tự động `Trim()` chuỗi tên, mô tả, thông điệp; tự điền danh mục mặc định "Quà lưu niệm" khi rỗng; ưu tiên đường dẫn ảnh tải lên (`uploadedImagePath`) trước `LinkHinhAnh`.
-     - `UpdateEntity()`: Bảo lưu đường dẫn ảnh cũ khi không có file mới tải lên, thay thế chính xác khi có file mới, tự động cập nhật `NgayCapNhat`.
-     - `FromEntity()`: Sao chép đối xứng 100% thuộc tính.
-   - **`DonHangGayQuy` & `CheckoutViewModel`**:
-     - `HoTenNguoiMua`, `SoDienThoai`, `DiaChiNhanHang` rỗng: Bị từ chối bởi `[Required]`.
-     - `SoDienThoai` không phải số ("abc-not-a-number"): Bị từ chối bởi `[Phone]`.
-     - `Email` không có ký tự `@`: Bị từ chối bởi `[EmailAddress]`; `Email == null` được chấp nhận vì email là trường tùy chọn.
-     - `TienUngHoThem` trong `CheckoutViewModel`: Âm (-50.000 VNĐ) bị từ chối bởi `[Range(0, 1000000000)]`, 0 VNĐ đạt, 100.000.000 VNĐ đạt.
-     - Tính toán tổng tiền: `TongThanhToan` = `TongTienHang + PhiVanChuyen + TienUngHoThem`; `TongTienDongGop` = tổng trích quỹ từ sản phẩm + tiền ủng hộ thêm, tính toán hoàn toàn chính xác.
-   - **`ChiTietDonHangGayQuy`**:
-     - Số lượng `SoLuong` <= 0 (0 hoặc -3): Bị từ chối bởi `[Range(1, 100000)]`.
-     - `PhanTramDongGop`: Nằm trong dải `[0, 100]`, vượt dải bị từ chối.
-     - `TienDongGop`: Tính chính xác theo `ThanhTien * PhanTramDongGop / 100m`.
-   - **`CartItem` & `CartViewModel`**:
-     - Giỏ hàng rỗng (`new CartViewModel()`): `TongSoLuong == 0`, `TongTienHang == 0`, `CoSanPham == false`.
-     - Phòng vệ Null (`Items = null!`): Thuộc tính tính toán an toàn trả về 0, không gây ra `NullReferenceException`.
+This harness covers 8 intensive stress scenarios:
+1. `CH20_DbInitializer_InMemoryQr_HeavyConcurrency_50Threads`: 50 concurrent worker threads executing 1,000 rapid multithreaded mutations (interleaved Add, Update, ToggleActive, Delete, and Channel Query operations) guarded by `_syncLock`.
+2. `CH21_DbInitializer_InMemoryQr_DeepCopy_Isolation`: Immutability of internal store against external mutations via deep copy cloning in `GetActiveStoreQrConfig()`, `GetInMemoryQrConfigs()`, and `GetInMemoryQrConfigById()`.
+3. `CH22_DbInitializer_ChannelIsolation_StoreVsDonation`: Complete channel isolation across 4 distinct profiles (Store-only, Donation-only, Shared, Inactive), ensuring zero cross-channel leakage and seamless priority handover upon deactivation.
+4. `CH23_DbInitializer_ChannelPriority_ThuTuOrdering`: Priority ordering strictly ordered by `ThuTu` ascending for both single store selection and donation list presentation.
+5. `CH24_AdminController_Fallback_WhenDatabaseFails`: Disconnected/unreachable SQL database fallback in `AdminCauHinhQRController` across all CRUD lifecycle methods (`Index`, `Create`, `Edit`, `ToggleActive`, `Delete`).
+6. `CH25_DbInitializer_EmptyStore_AutoReseedsDefault`: Resiliency of drained in-memory store; auto-reseeds default MBBank profile (`0924044283`) when empty rather than returning null or throwing.
+7. `CH26_VietQrHelper_AdversarialInputs_And_Escaping`: URL query parameter escaping against URL injection, script tags, special characters (`#`, `&`, `?`, `/`, `=`), Vietnamese Unicode accents, negative/zero amounts, and extreme numbers (up to 999,999,999,999 VND).
+8. `CH27_CauHinhThanhToanQR_GetQrUrl_ResolutionLogic`: Dual-mode resolution between VietQR Napas247 dynamic generation and custom uploaded poster images, with automatic fallback when custom image paths are empty.
 
-3. **Kiểm thử EF Core DbContext Metadata (Không cần kết nối CSDL vật lý)**:
-   - Thực thi `context.Model` trên `ApplicationDbContext` với cấu hình SqlServer ảo:
-     ```csharp
-     var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-         .UseSqlServer("Server=dummy;Database=dummy;")
-         .Options;
-     using var context = new ApplicationDbContext(options);
-     var model = context.Model; // Khởi tạo biên dịch Semantic IModel thuần túy trong RAM
-     ```
-   - Kết quả quan sát:
-     - Khởi tạo thành công không lỗi, không cần socket DB lắng nghe.
-     - 3 thực thể `SanPhamGayQuy`, `DonHangGayQuy`, `ChiTietDonHangGayQuy` được nhận diện đầy đủ trong `IModel`.
-     - Tên bảng ánh xạ chính xác: `"SanPhamGayQuy"`, `"DonHangGayQuy"`, `"ChiTietDonHangGayQuy"`.
-     - Kiểu dữ liệu 8 cột tiền tệ đều được cấu hình chuẩn `decimal(18,2)`: `GiaBan`, `GiaGoc`, `TongTienHang`, `TienUngHoThem`, `PhiVanChuyen`, `TongThanhToan`, `DonGia`, `ThanhTien`.
-     - Khóa ngoại và hành vi xóa: Chi tiết đơn hàng liên kết đơn hàng với `DeleteBehavior.Cascade`; Chi tiết đơn hàng liên kết sản phẩm với `DeleteBehavior.Restrict`.
-
-4. **Kiểm thử SessionExtensions & DbInitializer In-Memory**:
-   - `SessionExtensions.Set<T>` với giá trị `null`: Tự động xóa key khỏi session.
-   - Đọc dữ liệu JSON bị hỏng: `SessionExtensions.Get<T>` bắt lỗi JSON và trả về `default` an toàn, không làm crash ứng dụng.
-   - Thao tác đa luồng trên kho lưu trữ In-Memory: 100 tác vụ chạy song song đồng thời thực hiện đọc, thêm sản phẩm, thêm đơn hàng, cập nhật và xóa không phát sinh xung đột `InvalidOperationException` nhờ khóa `lock (_syncLock)`.
-   - Đặt hàng vượt tồn kho: Logic `Math.Max(0, prod.SoLuongTon - detail.SoLuong)` kìm tồn kho tại 0, không bị tràn số âm.
-   - Đọc dữ liệu in-memory trả về bản sao độc lập (Clone Product), ngăn chặn rò rỉ biến đổi từ bên ngoài.
-
-5. **Phát hiện hiện tượng dương tính giả trong kiểm thử Tier 1**:
-   - Kiểm thử `F02_T02` trong `Tier1_FoundationTests.cs` (kiểm tra thứ tự `UseSession` và `UseAuthorization`) sử dụng hàm `IndexOf("UseAuthorization")`.
-   - Trong `Program.cs`, tại dòng 42 có chú thích:
-     `// Middleware Session: BẮT BUỘC đặt sau UseRouting() và trước UseAuthorization()`
-     dẫn tới `IndexOf("UseAuthorization")` tìm thấy dòng 42 (trước `UseSession` ở dòng 43).
-   - Trên thực tế câu lệnh thực thi `app.UseSession();` (dòng 43) nằm trước `app.UseAuthorization();` (dòng 45). Kiểm thử thực nghiệm `CH19` lọc bỏ chú thích đã xác nhận thứ tự thực thi thực tế hoàn toàn đúng chuẩn ASP.NET Core.
-
----
-
-## 2. Logic Chain (Chuỗi lập luận và Phân tích)
-
-1. Từ quan sát 1.1 và 1.2, các mô hình thực thể và ViewModel đã được trang bị đầy đủ các thuộc tính xác thực DataAnnotations chuẩn (`[Required]`, `[Range]`, `[StringLength]`, `[Phone]`, `[EmailAddress]`). Các trường hợp kiểm thử biên (Boundary Values: 0, 1, 100, 101, 1.000.000.000) và dữ liệu độc hại (số âm, chuỗi quá dài, định dạng số điện thoại/email sai) đều bị hệ thống bắt giữ và từ chối hợp lệ.
-2. Từ quan sát 1.3, cấu hình Entity Framework Core trong `ApplicationDbContext.OnModelCreating` đáp ứng đầy đủ yêu cầu: loại bỏ triệt để cảnh báo mất độ chính xác của cột tiền tệ qua `decimal(18,2)`, bảo toàn tính toàn vẹn dữ liệu quan hệ cha-con (`Cascade`) và chống xóa sản phẩm khi đã có đơn hàng (`Restrict`).
-3. Từ quan sát 1.4, tiện ích `SessionExtensions` và `DbInitializer` có khả năng phòng thủ cao trước các kịch bản bất thường (dữ liệu rác, lỗi JSON, xung đột đa luồng, tràn số tồn kho). Cơ chế Dual-Mode cho phép hệ thống vận hành bền bỉ 100% cả trong môi trường có SQL Server lẫn offline demo.
-4. Từ quan sát 1.5, lỗi kiểm tra thứ tự middleware trong Tier 1 chỉ là lỗi logic của phương pháp quét chuỗi trong bộ kiểm thử (chuỗi xuất hiện trong chú thích mã nguồn), mã thực thi trong `Program.cs` đáp ứng đúng chuẩn kiến trúc ASP.NET Core.
-
----
-
-## 3. Caveats (Các lưu ý & Giả định)
-
-1. `CartItem` là POCO dùng cho serialization lưu trong Session nên không chứa DataAnnotations; việc xác thực số lượng hợp lệ (>= 1 và <= Tồn kho) cần được kiểm soát chặt chẽ ở lớp Controller khi thêm/cập nhật giỏ hàng trong Milestone 3.
-2. Tồn kho trong kho In-Memory được kìm ở mức 0 khi người dùng đặt quá số lượng có sẵn; trong giai đoạn triển khai Controller (M3), cần hiển thị thông báo lỗi cho người dùng khi số lượng mua vượt quá số lượng tồn thay vì chỉ tự động trừ về 0.
-
----
-
-## 4. Conclusion (Kết luận & Phán quyết)
-
-- Toàn bộ nền tảng mã nguồn Milestone 1 (Area & Data Foundation) đã vượt qua toàn bộ 66 ca kiểm thử thực nghiệm chuyên sâu (Tier 5 Adversarial & Boundary Harness) với tỷ lệ **đạt 100% (66/66 PASS)**.
-- Các quy tắc xác thực, xử lý biên, kiểu dữ liệu tiền tệ, quan hệ thực thể và cơ chế phòng thủ đa luồng đạt độ tin cậy và chất lượng cao.
-- **Phán quyết chính thức**: **`APPROVE`**. Nền tảng Milestone 1 đủ điều kiện nghiệm thu để các phân hệ Milestone 2 (Admin Product Management) và Milestone 3 (Storefront & Cart) tiếp tục triển khai.
-
----
-
-## 5. Verification Method (Phương pháp tái hiện và kiểm chứng)
-
-Bất kỳ kiểm định viên nào cũng có thể kiểm chứng độc lập kết quả báo cáo bằng lệnh:
-
-```bash
-XDG_RUNTIME_DIR=/tmp dotnet run --no-restore --project /home/hutech/Vinh_Offline/WEB_TinhNguyen/tests/E2ETests/E2ETests.csproj -- --tier 5 --verbose
+### 1.2 Build Verification
+Command:
+```powershell
+dotnet build WEB_TinhNguyen\WEB_TinhNguyen.csproj
 ```
-- **Tiêu chí đạt**: `66 Tests | 66 Passed | 0 Failed | 0 Skipped`.
-- **Tệp kiểm thử cần thanh tra**: `/home/hutech/Vinh_Offline/WEB_TinhNguyen/tests/E2ETests/Tier5/Tier5_ChallengerTests.cs`.
+Verbatim Output:
+```
+  WEB_TinhNguyen -> D:\web_tinh_nguyen\WEB_TinhNguyen\bin\Debug\net10.0\WEB_TinhNguyen.dll
+  
+  > web_tinhnguyen@1.0.0 build:css
+  > tailwindcss -i Styles/app.css -o WEB_TinhNguyen/wwwroot/css/site.css --minify
+  
+  Rebuilding...
+  Done in 5062ms.
+
+Build succeeded.
+    4 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:22.18
+```
+
+### 1.3 Full Test Suite Execution
+Command:
+```powershell
+dotnet run --project tests\E2ETests\E2ETests.csproj --no-build
+```
+Verbatim Output:
+```
+================================================================================
+    WEB_TinhNguyen Volunteer Fundraising E2E Test Suite (Tiers 1-4)
+================================================================================
+Configuration: Tier Filter=[ALL], Feature=[ALL], Keyword=[NONE]
+
+  [PASS] Tier 5 | F04 | CH20: DbInitializer In-Memory QR store under heavy 50-thread concurrent mutations (32.0ms)
+  [PASS] Tier 5 | F04 | CH21: DbInitializer returns isolated clones; mutations do not pollute internal store (0.8ms)
+  [PASS] Tier 5 | F04 | CH22: Channel data isolation between CuaHang and QuyenGop (1.0ms)
+  [PASS] Tier 5 | F04 | CH23: In-Memory QR priority ordering strictly adheres to ThuTu ascending (0.4ms)
+  [PASS] Tier 5 | F04 | CH24: AdminCauHinhQRController handles database failure and falls back to in-memory store (2901.0ms)
+  [PASS] Tier 5 | F04 | CH25: Drained in-memory store automatically re-seeds default MBBank configuration (0.7ms)
+  [PASS] Tier 5 | F03 | CH26: VietQrHelper sanitizes special characters, whitespace, and extreme amount values (3.2ms)
+  [PASS] Tier 5 | F03 | CH27: CauHinhThanhToanQR GetQrUrl dual-mode resolution & param overrides (1.1ms)
+  ...
+================================================================================
+                              TEST EXECUTION SUMMARY
+================================================================================
+  Tier 1: Total: 145 | Passed: 144 | Failed:   0 | Skipped:   1
+  Tier 2: Total:  28 | Passed:  28 | Failed:   0 | Skipped:   0
+  Tier 3: Total:  18 | Passed:  18 | Failed:   0 | Skipped:   0
+  Tier 4: Total:  12 | Passed:  12 | Failed:   0 | Skipped:   0
+  Tier 5: Total: 216 | Passed: 216 | Failed:   0 | Skipped:   0
+--------------------------------------------------------------------------------
+  OVERALL: 419 Tests | 418 Passed | 0 Failed | 1 Skipped in 7.51s
+================================================================================
+```
+*Note on the single skipped test*: Exactly 1 test (`DynamicQR_F07_T01`: "Dynamic QR config binding in DatHangThanhCong.cshtml") was skipped as explicitly planned because user-facing frontend dynamic wiring is scheduled for Milestone 2. 100% of all executable tests (418/418) passed.
+
+---
+
+## 2. Logic Chain
+
+1. **In-Memory Store Thread-Safety**:
+   - *Observation*: `DbInitializer.cs` lines 17, 396, 744, 760, 773, 791, 808, 824, 856, 867 encapsulate all list read/write operations within `lock (_syncLock)`.
+   - *Stress Verification*: In `CH20`, 50 parallel threads performed 1,000 rapid concurrent mutating operations. All 50 threads executed to completion with 0 exceptions (`exceptions.IsEmpty == true`), 0 duplicate primary IDs, and 0 collection modification race conditions.
+   - *Conclusion*: In-memory store operations are thread-safe under multithreaded concurrency.
+
+2. **Mutation Isolation via Deep Copy**:
+   - *Observation*: `DbInitializer.cs` line 877 defines `CloneQrConfig(CauHinhThanhToanQR q)` which instantiates a new entity instance copying every field.
+   - *Stress Verification*: In `CH21`, mutative operations on the object returned by `GetActiveStoreQrConfig()` (`activeStore.TenCauHinh = "COMPROMISED_EXTERNALLY"`) were confirmed to have zero impact on subsequent queries to the store (`freshStore.TenCauHinh` remained original).
+   - *Conclusion*: Deep copying provides complete caller isolation.
+
+3. **Channel Isolation and Priority Handover**:
+   - *Observation*: `GetActiveStoreQrConfig` filters by `q.ApDungChoCuaHang && q.TrangThaiHoatDong` ordered by `q.ThuTu`, then `q.IDCauHinhQR`. `GetActiveDonationQrConfigs` filters by `q.ApDungChoQuyenGop && q.TrangThaiHoatDong` ordered by `q.ThuTu`, then `q.IDCauHinhQR`.
+   - *Stress Verification*: In `CH22` and `CH23`, profiles dedicated solely to Store never leaked into Donation queries, and profiles dedicated solely to Donation never leaked into Store queries. When the active Store profile was toggled inactive, the system immediately promoted the next eligible profile in `ThuTu` order. When all were inactive, `GetActiveStoreQrConfig` safely returned `null` without throwing.
+   - *Conclusion*: Strict data isolation and priority ordering between Store and Donation channels are empirically upheld.
+
+4. **Offline Database Fallback Resilience**:
+   - *Observation*: `AdminCauHinhQRController.cs` guards all database operations (`Index`, `Create`, `Edit`, `ToggleActive`, `Delete`) with `try { if (_context.Database.CanConnect()) { ... } else { In-Memory } } catch { In-Memory }`.
+   - *Stress Verification*: In `CH24`, a controller configured with an unreachable SQL Server endpoint successfully rendered the Index view, accepted new entries into in-memory storage, served Edit GET/POST, executed ToggleActive, and deleted records without throwing unhandled exceptions. In `CH25`, draining all records in the store automatically re-seeded the baseline MBBank profile upon subsequent access.
+   - *Conclusion*: The offline in-memory fallback mechanism is resilient against database connectivity failures.
+
+---
+
+## 3. Caveats
+
+1. **Milestone 2 Frontend Integration Scope**:
+   - This milestone and verification report address the backend data foundation, administrative CRUD controller, Razor management views, and in-memory persistence. The frontend view integration for Store order completion (`DatHangThanhCong.cshtml`) and Donation popup (`GayQuy.cshtml`) is assigned to Milestone 2.
+2. **SQL Server Connection Timeout**:
+   - When running in an environment where SQL Server is unreachable, EF Core's `CanConnect()` initiates a TCP handshake that relies on connection timeout configuration (default or custom). The controller's try/catch blocks handle this as intended.
+
+---
+
+## 4. Conclusion
+
+**Verdict: APPROVE**
+
+The Milestone 1 implementation satisfies all authoritative requirements in `ORIGINAL_REQUEST.md` (R1) and architectural specifications in `PROJECT.md`:
+- `DbInitializer.cs` in-memory store is thread-safe and resilient under 50-thread parallel mutation pressure.
+- Channel isolation between CuaHang and QuyenGop is strict and leak-free.
+- Fallback mechanics in `AdminCauHinhQRController` gracefully handle database unavailability.
+- Solution compiles cleanly with 0 build errors.
+- Test suite achieves 418 Passed, 0 Failed, 1 Skipped (M2 by design) out of 419 total tests.
+
+---
+
+## 5. Verification Method
+
+To independently reproduce and verify this assessment:
+
+1. **Build Solution**:
+   ```powershell
+   dotnet build WEB_TinhNguyen\WEB_TinhNguyen.csproj
+   ```
+   *Expected*: `Build succeeded. 0 Error(s)`.
+
+2. **Execute Full Test Suite**:
+   ```powershell
+   dotnet run --project tests\E2ETests\E2ETests.csproj --no-build
+   ```
+   *Expected*: `OVERALL: 419 Tests | 418 Passed | 0 Failed | 1 Skipped`.
+
+3. **Execute Only Tier 5 Adversarial Harnesses**:
+   ```powershell
+   dotnet run --project tests\E2ETests\E2ETests.csproj --no-build -- --tier 5
+   ```
+   *Expected*: `Tier 5: Total: 216 | Passed: 216 | Failed: 0 | Skipped: 0`.

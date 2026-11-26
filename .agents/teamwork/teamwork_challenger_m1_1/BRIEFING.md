@@ -1,55 +1,63 @@
-# BRIEFING — 2026-11-03T13:07:00Z
+# BRIEFING — 2026-11-06T08:26:00Z
 
 ## Mission
-Empirically challenge and stress-test the Milestone 1 foundation implementation (Session serialization, DbInitializer seeding & in-memory store, entity constraints, boundary conditions).
+Adversarially challenge and stress-test Milestone 1 implementations (VietQrHelper, CauHinhThanhToanQR, AdminCauHinhQRController) and formulate an explicit verdict (APPROVE / REJECT).
 
 ## 🔒 My Identity
 - Archetype: EMPIRICAL CHALLENGER
 - Roles: critic, specialist
-- Working directory: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_challenger_m1_1
-- Original parent: 108b9d81-1dd6-495f-84eb-99dbb197aebe
-- Milestone: M1
+- Working directory: D:\web_tinh_nguyen\.agents\teamwork\teamwork_challenger_m1_1\
+- Original parent: 3ebaa881-f84a-47af-9d40-eda26cf6ddcc
+- Milestone: Milestone 1
 - Instance: 1 of 1
 
 ## 🔒 Key Constraints
-- Review-only / challenger: write and execute empirical test harnesses to uncover bugs.
-- Do NOT modify production implementation code directly; report any defects or findings.
-- All empirical verification commands must use `XDG_RUNTIME_DIR=/tmp`.
-- Tests must be placed in appropriate test locations (e.g. `tests/` or executed via independent runners), NOT in `.agents/teamwork/`.
+- Review-only — do NOT modify implementation code (report findings/bugs, do not fix them directly)
+- Must empirically test and verify all claims
+- Layout compliance: .agents/teamwork/ must contain only metadata
 
 ## Current Parent
-- Conversation ID: 108b9d81-1dd6-495f-84eb-99dbb197aebe
-- Updated: 2026-11-03T13:07:00Z
+- Conversation ID: 3ebaa881-f84a-47af-9d40-eda26cf6ddcc
+- Updated: 2026-11-06T08:26:00Z
 
 ## Review Scope
-- **Files to review**:
-  - `WEB_TinhNguyen/Program.cs`
-  - `WEB_TinhNguyen/Data/ApplicationDbContext.cs`
-  - `WEB_TinhNguyen/Areas/CuaHang/Models/*`
-  - `WEB_TinhNguyen/Areas/CuaHang/Helpers/SessionExtensions.cs`
-  - `WEB_TinhNguyen/Areas/CuaHang/Helpers/DbInitializer.cs`
-- **Interface contracts**: PROJECT.md M1 contracts
-- **Review criteria**: correctness, empirical stress tests, boundary conditions, edge cases, thread safety, exception handling, serialization roundtrips.
+- **Files to review**: VietQrHelper.cs, CauHinhThanhToanQR.cs, AdminCauHinhQRController.cs, related tests/views
+- **Interface contracts**: PROJECT.md, ORIGINAL_REQUEST.md
+- **Review criteria**: URL formatting under adversarial inputs, mode switching logic, CRUD lifecycle, build & test integrity
 
 ## Attack Surface
 - **Hypotheses tested**:
-  1. SessionExtensions null safety & empty keys -> Confirmed robust (throws on null session/empty set, safe default on get).
-  2. SessionExtensions corrupt JSON & circular references -> Confirmed resilient (returns default on corrupt JSON, ignores cycles).
-  3. SessionExtensions Vietnamese Unicode & quote escaping -> Confirmed 100% roundtrip fidelity.
-  4. DbInitializer in-memory CRUD & isolation -> Confirmed deep cloning prevents caller mutations from affecting store.
-  5. DbInitializer order stock deduction & 0 floor -> Confirmed Math.Max(0, ...) prevents negative stock.
-  6. DbInitializer concurrency under 100 parallel threads -> Confirmed lock-protected thread-safety with 0 race conditions.
-  7. Pipeline order in Program.cs -> Confirmed app.UseSession() precedes app.UseAuthorization(), but string literal "UseAuthorization" in comment line 42 triggers false-positive test failure in Tier1_FoundationTests.F02_T02.
+  1. VietQrHelper URL formatting with null, empty, whitespace, special chars (#, &, ?, /, =, +, %, script tags), Unicode Vietnamese accents, emojis, and boundary amounts.
+  2. VietQrHelper behavior on decimal.MaxValue (empirically confirmed to trigger OverflowException on unchecked decimal to long cast).
+  3. CauHinhThanhToanQR.GetQrUrl mode switching between dynamic VietQR and custom image path, including fallback when custom path is empty or whitespace.
+  4. Parameter forwarding and default property overrides in GetQrUrl.
+  5. CauHinhThanhToanQR entity validation constraints ([Required], [StringLength] boundaries).
+  6. AdminCauHinhQRController CSRF protection ([ValidateAntiForgeryToken] on all mutating POST actions).
+  7. AdminCauHinhQRController full CRUD lifecycle (Index, Create, Edit, ToggleActive, Delete) in offline mode.
+  8. ID mismatch tampering detection on Edit POST (HTTP 400 BadRequest).
+  9. Non-existent ID handling on Edit GET (redirect + TempData alert).
+  10. ToggleActive dual-response (Form Redirect vs Ajax JSON).
+  11. File upload path isolation (GUID filenames to prevent path traversal).
+  12. In-memory QR store thread safety under 50 concurrent worker threads.
+  13. In-memory QR store deep clone isolation against external mutation.
 - **Vulnerabilities found**:
-  - Finding M1-CH-01 (Minor/Test artifact): Comment text on line 42 of `Program.cs` contains the word `UseAuthorization`, causing naive string match in `Tier1_FoundationTests.F02_T02` to fail assertion `sessionIndex < authIndex`.
+  - [Low/Adversarial Edge Case] In `VietQrHelper.GenerateUrl`, casting `amount.Value` to `long` directly via `(long)Math.Max(0, amount.Value)` will throw an unhandled `System.OverflowException` if an adversarial caller passes `amount > long.MaxValue` (e.g. `decimal.MaxValue`). For all realistic currency amounts (<= 9 quintillion VND), execution is normal.
+  - [Low/Adversarial Edge Case] `VietQrHelper.GenerateUrl` does not `Uri.EscapeDataString` the bank code (`cleanBank`) or account number (`cleanAcc`) in the path segment `/image/{cleanBank}-{cleanAcc}-{cleanTemplate}.png`. If an account number contains spaces or slashes, it could result in an unescaped path URI.
 - **Untested angles**:
-  - Physical SQL Server schema migration (offline in demo environment; in-memory fallback tested and verified).
+  - Live SQL Server migration on a remote production instance (verified offline dual-persistence fallback).
+  - Milestone 2 frontend binding in store order confirmation (`DatHangThanhCong.cshtml`) and donation modal (`GayQuy.cshtml`), which are scoped for M2.
+
+## Loaded Skills
+- None
 
 ## Key Decisions Made
-- Created and executed Tier 5 adversarial stress harness `tests/E2ETests/Tier5/Tier5_ChallengerM1Harness.cs` covering 19 distinct attack vectors across Session, In-Memory Store, Models, and Pipeline.
-- Result: 19/19 Tier 5 tests passed; 25/25 Tier 2 tests passed; Foundation code is robust.
-- Issued verdict `APPROVE` with documentation of Finding M1-CH-01.
+- Implemented comprehensive 29-test adversarial stress harness `Tier5_ChallengerM1_AdversarialHarness.cs` in `tests/E2ETests/Tier5/`.
+- Validated solution builds with 0 errors (`dotnet build`).
+- Validated full test suite passes 100% of runnable tests: 418 passed, 0 failed, 1 skipped (pending M2 binding).
+- Explicit Verdict: APPROVE.
 
 ## Artifact Index
-- `tests/E2ETests/Tier5/Tier5_ChallengerM1Harness.cs` — Adversarial stress test harness (19 tests).
-- `handoff.md` — Final challenger evaluation report and verdict.
+- DISPATCH.md — Dispatch log
+- BRIEFING.md — Persistent context
+- progress.md — Liveness heartbeat and progress tracking
+- handoff.md — Final adversarial challenge report and verdict

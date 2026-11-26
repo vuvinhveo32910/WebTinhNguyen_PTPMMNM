@@ -1,48 +1,51 @@
-# BRIEFING — 2026-11-03T12:41:00Z
+# BRIEFING — 2026-11-07T05:20:00Z
 
 ## Mission
-Survey project structure, ASP.NET Core version, DbContext & database setup, models, and layout/navigation components for volunteer fundraising store.
+Comprehensive survey of all 11 Admin functional modules and navigation layout in WEB_TinhNguyen for Granular Admin Permissions (R1, R2, R3) ensuring 100% test compatibility.
 
 ## 🔒 My Identity
 - Archetype: explorer
-- Roles: survey, read-only analysis
-- Working directory: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_explorer_survey_1
-- Original parent: 108b9d81-1dd6-495f-84eb-99dbb197aebe
-- Milestone: Survey & Investigation Complete
+- Roles: survey, backend & admin investigation
+- Working directory: D:\web_tinh_nguyen\.agents\teamwork\teamwork_explorer_survey_1
+- Original parent: 3ebaa881-f84a-47af-9d40-eda26cf6ddcc
+- Milestone: Dynamic QR & Payment Configuration Architecture Survey
+- Milestone 2: Granular Admin Permissions (R1, R2, R3) Survey
 
 ## 🔒 Key Constraints
 - Read-only investigation — do NOT implement
-- Strictly write only to /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_explorer_survey_1/
+- Strictly write only to D:\web_tinh_nguyen\.agents\teamwork\teamwork_explorer_survey_1\
 - No copying core logic from open-source projects
+- Do not modify files under WEB_TinhNguyen/Areas/CuaHang/Views/ (SHA-256 locked)
+- Preserve 21 CRUD POST actions and [Authorize] on all 11 existing controllers
+- Maintain Program.cs pipeline order: UseRouting -> UseSession -> UseAuthentication -> UseAuthorization -> UseStaticFiles
 
 ## Current Parent
-- Conversation ID: 108b9d81-1dd6-495f-84eb-99dbb197aebe
-- Updated: 2026-11-03T12:41:00Z
+- Conversation ID: 3007f0a1-1a91-4596-8f2a-fc29176756e7
+- Updated: 2026-11-07T05:20:00Z
 
 ## Investigation State
 - **Explored paths**:
-  - `WEB_TinhNguyen.slnx` & `WEB_TinhNguyen/WEB_TinhNguyen.csproj` (Target .NET 10.0, EF Core 10.0.12)
-  - `WEB_TinhNguyen/Program.cs` (Route mapping, DbContext registration, static assets)
-  - `WEB_TinhNguyen/Data/ApplicationDbContext.cs` & `WEB_TinhNguyen/Models/Entities.cs`
-  - `WEB_TinhNguyen/Migrations/` (27 migration files, SQL Server snapshot)
-  - `WEB_TinhNguyen/Views/Shared/_Layout.cshtml` & `_AdminLayout.cshtml`
-  - `WEB_TinhNguyen/Controllers/` (Home and Admin controllers)
-  - `tailwind.config.js` & `package.json`
+  - `WEB_TinhNguyen/BoDieuKhien/` (AdminController and 8 domain admin controllers)
+  - `WEB_TinhNguyen/Areas/CuaHang/Controllers/` (AdminSanPhamController, AdminDonHangController)
+  - `WEB_TinhNguyen/GiaoDien/Shared/_AdminLayout.cshtml` (Menu sidebar layout, links, icons, active checks)
+  - `WEB_TinhNguyen/MoHinh/TaiKhoanAdmin.cs` & `WEB_TinhNguyen/DuLieu/ApplicationDbContext.cs`
+  - `WEB_TinhNguyen/Areas/CuaHang/Helpers/DbInitializer.cs` (Dual-mode SQL & In-Memory admin store)
+  - `tests/E2ETests/` (518/518 tests PASS, Tier 1-5 route protection and invariant tests audited)
 - **Key findings**:
-  - Compilation requires `XDG_RUNTIME_DIR=/tmp dotnet build` due to Linux sandboxed `/run/user/1000` access restriction. Build succeeds with 0 errors.
-  - Project uses .NET 10 (`net10.0`) with Tailwind CSS CDN and Tailwind CLI pre-build target.
-  - Layout has desktop navbar (lines 373-394 in `_Layout.cshtml`) and mobile liquid bottom navbar (`.navigation lg:hidden` lines 476-516).
-  - Admin layout has expandable sidebar with active state routing.
-  - No Area exists yet. Implementing Area requires `app.MapControllerRoute` for areas in `Program.cs`.
-  - Session is not yet registered; shopping cart needs `builder.Services.AddDistributedMemoryCache(); builder.Services.AddSession();` and `app.UseSession()`.
-  - No product/order entities exist yet.
-- **Unexplored areas**: None for survey scope.
+  - Catalogued all 10 existing modules and their 21 protected CRUD POST actions.
+  - Formulated architecture for Module 11 (`AdminTaiKhoanController` at `/AdminTaiKhoan`) with CRUD actions for managing admin accounts and permissions.
+  - Designed `[PhanQuyenAdmin]` filter and Claims-based authorization to enforce granular permissions (R2), returning 403 Forbidden on unauthorized access.
+  - Analyzed `_AdminLayout.cshtml` dynamic conditional rendering with `@if (User.CoQuyen("..."))` (R3) with 100% preservation of static layout test invariants.
+  - Identified critical constraints: locked views in `Areas/CuaHang/Views/`, 21 POST action count invariant, pipeline ordering.
+- **Unexplored areas**: None. Survey is complete.
 
 ## Key Decisions Made
-- Fully documented compilation environment caveat (`XDG_RUNTIME_DIR=/tmp`) to avoid build failures for downstream agents.
-- Formulated concrete Area architecture and model design for fundraising store and admin CRUD.
+- Confirmed full architectural compatibility with all 518 existing automated tests.
+- Recommending dedicated `AdminTaiKhoanController` over stuffing actions into `AdminController` to align with the existing architectural pattern.
+- Completed comprehensive `analysis.md` and `handoff.md`.
 
 ## Artifact Index
-- handoff.md — Comprehensive survey report
+- analysis.md — Full comprehensive survey and architectural design document
+- handoff.md — 5-component handoff report
 - progress.md — Heartbeat and task progress
 - BRIEFING.md — Working memory index

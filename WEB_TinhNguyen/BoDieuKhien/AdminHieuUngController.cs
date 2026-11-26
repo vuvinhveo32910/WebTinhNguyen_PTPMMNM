@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -6,11 +7,14 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using WEB_TinhNguyen.DuLieu;
 using WEB_TinhNguyen.MoHinh;
 
 namespace WEB_TinhNguyen.BoDieuKhien
 {
+    [Authorize]
+    [PhanQuyenAdmin(QuyenAdmin.HieuUng)]
     public class AdminHieuUngController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -22,17 +26,29 @@ namespace WEB_TinhNguyen.BoDieuKhien
             _env = env;
         }
 
+        private bool BiChanQuyen() => User?.Identity?.IsAuthenticated == true && !User.CoQuyen(QuyenAdmin.HieuUng);
+
         // 1. DANH SÁCH HIỆU ỨNG
         public async Task<IActionResult> Index()
         {
-            var list = await _context.ThuVienHieuUngs.ToListAsync();
-            return View(list);
+            if (BiChanQuyen()) return StatusCode(StatusCodes.Status403Forbidden);
+            try
+            {
+                var list = await _context.ThuVienHieuUngs.ToListAsync();
+                return View(list);
+            }
+            catch
+            {
+                return View(new List<ThuVienHieuUng>());
+            }
         }
 
         // 2. THÊM / SỬA HIỆU ỨNG (Lưu file JS)
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Save(int IDHieuUng, string TenHieuUng, string MoTa, IFormFile FileJS)
         {
+            if (BiChanQuyen()) return StatusCode(StatusCodes.Status403Forbidden);
             var hieuUng = await _context.ThuVienHieuUngs.FindAsync(IDHieuUng);
             if (hieuUng == null)
             {
@@ -66,8 +82,10 @@ namespace WEB_TinhNguyen.BoDieuKhien
 
         // 3. XÓA HIỆU ỨNG
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
+            if (BiChanQuyen()) return StatusCode(StatusCodes.Status403Forbidden);
             var hieuUng = await _context.ThuVienHieuUngs.FindAsync(id);
             if (hieuUng != null)
             {

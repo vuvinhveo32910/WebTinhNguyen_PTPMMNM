@@ -1,62 +1,49 @@
-# BRIEFING — 2026-11-03T13:09:30Z
+# BRIEFING — 2026-11-06T08:26:00Z
 
 ## Mission
-Empirically challenge validation rules, edge cases, negative quantities, boundary conditions on models and EF Core DbContext metadata for Milestone 1.
+Empirically stress-test DbInitializer in-memory store thread-safety under heavy concurrent mutations (50 threads), channel data isolation (CuaHang vs QuyenGop), database fallback behavior, and verify dotnet build & test suite.
 
 ## 🔒 My Identity
-- Archetype: EMPIRICAL CHALLENGER
+- Archetype: challenger
 - Roles: critic, specialist
-- Working directory: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_challenger_m1_2
-- Original parent: 108b9d81-1dd6-495f-84eb-99dbb197aebe
-- Milestone: Milestone 1 (Area & Data Foundation)
+- Working directory: D:\web_tinh_nguyen\.agents\teamwork\teamwork_challenger_m1_2\
+- Original parent: 3ebaa881-f84a-47af-9d40-eda26cf6ddcc
+- Milestone: Milestone 1
 - Instance: 2 of 2
 
 ## 🔒 Key Constraints
 - Review-only — do NOT modify implementation code
-- Run empirical verification commands with `XDG_RUNTIME_DIR=/tmp`
-- Do NOT trust worker's claims or logs — must run verification code myself
-- Write only to my folder: `/home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_challenger_m1_2/`
-- Issue explicit APPROVE or REJECT verdict in handoff report
+- Empirical verification — write and run verification tests directly, do not trust claims
+- Never place source code, tests, or data files in .agents/teamwork/
 
 ## Current Parent
-- Conversation ID: 108b9d81-1dd6-495f-84eb-99dbb197aebe
-- Updated: 2026-11-03T13:09:30Z
+- Conversation ID: 3ebaa881-f84a-47af-9d40-eda26cf6ddcc
+- Updated: not yet
 
 ## Review Scope
-- **Files to review**:
-  - `WEB_TinhNguyen/Areas/CuaHang/Models/SanPhamGayQuy.cs`
-  - `WEB_TinhNguyen/Areas/CuaHang/Models/DonHangGayQuy.cs`
-  - `WEB_TinhNguyen/Areas/CuaHang/Models/ChiTietDonHangGayQuy.cs`
-  - `WEB_TinhNguyen/Areas/CuaHang/Models/CartItem.cs`
-  - `WEB_TinhNguyen/Areas/CuaHang/Models/CartViewModel.cs`
-  - `WEB_TinhNguyen/Areas/CuaHang/Models/CheckoutViewModel.cs`
-  - `WEB_TinhNguyen/Areas/CuaHang/Models/SanPhamCrudViewModel.cs`
-  - `WEB_TinhNguyen/Areas/CuaHang/Helpers/SessionExtensions.cs`
-  - `WEB_TinhNguyen/Areas/CuaHang/Helpers/DbInitializer.cs`
-  - `WEB_TinhNguyen/Data/ApplicationDbContext.cs`
-  - `WEB_TinhNguyen/Program.cs`
-- **Interface contracts**: PROJECT.md
-- **Review criteria**: Model validation rules (Range, Required, Phone, Email, StringLength), edge cases (zero price, negative quantity, max donation, empty cart items, special characters in notes), EF Core DbContext metadata building without database connection.
+- **Files to review**: `WEB_TinhNguyen/Areas/CuaHang/Helpers/DbInitializer.cs`, `WEB_TinhNguyen/MoHinh/CauHinhThanhToanQR.cs`, `WEB_TinhNguyen/DuLieu/ApplicationDbContext.cs`, `WEB_TinhNguyen/BoDieuKhien/AdminCauHinhQRController.cs`, `WEB_TinhNguyen/BoDieuKhien/VietQrHelper.cs`
+- **Interface contracts**: `PROJECT.md` (Milestone 1)
+- **Review criteria**: Thread-safety under concurrent mutations, channel isolation, DB fallback resilience, dotnet build & E2E tests
 
 ## Attack Surface
 - **Hypotheses tested**:
-  - Model validations: Range on prices/percentages/quantities, StringLengths, Required properties, [Phone], [EmailAddress] on SanPhamGayQuy, SanPhamCrudViewModel, DonHangGayQuy, CheckoutViewModel, ChiTietDonHangGayQuy.
-  - EF Core DbContext: Pure in-memory schema/model building via `ApplicationDbContext(options).Model` without DB connection; 3 DbSets; decimal(18,2) precision on 8 monetary columns; Cascade/Restrict delete behaviors.
-  - Session & Cache: Corrupted JSON survival, null value removal, complex Vietnamese cart serialization.
-  - DbInitializer: Concurrency safety across 100 parallel operations, stock over-order underflow prevention, isolated cloning.
-- **Vulnerabilities found**:
-  - Discovered false-positive in Tier 1 test `F02_T02` caused by comment text in `Program.cs` line 42 containing "UseAuthorization" before line 43 `UseSession()`. Code execution ordering is correct.
-  - No blocking vulnerabilities or model flaws detected.
-- **Untested angles**: All target angles for Milestone 1 thoroughly stress-tested (66 test cases in Tier 5).
+  - H1: DbInitializer in-memory store suffers from race conditions or ID collisions under 50 concurrent threads -> Refuted (0 errors across 1,000 concurrent mutations)
+  - H2: External mutations to retrieved objects pollute the internal store -> Refuted (Deep copy cloning maintains complete isolation)
+  - H3: Store-only and Donation-only profiles leak across channels -> Refuted (Strict isolation verified)
+  - H4: Database disconnection causes Admin controller unhandled 500 crashes -> Refuted (Graceful in-memory fallback across all actions)
+  - H5: Empty store causes null reference crashes -> Refuted (Automatic re-seed of default MBBank profile)
+- **Vulnerabilities found**: None in Milestone 1 implementation.
+- **Untested angles**: Frontend view integration (DatHangThanhCong, GayQuy) scheduled for Milestone 2.
 
 ## Loaded Skills
-- None specified in dispatch.
+- None specified
 
 ## Key Decisions Made
-- Implemented and executed empirical challenge suite `Tier5_ChallengerTests.cs` (C01-C47).
-- Verified 66/66 passing Tier 5 tests.
-- Reached final verdict: APPROVE Milestone 1.
+- Implemented 8 empirical stress test cases in `Tier5_ChallengerM1_2_DynamicQrStressHarness.cs`.
+- Executed `dotnet build` (0 errors) and test suite (419 tests: 418 passed, 0 failed, 1 skipped by design).
+- Formulated final verdict: APPROVE.
 
 ## Artifact Index
-- `handoff.md` — Final empirical challenge report with APPROVE verdict
-- `progress.md` — Liveness heartbeat and milestone tracking
+- `handoff.md` — Final handoff report with explicit APPROVE verdict
+- `progress.md` — Liveness heartbeat
+- `DISPATCH.md` — Dispatched instructions

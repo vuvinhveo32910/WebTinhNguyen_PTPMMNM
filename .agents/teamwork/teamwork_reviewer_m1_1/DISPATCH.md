@@ -1,33 +1,28 @@
-# Dispatch Task for Reviewer M1.1
+## 2026-11-06T08:15:34Z
+[Message] timestamp=2026-11-06T08:15:34Z sender=3ebaa881-f84a-47af-9d40-eda26cf6ddcc priority=MESSAGE_PRIORITY_HIGH content=You are teamwork_reviewer_m1_1.
+Your working directory: D:\web_tinh_nguyen\.agents\teamwork\teamwork_reviewer_m1_1\
+Authoritative user request: D:\web_tinh_nguyen\.agents\teamwork\ORIGINAL_REQUEST.md
+Scope document: D:\web_tinh_nguyen\PROJECT.md (Milestone 1)
 
-## Objective
-Independently review Milestone 1 (Area & Data Foundation) implementation.
-Verify correctness, completeness, robustness, and interface conformance per ORIGINAL_REQUEST.md and PROJECT.md.
-Run the build command `XDG_RUNTIME_DIR=/tmp dotnet build /home/hutech/Vinh_Offline/WEB_TinhNguyen/WEB_TinhNguyen.slnx` and verify results.
+Read ORIGINAL_REQUEST.md and PROJECT.md before starting review.
+Review the work product delivered by teamwork_worker_m1 for Milestone 1:
+- WEB_TinhNguyen/MoHinh/CauHinhThanhToanQR.cs
+- WEB_TinhNguyen/DuLieu/ApplicationDbContext.cs
+- WEB_TinhNguyen/Areas/CuaHang/Helpers/DbInitializer.cs
+- WEB_TinhNguyen/BoDieuKhien/VietQrHelper.cs
+- WEB_TinhNguyen/BoDieuKhien/AdminCauHinhQRController.cs
+- WEB_TinhNguyen/GiaoDien/AdminCauHinhQR/Index.cshtml, Create.cshtml, Edit.cshtml
+- WEB_TinhNguyen/GiaoDien/Shared/_AdminLayout.cshtml
+- WEB_TinhNguyen/Program.cs
 
-## Files to Review
-- `WEB_TinhNguyen/Program.cs`
-- `WEB_TinhNguyen/Data/ApplicationDbContext.cs`
-- `tailwind.config.js`
-- `WEB_TinhNguyen/Areas/CuaHang/Models/*.cs` (7 models)
-- `WEB_TinhNguyen/Areas/CuaHang/Helpers/*.cs` (2 helpers)
-- `WEB_TinhNguyen/Areas/CuaHang/Views/_ViewImports.cshtml`, `_ViewStart.cshtml`
-- Worker handoff: `/home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_worker_m1/handoff.md`
-
-## Verdict
-Explicitly issue a verdict in your handoff report: `APPROVE` or `REQUEST_CHANGES`.
-Write report to `/home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_reviewer_m1_1/handoff.md`.
-Send message to orchestrator (Recipient: 108b9d81-1dd6-495f-84eb-99dbb197aebe) when done.
-
-## 2026-11-03T12:59:52Z
-You are teamwork_reviewer_m1_1.
-Your working directory is: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_reviewer_m1_1
-Your parent is the Project Orchestrator (Conversation ID: 108b9d81-1dd6-495f-84eb-99dbb197aebe).
-
-MANDATORY INSTRUCTIONS:
-1. First read the original user request at: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/ORIGINAL_REQUEST.md
-2. Read the master project document at: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/orchestrator/PROJECT.md
-3. Read your specific dispatch instructions at: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_reviewer_m1_1/DISPATCH.md
-4. Review Milestone 1 files and verify compilation with `XDG_RUNTIME_DIR=/tmp dotnet build /home/hutech/Vinh_Offline/WEB_TinhNguyen/WEB_TinhNguyen.slnx`.
-5. Write your handoff report to /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_reviewer_m1_1/handoff.md and state your verdict (APPROVE or REQUEST_CHANGES).
-6. Send a message to the orchestrator (Recipient: 108b9d81-1dd6-495f-84eb-99dbb197aebe) when done.
+YOUR MISSION:
+Independently review Milestone 1 deliverables for:
+1. Correctness & Completeness against Requirement R1 (Admin QR management: Add, Edit, Delete, Toggle, Bank accounts, Recipient name, Transfer syntax, VietQR params, Custom image upload, Payment guidance).
+2. Code quality, security (CSRF protection with ValidateAntiForgeryToken, input validation, upload safety, path traversal prevention in SaveFileAsync).
+3. Build & test execution:
+   - Run `dotnet build WEB_TinhNguyen/WEB_TinhNguyen.csproj`
+   - Run `dotnet run --project tests/E2ETests/E2ETests.csproj`
+4. Formulate an explicit verdict: APPROVE or REQUEST_CHANGES.
+5. Author your handoff report to:
+   D:\web_tinh_nguyen\.agents\teamwork\teamwork_reviewer_m1_1\handoff.md
+   When complete, send a message to parent with your verdict and summary.

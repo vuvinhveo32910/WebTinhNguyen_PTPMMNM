@@ -1,8 +1,12 @@
+@using WEB_TinhNguyen.MoHinh
+@using WEB_TinhNguyen.BoDieuKhien
 @model WEB_TinhNguyen.MoHinh.CauHinhGayQuy
 @{
     ViewData["Title"] = "Gây quỹ & Đồng hành";
     var fontHeading = string.IsNullOrEmpty(Model?.FontTieuDe) ? "Be Vietnam Pro" : Model.FontTieuDe;
     var fontBody = string.IsNullOrEmpty(Model?.FontNoiDung) ? "Be Vietnam Pro" : Model.FontNoiDung;
+    var donationQrConfigs = ViewBag.CauHinhQRDongGop as List<CauHinhThanhToanQR> ?? new List<CauHinhThanhToanQR>();
+    var primaryDonationQr = donationQrConfigs.FirstOrDefault();
 }
 
 <!-- Tự động nhúng Google Fonts theo cấu hình của Admin -->
@@ -62,7 +66,7 @@
 
                     <div class="mt-6">
                         <h1 class="gayquy-heading font-extrabold tracking-tight leading-tight text-volunteer-text dark:text-white"
-                            style="font-size: @(Model?.Hero_CoChuTieuDe ?? "48px");">
+                            style="font-size: clamp(1.625rem, 5.5vw, @(Model?.Hero_CoChuTieuDe ?? "48px"));">
                             @(Model?.Hero_TieuDe ?? "HÌNH THỨC TRAO GỬI YÊU THƯƠNG")
                         </h1>
                     </div>
@@ -100,7 +104,7 @@
             <span class="mb-4 sm:mb-6 inline-block rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 px-5 py-2 text-xs font-bold uppercase tracking-widest border border-emerald-200 dark:border-emerald-800">
                 @(Model?.DongGop_Nhan ?? "Kênh ủng hộ")
             </span>
-            <h2 class="gayquy-heading text-3xl font-black leading-tight sm:text-4xl md:text-5xl text-volunteer-text dark:text-white">
+            <h2 class="gayquy-heading text-2xl font-black leading-tight sm:text-3xl md:text-4xl lg:text-5xl text-volunteer-text dark:text-white">
                 @(Model?.DongGop_TieuDe ?? "Cách thức đóng góp")
             </h2>
             <p class="mt-4 text-base sm:text-lg text-volunteer-text/75 dark:text-slate-300 font-medium">
@@ -111,9 +115,42 @@
         <div class="flex flex-wrap justify-center gap-8 mx-auto">
             @if (Model?.KenhDongGops != null && Model.KenhDongGops.Any())
             {
+                int qrConfigIdx = 0;
                 foreach (var kenh in Model.KenhDongGops.OrderBy(k => k.ThuTu))
                 {
-                    <article class="flex flex-col border border-emerald-100 dark:border-white/10 rounded-3xl p-7 gap-5 shadow-sm hover:shadow-xl transition-all duration-300 w-full max-w-[360px] bg-white dark:bg-volunteer-card transform hover:-translate-y-1">
+                    CauHinhThanhToanQR? matchedQr = null;
+                    if (kenh.LoaiHanhDong == "qr")
+                    {
+                        if (qrConfigIdx < donationQrConfigs.Count)
+                        {
+                            matchedQr = donationQrConfigs[qrConfigIdx++];
+                        }
+                        else
+                        {
+                            matchedQr = primaryDonationQr;
+                        }
+                    }
+
+                    var effectiveBank = matchedQr?.TenNganHang ?? (!string.IsNullOrWhiteSpace(kenh.TenNganHang) ? kenh.TenNganHang : "Quân Đội (MBBank)");
+                    var effectiveAccNum = matchedQr?.SoTaiKhoan ?? (!string.IsNullOrWhiteSpace(kenh.SoTaiKhoan) ? kenh.SoTaiKhoan : "0924044283");
+                    var effectiveAccName = matchedQr?.TenChuTaiKhoan ?? (!string.IsNullOrWhiteSpace(kenh.TenChuTaiKhoan) ? kenh.TenChuTaiKhoan : "NGUYEN THAI VINH");
+                    var effectiveMemo = matchedQr?.CuPhapChuyenKhoan ?? (!string.IsNullOrWhiteSpace(kenh.NoiDungChuyenKhoan) ? kenh.NoiDungChuyenKhoan : "[Họ và tên]_DongGopLangbiang");
+
+                    string effectiveQrUrl;
+                    if (matchedQr != null)
+                    {
+                        effectiveQrUrl = matchedQr.GetQrUrl(null, effectiveMemo, effectiveAccName);
+                    }
+                    else if (!string.IsNullOrWhiteSpace(kenh.LinkAnhQR))
+                    {
+                        effectiveQrUrl = kenh.LinkAnhQR;
+                    }
+                    else
+                    {
+                        effectiveQrUrl = VietQrHelper.GenerateUrl("MB", effectiveAccNum, null, effectiveMemo, effectiveAccName);
+                    }
+
+                    <article class="flex flex-col border border-emerald-100 dark:border-white/10 rounded-3xl p-5 sm:p-7 gap-5 shadow-sm hover:shadow-xl transition-all duration-300 w-full max-w-full sm:max-w-[360px] bg-white dark:bg-volunteer-card transform hover:-translate-y-1">
                         <div class="w-14 h-14 rounded-2xl flex items-center justify-center bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shadow-xs">
                             @if (kenh.LoaiIcon == "gift")
                             {
@@ -132,13 +169,34 @@
                         <div class="flex flex-col gap-2 flex-1">
                             <h3 class="gayquy-heading text-xl font-bold text-volunteer-text dark:text-white">@kenh.TenKenh</h3>
                             <p class="text-sm leading-relaxed text-volunteer-text/75 dark:text-slate-300">@kenh.MoTa</p>
+                            @if (kenh.LoaiHanhDong == "qr")
+                            {
+                                <div class="mt-2 text-xs text-slate-600 dark:text-slate-300 space-y-1 bg-slate-50 dark:bg-white/5 p-3 rounded-xl border border-slate-200 dark:border-white/10">
+                                    <div class="flex items-start justify-between gap-2">
+                                        <span class="text-slate-400 shrink-0">Ngân hàng:</span>
+                                        <span class="font-bold text-slate-800 dark:text-white text-right">@effectiveBank</span>
+                                    </div>
+                                    <div class="flex items-start justify-between gap-2">
+                                        <span class="text-slate-400 shrink-0">Số tài khoản:</span>
+                                        <span class="font-mono font-bold text-emerald-600 dark:text-emerald-400 select-all text-right break-all">@effectiveAccNum</span>
+                                    </div>
+                                    <div class="flex items-start justify-between gap-2">
+                                        <span class="text-slate-400 shrink-0">Chủ TK:</span>
+                                        <span class="font-semibold text-slate-800 dark:text-white uppercase text-right">@effectiveAccName</span>
+                                    </div>
+                                    <div class="flex items-start justify-between gap-2">
+                                        <span class="text-slate-400 shrink-0">Cú pháp:</span>
+                                        <span class="font-mono font-semibold text-amber-600 dark:text-amber-400 select-all text-right break-all">@effectiveMemo</span>
+                                    </div>
+                                </div>
+                            }
                         </div>
 
                         @if (kenh.LoaiHanhDong == "qr")
                         {
                             <button type="button"
-                                    onclick="openQrModal('@Html.Raw(kenh.TenKenh)', '@Html.Raw(kenh.LinkAnhQR)', '@Html.Raw(kenh.TenNganHang)', '@Html.Raw(kenh.SoTaiKhoan)', '@Html.Raw(kenh.TenChuTaiKhoan)', '@Html.Raw(kenh.NoiDungChuyenKhoan)')"
-                                    class="inline-flex items-center justify-center gap-2 text-white font-bold text-sm px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-700 hover:to-green-800 shadow-md hover:shadow-lg transition-all w-full mt-auto cursor-pointer">
+                                    onclick="openQrModal('@Html.Raw(kenh.TenKenh)', '@Html.Raw(effectiveQrUrl)', '@Html.Raw(effectiveBank)', '@Html.Raw(effectiveAccNum)', '@Html.Raw(effectiveAccName)', '@Html.Raw(effectiveMemo)')"
+                                    class="inline-flex items-center justify-center gap-2 text-white font-bold text-sm px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-700 hover:to-green-800 shadow-md hover:shadow-lg transition-all w-full mt-auto cursor-pointer min-h-[44px]">
                                 <i class="fas fa-qrcode"></i>
                                 <span>@kenh.TextNut</span>
                             </button>
@@ -146,11 +204,58 @@
                         else
                         {
                             <a href="@kenh.LinkNgoai" target="_blank" rel="noopener noreferrer"
-                               class="inline-flex items-center justify-center gap-2 font-bold text-sm px-5 py-3 rounded-2xl text-white bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-700 hover:to-green-800 shadow-md hover:shadow-lg transition-all w-full mt-auto cursor-pointer">
+                               class="inline-flex items-center justify-center gap-2 font-bold text-sm px-5 py-3 rounded-2xl text-white bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-700 hover:to-green-800 shadow-md hover:shadow-lg transition-all w-full mt-auto cursor-pointer min-h-[44px]">
                                 <i class="fas fa-external-link-alt text-xs"></i>
                                 <span>@kenh.TextNut</span>
                             </a>
                         }
+                    </article>
+                }
+            }
+            else if (donationQrConfigs.Any())
+            {
+                foreach (var qr in donationQrConfigs)
+                {
+                    var effectiveBank = qr.TenNganHang;
+                    var effectiveAccNum = qr.SoTaiKhoan;
+                    var effectiveAccName = qr.TenChuTaiKhoan;
+                    var effectiveMemo = !string.IsNullOrWhiteSpace(qr.CuPhapChuyenKhoan) ? qr.CuPhapChuyenKhoan : "[Họ và tên]_DongGopLangbiang";
+                    var effectiveQrUrl = qr.GetQrUrl(null, effectiveMemo, effectiveAccName);
+
+                    <article class="flex flex-col border border-emerald-100 dark:border-white/10 rounded-3xl p-5 sm:p-7 gap-5 shadow-sm hover:shadow-xl transition-all duration-300 w-full max-w-full sm:max-w-[360px] bg-white dark:bg-volunteer-card transform hover:-translate-y-1">
+                        <div class="w-14 h-14 rounded-2xl flex items-center justify-center bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shadow-xs">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        </div>
+
+                        <div class="flex flex-col gap-2 flex-1">
+                            <h3 class="gayquy-heading text-xl font-bold text-volunteer-text dark:text-white">@qr.TenCauHinh</h3>
+                            <p class="text-sm leading-relaxed text-volunteer-text/75 dark:text-slate-300">@(string.IsNullOrWhiteSpace(qr.HuongDanThanhToan) ? (qr.GhiChuThem ?? "Quét mã VietQR chuyển khoản ủng hộ dự án thiện nguyện") : qr.HuongDanThanhToan)</p>
+                            <div class="mt-2 text-xs text-slate-600 dark:text-slate-300 space-y-1 bg-slate-50 dark:bg-white/5 p-3 rounded-xl border border-slate-200 dark:border-white/10">
+                                <div class="flex items-start justify-between gap-2">
+                                    <span class="text-slate-400 shrink-0">Ngân hàng:</span>
+                                    <span class="font-bold text-slate-800 dark:text-white text-right">@effectiveBank</span>
+                                </div>
+                                <div class="flex items-start justify-between gap-2">
+                                    <span class="text-slate-400 shrink-0">Số tài khoản:</span>
+                                    <span class="font-mono font-bold text-emerald-600 dark:text-emerald-400 select-all text-right break-all">@effectiveAccNum</span>
+                                </div>
+                                <div class="flex items-start justify-between gap-2">
+                                    <span class="text-slate-400 shrink-0">Chủ TK:</span>
+                                    <span class="font-semibold text-slate-800 dark:text-white uppercase text-right">@effectiveAccName</span>
+                                </div>
+                                <div class="flex items-start justify-between gap-2">
+                                    <span class="text-slate-400 shrink-0">Cú pháp:</span>
+                                    <span class="font-mono font-semibold text-amber-600 dark:text-amber-400 select-all text-right break-all">@effectiveMemo</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="button"
+                                onclick="openQrModal('@Html.Raw(qr.TenCauHinh)', '@Html.Raw(effectiveQrUrl)', '@Html.Raw(effectiveBank)', '@Html.Raw(effectiveAccNum)', '@Html.Raw(effectiveAccName)', '@Html.Raw(effectiveMemo)')"
+                                class="inline-flex items-center justify-center gap-2 text-white font-bold text-sm px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-700 hover:to-green-800 shadow-md hover:shadow-lg transition-all w-full mt-auto cursor-pointer min-h-[44px]">
+                            <i class="fas fa-qrcode"></i>
+                            <span>QR Tài khoản</span>
+                        </button>
                     </article>
                 }
             }
@@ -170,7 +275,7 @@
             <span class="mb-3 inline-block rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 px-4 py-1.5 text-xs font-bold uppercase tracking-widest border border-emerald-200 dark:border-emerald-800">
                 @(Model?.BaoCao_Nhan ?? "Minh bạch")
             </span>
-            <h2 class="gayquy-heading whitespace-pre-line text-3xl font-black leading-tight sm:text-4xl md:text-5xl text-volunteer-text dark:text-white">
+            <h2 class="gayquy-heading whitespace-pre-line text-2xl font-black leading-tight sm:text-3xl md:text-4xl lg:text-5xl text-volunteer-text dark:text-white">
                 @(Model?.BaoCao_TieuDe ?? "Báo cáo thu – chi")
             </h2>
             <p class="mt-4 text-base sm:text-lg text-volunteer-text/75 dark:text-slate-300 font-medium">
@@ -195,9 +300,9 @@
                 <span class="mb-4 sm:mb-6 inline-block rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 px-5 py-2 text-xs font-bold uppercase tracking-widest border border-amber-200 dark:border-amber-800">
                     @(Model?.TaiTro_Nhan ?? "Những mảnh ghép tạo nên Trăng sáng Langbiang")
                 </span>
-                <h2 class="gayquy-heading whitespace-pre-line text-3xl font-black leading-tight sm:text-4xl md:text-5xl text-volunteer-text dark:text-white">
+                <h2 class="gayquy-heading whitespace-pre-line text-2xl font-black leading-tight sm:text-3xl md:text-4xl lg:text-5xl text-volunteer-text dark:text-white">
                     @(Model?.TaiTro_TieuDe ?? "ĐƠN VỊ TỔ CHỨC - TÀI TRỢ")
-                    <span class="inline-block text-amber-600 dark:text-amber-400">@(Model?.TaiTro_TieuDeNoiBat ?? "NĂM 2026")</span>
+                    <span class="block sm:inline-block text-amber-600 dark:text-amber-400">@(Model?.TaiTro_TieuDeNoiBat ?? "NĂM 2026")</span>
                 </h2>
                 <p class="mt-4 text-base text-volunteer-text/75 dark:text-slate-300 sm:text-lg font-medium">
                     @(Model?.TaiTro_MoTa ?? "Mỗi đơn vị là một mảnh ghép quan trọng, cùng nhau thắp sáng và làm nên một mùa trăng thật trọn vẹn!")
@@ -221,7 +326,7 @@
                                     <button type="button"
                                             title="@sp.TenDonVi"
                                             onclick="openSponsorModal('@Html.Raw(sp.TenDonVi)', '@Html.Raw(sp.LinkLogo)', '@Html.Raw(sp.GioiThieu?.Replace("'", "\\'").Replace("\r\n", " "))', '@Html.Raw(sp.LinkWebsite)')"
-                                            class="group relative flex h-28 w-44 items-center justify-center rounded-2xl bg-white dark:bg-volunteer-card p-5 ring-1 ring-emerald-100 dark:ring-white/10 transition hover:-translate-y-1.5 sm:h-32 sm:w-56 sm:p-6 shadow-sm hover:shadow-md cursor-pointer">
+                                            class="group relative flex h-24 w-[calc(50%-0.75rem)] max-w-[176px] sm:w-56 sm:h-32 items-center justify-center rounded-2xl bg-white dark:bg-volunteer-card p-4 sm:p-6 ring-1 ring-emerald-100 dark:ring-white/10 transition hover:-translate-y-1.5 shadow-sm hover:shadow-md cursor-pointer">
                                         <img alt="@sp.TenDonVi" src="@sp.LinkLogo" class="object-contain p-3 transition duration-300 group-hover:scale-105 w-full h-full" />
                                         <span class="pointer-events-none absolute left-1/2 top-full z-10 mt-2 -translate-x-1/2 translate-y-1 whitespace-nowrap rounded-full bg-emerald-900 text-white dark:bg-white dark:text-slate-900 px-3 py-1 text-xs font-semibold opacity-0 transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100 shadow-md">
                                             @sp.TenDonVi
@@ -240,7 +345,7 @@
 <!-- POPUP 1: MODAL HIỂN THỊ MÃ QR CHUYỂN KHOẢN -->
 <div id="qrModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4">
     <div class="bg-white dark:bg-volunteer-card rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl relative animate-fade-in-up text-center border border-emerald-100 dark:border-white/10">
-        <button type="button" onclick="closeQrModal()" class="absolute top-4 right-4 h-9 w-9 rounded-full bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 flex items-center justify-center font-bold text-slate-600 dark:text-slate-300">✕</button>
+        <button type="button" onclick="closeQrModal()" class="absolute top-4 right-4 h-10 w-10 min-w-[40px] min-h-[40px] rounded-full bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 flex items-center justify-center font-bold text-slate-600 dark:text-slate-300 transition focus:outline-none">✕</button>
         <h3 id="qrModalTitle" class="text-xl font-black text-emerald-800 dark:text-emerald-300 mb-4">Thông tin Quyên góp</h3>
         <div class="bg-slate-50 dark:bg-white/5 p-4 rounded-2xl border border-slate-200 dark:border-white/10 inline-block mb-4">
             <img id="qrModalImg" src="" alt="QR Code" class="w-56 h-56 object-contain mx-auto rounded-lg" />
@@ -249,7 +354,7 @@
             <p><span class="text-slate-500 dark:text-slate-400">Ngân hàng:</span> <strong id="qrModalBank" class="text-slate-900 dark:text-white"></strong></p>
             <p><span class="text-slate-500 dark:text-slate-400">Số tài khoản:</span> <strong id="qrModalAccNum" class="text-emerald-700 dark:text-emerald-400 text-base select-all"></strong></p>
             <p><span class="text-slate-500 dark:text-slate-400">Chủ tài khoản:</span> <strong id="qrModalAccName" class="text-slate-900 dark:text-white"></strong></p>
-            <p><span class="text-slate-500 dark:text-slate-400">Nội dung CK:</span> <strong id="qrModalNote" class="text-amber-700 dark:text-amber-400 select-all"></strong></p>
+            <p class="flex items-start justify-between gap-2"><span class="text-slate-500 dark:text-slate-400 shrink-0">Nội dung CK:</span> <strong id="qrModalNote" class="text-amber-700 dark:text-amber-400 select-all break-all text-right"></strong></p>
         </div>
     </div>
 </div>
@@ -257,11 +362,11 @@
 <!-- POPUP 2: MODAL GIỚI THIỆU NHÀ TÀI TRỢ -->
 <div id="sponsorModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4">
     <div class="bg-white dark:bg-volunteer-card rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative text-center border border-emerald-100 dark:border-white/10 animate-fade-in-up">
-        <button type="button" onclick="closeSponsorModal()" class="absolute top-4 right-4 h-9 w-9 rounded-full bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 flex items-center justify-center font-bold text-slate-600 dark:text-slate-300">✕</button>
+        <button type="button" onclick="closeSponsorModal()" class="absolute top-4 right-4 h-10 w-10 min-w-[40px] min-h-[40px] rounded-full bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 flex items-center justify-center font-bold text-slate-600 dark:text-slate-300 transition focus:outline-none">✕</button>
         <img id="spModalLogo" src="" class="h-24 object-contain mx-auto mb-4" />
         <h3 id="spModalName" class="text-xl font-black text-slate-900 dark:text-white mb-3"></h3>
         <p id="spModalIntro" class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-6"></p>
-        <a id="spModalLink" href="#" target="_blank" class="inline-flex items-center gap-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-2.5 text-sm transition shadow-md">
+        <a id="spModalLink" href="#" target="_blank" class="inline-flex items-center justify-center gap-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 min-h-[44px] text-sm transition shadow-md">
             <span>Tìm hiểu thêm</span>
             <i class="fas fa-arrow-right text-xs"></i>
         </a>
@@ -270,12 +375,17 @@
 
 <script>
     function openQrModal(title, qrUrl, bank, accNum, accName, note) {
-        document.getElementById('qrModalTitle').innerText = title;
-        document.getElementById('qrModalImg').src = qrUrl || '/logo-mark.png';
-        document.getElementById('qrModalBank').innerText = bank;
-        document.getElementById('qrModalAccNum').innerText = accNum;
-        document.getElementById('qrModalAccName').innerText = accName;
-        document.getElementById('qrModalNote').innerText = note;
+        document.getElementById('qrModalTitle').innerText = title || 'Thông tin Quyên góp';
+        var finalQrUrl = qrUrl;
+        if (!finalQrUrl && bank && accNum) {
+            var cleanBank = bank.indexOf('MB') !== -1 ? 'MB' : bank.trim();
+            finalQrUrl = 'https://img.vietqr.io/image/' + encodeURIComponent(cleanBank) + '-' + encodeURIComponent(accNum.trim()) + '-compact2.png' + (note ? '?addInfo=' + encodeURIComponent(note.trim()) : '');
+        }
+        document.getElementById('qrModalImg').src = finalQrUrl || '/logo-mark.png';
+        document.getElementById('qrModalBank').innerText = bank || '';
+        document.getElementById('qrModalAccNum').innerText = accNum || '';
+        document.getElementById('qrModalAccName').innerText = accName || '';
+        document.getElementById('qrModalNote').innerText = note || '';
         const modal = document.getElementById('qrModal');
         modal.classList.remove('hidden');
         modal.classList.add('flex');

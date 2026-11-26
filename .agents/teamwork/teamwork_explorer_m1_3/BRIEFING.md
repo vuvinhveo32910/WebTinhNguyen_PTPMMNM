@@ -1,54 +1,37 @@
-# BRIEFING — 2026-11-03T12:49:30Z
+# BRIEFING — 2026-11-07T05:22:00Z
 
 ## Mission
-Analyze and specify exact implementation details for SessionExtensions.cs, DbInitializer.cs (Seed Data & offline fallback), Areas/CuaHang/Views/_ViewImports.cshtml, and Areas/CuaHang/Views/_ViewStart.cshtml for Milestone 1.
+Investigate backward compatibility and regression risks for Milestone 1: TaiKhoanAdmin model changes and DbInitializer.
 
 ## 🔒 My Identity
-- Archetype: teamwork_explorer
-- Roles: explorer, investigator, synthesizer
-- Working directory: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_explorer_m1_3
-- Original parent: 108b9d81-1dd6-495f-84eb-99dbb197aebe
-- Milestone: M1 (Area & Data Foundation)
+- Archetype: explorer
+- Roles: investigation, synthesis
+- Working directory: D:\web_tinh_nguyen\.agents\teamwork\teamwork_explorer_m1_3
+- Original parent: 3007f0a1-1a91-4596-8f2a-fc29176756e7
+- Milestone: Milestone 1
 
 ## 🔒 Key Constraints
 - Read-only investigation — do NOT implement
-- Provide exact implementation designs for SessionExtensions.cs, DbInitializer.cs (Seed Data logic with offline fallback), Areas/CuaHang/Views/_ViewImports.cshtml & _ViewStart.cshtml
-- Output report in .agents/teamwork/teamwork_explorer_m1_3/handoff.md
-- Update progress.md with "Last visited: [timestamp]" heartbeat
+- Investigate tests in tests/E2ETests/ and tests/M2Challenger_Auth/
+- Check reflection, column count, constructors, DbInitializer.SeedAdmin, GetAdminByUsername, ValidateAdminCredentials
+- Verify 518 unified tests safety
+- Synthesize concrete file boundaries and exact implementation instructions for Worker M1
 
 ## Current Parent
-- Conversation ID: 108b9d81-1dd6-495f-84eb-99dbb197aebe
-- Updated: not yet
+- Conversation ID: 3007f0a1-1a91-4596-8f2a-fc29176756e7
+- Updated: 2026-11-07T05:22:00Z
 
 ## Investigation State
-- **Explored paths**:
-  - `WEB_TinhNguyen/Program.cs`
-  - `WEB_TinhNguyen/Data/ApplicationDbContext.cs`
-  - `WEB_TinhNguyen/Views/_ViewImports.cshtml`
-  - `WEB_TinhNguyen/Views/_ViewStart.cshtml`
-  - `WEB_TinhNguyen/Views/Shared/_Layout.cshtml`
-  - `WEB_TinhNguyen/Views/Shared/_AdminLayout.cshtml`
-  - `WEB_TinhNguyen/wwwroot/assets/`
-  - `.agents/teamwork/ORIGINAL_REQUEST.md`
-  - `.agents/teamwork/orchestrator/PROJECT.md`
-  - `.agents/teamwork/teamwork_explorer_survey_1/handoff.md`
-  - `.agents/teamwork/teamwork_explorer_survey_2/handoff.md`
-  - `.agents/teamwork/teamwork_explorer_survey_3/handoff.md`
-- **Key findings**:
-  - ASP.NET Core project root is located at `/home/hutech/Vinh_Offline/WEB_TinhNguyen/WEB_TinhNguyen/`
-  - SQL Server port 1433 is closed in the sandbox; DbInitializer MUST provide an offline in-memory fallback store with full CRUD support so that demo mode and automated tests function without error.
-  - 4 verified high quality assets exist in `wwwroot/assets/`: `journey.jpg`, `cooking.jpg`, `children.jpg`, `lanterns.jpg`.
-  - SessionExtensions needs `JsonSerializerOptions` with `PropertyNameCaseInsensitive = true` and `ReferenceHandler = ReferenceHandler.IgnoreCycles`.
-  - `_ViewStart.cshtml` must inspect `ViewContext.RouteData.Values["controller"]` and `ViewContext.View.Path` to route admin controllers/views to `_AdminLayout.cshtml` and storefront to `_Layout.cshtml`.
-  - `_ViewImports.cshtml` needs `@using WEB_TinhNguyen.Areas.CuaHang.Models`, `@using WEB_TinhNguyen.Areas.CuaHang.Helpers`, and `@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers`.
-- **Unexplored areas**: None. All 4 design targets are fully analyzed and specified.
+- **Explored paths**: None yet
+- **Key findings**: None yet
+- **Unexplored areas**: ORIGINAL_REQUEST.md, PROJECT.md, tests/E2ETests/, tests/M2Challenger_Auth/, TaiKhoanAdmin usages, DbInitializer usages
 
 ## Key Decisions Made
-- SessionExtensions includes null protection, exception absorption in `Get<T>`, and a `GetOrCreate<T>` helper.
-- DbInitializer includes a dual-mode engine: EF Core DB seed if database is available, and an in-memory thread-safe fallback store supporting list, get by id, add, update, delete for both products and orders.
-- _ViewStart uses intelligent prefix matching on Controller name and view path.
+- Initial setup
 
 ## Artifact Index
-- `.agents/teamwork/teamwork_explorer_m1_3/BRIEFING.md` — persistent working memory
-- `.agents/teamwork/teamwork_explorer_m1_3/progress.md` — heartbeat and progress tracking
-- `.agents/teamwork/teamwork_explorer_m1_3/handoff.md` — 5-component handoff report
+- DISPATCH.md — incoming dispatch message
+- BRIEFING.md — working memory and identity
+- progress.md — liveness heartbeat
+- analysis.md — detailed findings and instructions for Worker
+- handoff.md — 5-component handoff report

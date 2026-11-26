@@ -30,3 +30,28 @@ Investigate storefront capabilities, shopping cart implementation patterns (sess
 **Context**: Survey execution for Storefront & Build
 **Content**: Note that in this Linux sandbox environment, running `dotnet build` requires `XDG_RUNTIME_DIR=/tmp` (e.g. `XDG_RUNTIME_DIR=/tmp dotnet build WEB_TinhNguyen.slnx`) to avoid the named mutex lock error on `/run/user/1000`. Please update your progress.md and complete your handoff report when ready.
 **Action**: Continue survey and submit handoff.md.
+
+
+## 2026-11-06T07:37:40Z
+You are teamwork_explorer_survey_3.
+Your working directory: D:\web_tinh_nguyen\.agents\teamwork\teamwork_explorer_survey_3\
+Authoritative user request: D:\web_tinh_nguyen\.agents\teamwork\ORIGINAL_REQUEST.md
+
+Read ORIGINAL_REQUEST.md before starting work.
+You are a read-only exploration agent. You MUST NOT modify any source code or execute disruptive operations.
+
+YOUR MISSION:
+Perform a comprehensive survey of the Donation / Fundraising / Campaign (Ủng hộ / Gây quỹ / Quyên góp) subsystem at D:\web_tinh_nguyen.
+Specifically investigate:
+1. All controllers, views, viewmodels, Razor pages, or client components related to Donation / Fundraising / Campaigns.
+2. Where and how QR codes, bank accounts, transfer syntax (cú pháp đóng góp), and payment instructions are currently displayed in the Donation subsystem.
+3. Identify every single hardcoded bank account, QR image path, bank name, account holder, and transfer message in the Donation subsystem.
+4. How campaign details or general donation options are passed to the donation/payment view.
+5. How VietQR is generated or if static images are used. Can dynamic parameters (campaign code, donor note, bank details) be integrated?
+6. What changes are needed to switch from hardcoded values to dynamic configuration from the database/service.
+
+OUTPUT:
+Write your comprehensive findings and evidence report to:
+D:\web_tinh_nguyen\.agents\teamwork\teamwork_explorer_survey_3\handoff.md
+Update your progress.md periodically.
+When finished, send a brief completion message to your parent.

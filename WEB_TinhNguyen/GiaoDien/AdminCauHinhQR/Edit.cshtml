@@ -1,0 +1,390 @@
+@model WEB_TinhNguyen.MoHinh.CauHinhThanhToanQR
+@{
+    ViewData["Title"] = $"Chỉnh sửa cấu hình QR #{Model.IDCauHinhQR}";
+    Layout = "~/GiaoDien/Shared/_AdminLayout.cshtml";
+}
+
+<div class="max-w-7xl mx-auto my-6 px-4 sm:px-6 lg:px-8 space-y-6">
+
+    <!-- BREADCRUMB & HEADER -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-200 pb-5">
+        <div>
+            <nav class="flex items-center gap-2 text-xs text-gray-500 mb-2 font-medium">
+                <a href="@Url.Action("Index", "Admin")" class="hover:text-emerald-600 transition flex items-center gap-1">
+                    <i class="fas fa-home"></i> Quản trị
+                </a>
+                <span>/</span>
+                <a href="@Url.Action("Index", "AdminCauHinhQR")" class="hover:text-emerald-600 transition">
+                    Cấu hình Thanh toán QR
+                </a>
+                <span>/</span>
+                <span class="text-emerald-700 font-semibold">Chỉnh sửa #@Model.IDCauHinhQR</span>
+            </nav>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
+                <span class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-lg shadow-sm">
+                    <i class="fas fa-edit"></i>
+                </span>
+                <span>Chỉnh Sửa Cấu Hình QR #@Model.IDCauHinhQR</span>
+            </h1>
+            <p class="mt-1 text-sm text-gray-500">
+                Cập nhật thông tin tài khoản, ngân hàng, mã VietQR hoặc thay thế ảnh QR tùy chọn.
+            </p>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <a href="@Url.Action("Index", "AdminCauHinhQR")"
+               class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl text-gray-700 bg-white hover:bg-gray-50 border border-gray-300 shadow-sm transition">
+                <i class="fas fa-arrow-left text-gray-400"></i>
+                <span>Quay lại</span>
+            </a>
+
+            <button type="submit" form="qrEditForm"
+                    class="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold rounded-xl text-white bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-700 hover:to-green-800 shadow-md hover:shadow-lg transition">
+                <i class="fas fa-save"></i>
+                <span>Lưu thay đổi</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN FORM -->
+    <form asp-action="Edit" asp-route-id="@Model.IDCauHinhQR" method="post" enctype="multipart/form-data" id="qrEditForm" class="space-y-6">
+        @Html.AntiForgeryToken()
+
+        <input type="hidden" asp-for="IDCauHinhQR" />
+        <input type="hidden" asp-for="DuongDanAnhQRTuyChon" id="hiddenCurrentCustomImg" />
+        <input type="hidden" asp-for="NgayTao" />
+
+        <div asp-validation-summary="ModelOnly" class="p-4 rounded-2xl bg-red-50 border border-red-200 text-sm text-red-700 shadow-sm">
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <!-- LEFT COLUMN (8/12) - THÔNG TIN CHÍNH -->
+            <div class="lg:col-span-8 space-y-6">
+
+                <!-- CARD 1: THÔNG TIN TÀI KHOẢN -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 space-y-5">
+                    <h2 class="text-base font-bold text-gray-900 border-b border-gray-100 pb-3 flex items-center gap-2">
+                        <i class="fas fa-university text-emerald-600"></i>
+                        <span>Thông tin Tài khoản Ngân hàng</span>
+                    </h2>
+
+                    <!-- Tên cấu hình -->
+                    <div>
+                        <label asp-for="TenCauHinh" class="block text-sm font-bold text-gray-700 mb-1">
+                            Tên cấu hình <span class="text-red-500">*</span>
+                        </label>
+                        <input asp-for="TenCauHinh"
+                               placeholder="Ví dụ: Tài khoản chính MBBank - Cửa hàng & Quyên góp"
+                               class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm" />
+                        <span asp-validation-for="TenCauHinh" class="text-xs text-red-500 mt-1 block"></span>
+                    </div>
+
+                    <!-- Chọn ngân hàng nhanh & Chi tiết -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">
+                                Chọn nhanh ngân hàng
+                            </label>
+                            <select id="selectBankQuick" onchange="onBankSelectChange(this)"
+                                    class="w-full px-3 py-2.5 rounded-xl border border-gray-300 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm font-medium">
+                                <option value="MB|Quân Đội (MBBank)">MB - MBBank</option>
+                                <option value="VCB|Ngoại thương Việt Nam (Vietcombank)">VCB - Vietcombank</option>
+                                <option value="ICB|Công Thương Việt Nam (VietinBank)">ICB - VietinBank</option>
+                                <option value="BIDV|Đầu tư & Phát triển Việt Nam (BIDV)">BIDV - BIDV</option>
+                                <option value="TCB|Kỹ Thương Việt Nam (Techcombank)">TCB - Techcombank</option>
+                                <option value="ACB|Á Châu (ACB)">ACB - ACB</option>
+                                <option value="VPB|Việt Nam Thịnh Vượng (VPBank)">VPB - VPBank</option>
+                                <option value="TPB|Tiên Phong (TPBank)">TPB - TPBank</option>
+                                <option value="STB|Sài Gòn Thương Tín (Sacombank)">STB - Sacombank</option>
+                                <option value="HDB|Phát triển TP.HCM (HDBank)">HDB - HDBank</option>
+                                <option value="CUSTOM" selected>-- Tùy chỉnh ngân hàng --</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label asp-for="MaNganHang" class="block text-sm font-bold text-gray-700 mb-1">
+                                Mã ngân hàng <span class="text-red-500">*</span>
+                            </label>
+                            <input asp-for="MaNganHang" id="inputMaNganHang" oninput="updateQrPreview()"
+                                   placeholder="VD: MB, VCB, TCB"
+                                   class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm font-mono uppercase" />
+                            <span asp-validation-for="MaNganHang" class="text-xs text-red-500 mt-1 block"></span>
+                        </div>
+
+                        <div>
+                            <label asp-for="TenNganHang" class="block text-sm font-bold text-gray-700 mb-1">
+                                Tên ngân hàng hiển thị <span class="text-red-500">*</span>
+                            </label>
+                            <input asp-for="TenNganHang" id="inputTenNganHang"
+                                   placeholder="VD: Quân Đội (MBBank)"
+                                   class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm" />
+                            <span asp-validation-for="TenNganHang" class="text-xs text-red-500 mt-1 block"></span>
+                        </div>
+                    </div>
+
+                    <!-- Số tài khoản & Chủ tài khoản -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label asp-for="SoTaiKhoan" class="block text-sm font-bold text-gray-700 mb-1">
+                                Số tài khoản <span class="text-red-500">*</span>
+                            </label>
+                            <input asp-for="SoTaiKhoan" id="inputSoTaiKhoan" oninput="updateQrPreview()"
+                                   placeholder="VD: 0924044283"
+                                   class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm font-mono font-bold text-emerald-700" />
+                            <span asp-validation-for="SoTaiKhoan" class="text-xs text-red-500 mt-1 block"></span>
+                        </div>
+
+                        <div>
+                            <label asp-for="TenChuTaiKhoan" class="block text-sm font-bold text-gray-700 mb-1">
+                                Tên chủ tài khoản <span class="text-red-500">*</span>
+                            </label>
+                            <input asp-for="TenChuTaiKhoan" id="inputTenChuTaiKhoan" oninput="updateQrPreview()"
+                                   placeholder="VD: NGUYEN THAI VINH"
+                                   class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm font-bold uppercase" />
+                            <span asp-validation-for="TenChuTaiKhoan" class="text-xs text-red-500 mt-1 block"></span>
+                        </div>
+                    </div>
+
+                    <!-- Cú pháp chuyển khoản -->
+                    <div>
+                        <label asp-for="CuPhapChuyenKhoan" class="block text-sm font-bold text-gray-700 mb-1">
+                            Cú pháp chuyển khoản gợi ý
+                        </label>
+                        <input asp-for="CuPhapChuyenKhoan" id="inputMemo" oninput="updateQrPreview()"
+                               placeholder="VD: {MADON} hoặc [HoVaTen]_gopLangbiang"
+                               class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm font-mono" />
+                        <p class="text-xs text-gray-400 mt-1">Dùng token <code>{MADON}</code> để hệ thống tự thay bằng mã đơn hàng thực tế khi thanh toán.</p>
+                        <span asp-validation-for="CuPhapChuyenKhoan" class="text-xs text-red-500 mt-1 block"></span>
+                    </div>
+                </div>
+
+                <!-- CARD 2: VĂN BẢN HƯỚNG DẪN & GHI CHÚ -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 space-y-5">
+                    <h2 class="text-base font-bold text-gray-900 border-b border-gray-100 pb-3 flex items-center gap-2">
+                        <i class="fas fa-file-alt text-emerald-600"></i>
+                        <span>Văn bản Hướng dẫn & Ghi chú Thanh toán</span>
+                    </h2>
+
+                    <div>
+                        <label asp-for="HuongDanThanhToan" class="block text-sm font-bold text-gray-700 mb-1">
+                            Văn bản hướng dẫn người mua / người đóng góp
+                        </label>
+                        <textarea asp-for="HuongDanThanhToan" rows="3"
+                                  placeholder="Mở ứng dụng ngân hàng hoặc ví điện tử bất kỳ (Vietcombank, MBBank, Techcombank, MoMo...) và Quét mã để thanh toán tự động"
+                                  class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm"></textarea>
+                        <span asp-validation-for="HuongDanThanhToan" class="text-xs text-red-500 mt-1 block"></span>
+                    </div>
+
+                    <div>
+                        <label asp-for="GhiChuThem" class="block text-sm font-bold text-gray-700 mb-1">
+                            Ghi chú chân trang / Nội dung cam kết
+                        </label>
+                        <textarea asp-for="GhiChuThem" rows="2"
+                                  placeholder="Tài khoản chính thức của chiến dịch thiện nguyện Trăng Sáng Langbiang 2026."
+                                  class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm"></textarea>
+                        <span asp-validation-for="GhiChuThem" class="text-xs text-red-500 mt-1 block"></span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- RIGHT COLUMN (4/12) - CHẾ ĐỘ QR, PREVIEW & ÁP DỤNG -->
+            <div class="lg:col-span-4 space-y-6">
+
+                <!-- CARD 3: CHẾ ĐỘ QR & LIVE PREVIEW -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 space-y-5">
+                    <h2 class="text-base font-bold text-gray-900 border-b border-gray-100 pb-3 flex items-center gap-2">
+                        <i class="fas fa-qrcode text-emerald-600"></i>
+                        <span>Chế độ QR & Xem trước</span>
+                    </h2>
+
+                    <!-- Toggle VietQR vs Tải ảnh -->
+                    <div class="space-y-2">
+                        <label class="block text-sm font-bold text-gray-700">Loại mã QR</label>
+                        <div class="flex items-center gap-3">
+                            <label class="flex items-center gap-2 cursor-pointer text-sm">
+                                <input type="radio" asp-for="SuDungVietQR" value="true" id="radioVietQr" onchange="toggleQrMode()"
+                                       class="text-emerald-600 focus:ring-emerald-500" />
+                                <span class="font-medium text-gray-800">VietQR Napas247</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer text-sm">
+                                <input type="radio" asp-for="SuDungVietQR" value="false" id="radioCustomQr" onchange="toggleQrMode()"
+                                       class="text-emerald-600 focus:ring-emerald-500" />
+                                <span class="font-medium text-gray-800">Ảnh tải lên tùy chọn</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Mẫu VietQR -->
+                    <div id="boxVietQrTemplate">
+                        <label asp-for="MauVietQR" class="block text-sm font-bold text-gray-700 mb-1">
+                            Mẫu hiển thị VietQR
+                        </label>
+                        <select asp-for="MauVietQR" id="selectTemplate" onchange="updateQrPreview()"
+                                class="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm">
+                            <option value="compact2">compact2 (Khuyên dùng - Đầy đủ thẻ logo Napas)</option>
+                            <option value="compact">compact (Gọn nhẹ tiêu chuẩn)</option>
+                            <option value="qr_only">qr_only (Chỉ mã QR, không viền thẻ)</option>
+                            <option value="print">print (Bản in kích thước lớn)</option>
+                        </select>
+                    </div>
+
+                    <!-- Upload tệp ảnh QR tùy chọn -->
+                    <div id="boxUploadCustomQr" class="hidden space-y-3">
+                        @if (!string.IsNullOrEmpty(Model.DuongDanAnhQRTuyChon))
+                        {
+                            <div class="p-3 bg-gray-50 rounded-xl border border-gray-200 text-xs">
+                                <span class="text-gray-500 block mb-1">Ảnh hiện tại:</span>
+                                <div class="font-mono text-emerald-700 truncate" title="@Model.DuongDanAnhQRTuyChon">@Model.DuongDanAnhQRTuyChon</div>
+                            </div>
+                        }
+
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">
+                                Thay thế ảnh QR tùy chọn
+                            </label>
+                            <input type="file" name="FileAnhQR" id="fileUploadQR" accept="image/*" onchange="previewUploadImage(this)"
+                                   class="w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer" />
+                            <p class="text-[11px] text-gray-400 mt-1">Để trống nếu muốn giữ lại ảnh cũ.</p>
+                        </div>
+                    </div>
+
+                    <!-- Live Preview Box -->
+                    <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200/80 text-center space-y-3">
+                        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Xem trước trực tiếp</span>
+                        <div class="inline-block p-2 bg-white rounded-xl shadow-sm border border-gray-200">
+                            <img id="livePreviewImg" src=""
+                                 alt="Xem trước QR" class="w-48 h-48 object-contain mx-auto rounded-lg" />
+                        </div>
+                        <p id="livePreviewCaption" class="text-[11px] text-gray-500 font-mono truncate px-2">
+                        </p>
+                    </div>
+                </div>
+
+                <!-- CARD 4: PHẠM VI ÁP DỤNG & KÍCH HOẠT -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 space-y-4">
+                    <h2 class="text-base font-bold text-gray-900 border-b border-gray-100 pb-3 flex items-center gap-2">
+                        <i class="fas fa-toggle-on text-emerald-600"></i>
+                        <span>Phạm vi & Trạng thái</span>
+                    </h2>
+
+                    <div class="space-y-3">
+                        <label class="flex items-center gap-3 p-3 rounded-xl border border-gray-200 hover:bg-gray-50 cursor-pointer transition">
+                            <input type="checkbox" asp-for="ApDungChoCuaHang"
+                                   class="h-4 w-4 rounded text-emerald-600 focus:ring-emerald-500 border-gray-300" />
+                            <div>
+                                <span class="block text-sm font-bold text-gray-800">Áp dụng cho Cửa hàng gây quỹ</span>
+                                <span class="block text-xs text-gray-500">Hiển thị khi khách đặt hàng thành công và trong chi tiết đơn</span>
+                            </div>
+                        </label>
+
+                        <label class="flex items-center gap-3 p-3 rounded-xl border border-gray-200 hover:bg-gray-50 cursor-pointer transition">
+                            <input type="checkbox" asp-for="ApDungChoQuyenGop"
+                                   class="h-4 w-4 rounded text-emerald-600 focus:ring-emerald-500 border-gray-300" />
+                            <div>
+                                <span class="block text-sm font-bold text-gray-800">Áp dụng cho Kênh quyên góp</span>
+                                <span class="block text-xs text-gray-500">Hiển thị trên trang Gây quỹ và hộp thoại Quét QR đóng góp</span>
+                            </div>
+                        </label>
+
+                        <label class="flex items-center gap-3 p-3 rounded-xl border border-gray-200 hover:bg-gray-50 cursor-pointer transition">
+                            <input type="checkbox" asp-for="TrangThaiHoatDong"
+                                   class="h-4 w-4 rounded text-emerald-600 focus:ring-emerald-500 border-gray-300" />
+                            <div>
+                                <span class="block text-sm font-bold text-gray-800">Kích hoạt hoạt động</span>
+                                <span class="block text-xs text-gray-500">Bật để hệ thống sử dụng cấu hình này</span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Thứ tự ưu tiên -->
+                    <div>
+                        <label asp-for="ThuTu" class="block text-sm font-bold text-gray-700 mb-1">
+                            Thứ tự hiển thị ưu tiên
+                        </label>
+                        <input asp-for="ThuTu" type="number" min="1" max="999"
+                               class="w-full px-4 py-2 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm font-bold" />
+                        <span asp-validation-for="ThuTu" class="text-xs text-red-500 mt-1 block"></span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function onBankSelectChange(select) {
+            const val = select.value;
+            if (val === 'CUSTOM') return;
+            const parts = val.split('|');
+            if (parts.length === 2) {
+                document.getElementById('inputMaNganHang').value = parts[0];
+                document.getElementById('inputTenNganHang').value = parts[1];
+                updateQrPreview();
+            }
+        }
+
+        function toggleQrMode() {
+            const isVietQr = document.getElementById('radioVietQr').checked;
+            const boxVietQrTemplate = document.getElementById('boxVietQrTemplate');
+            const boxUploadCustomQr = document.getElementById('boxUploadCustomQr');
+
+            if (isVietQr) {
+                boxVietQrTemplate.classList.remove('hidden');
+                boxUploadCustomQr.classList.add('hidden');
+                updateQrPreview();
+            } else {
+                boxVietQrTemplate.classList.add('hidden');
+                boxUploadCustomQr.classList.remove('hidden');
+
+                const currentImg = document.getElementById('hiddenCurrentCustomImg').value;
+                if (currentImg) {
+                    document.getElementById('livePreviewImg').src = currentImg;
+                    document.getElementById('livePreviewCaption').innerText = currentImg;
+                }
+            }
+        }
+
+        function updateQrPreview() {
+            const isVietQr = document.getElementById('radioVietQr').checked;
+            if (!isVietQr) {
+                const currentImg = document.getElementById('hiddenCurrentCustomImg').value;
+                if (currentImg) {
+                    document.getElementById('livePreviewImg').src = currentImg;
+                    document.getElementById('livePreviewCaption').innerText = currentImg;
+                }
+                return;
+            }
+
+            const bank = (document.getElementById('inputMaNganHang').value || 'MB').trim().toUpperCase();
+            const acc = (document.getElementById('inputSoTaiKhoan').value || '0924044283').trim();
+            const template = document.getElementById('selectTemplate').value || 'compact2';
+            const holder = (document.getElementById('inputTenChuTaiKhoan').value || 'NGUYEN THAI VINH').trim().toUpperCase();
+            const memo = (document.getElementById('inputMemo').value || 'MADON').trim();
+
+            const url = `https://img.vietqr.io/image/${bank}-${acc}-${template}.png?amount=50000&addInfo=${encodeURIComponent(memo)}&accountName=${encodeURIComponent(holder)}`;
+            document.getElementById('livePreviewImg').src = url;
+            document.getElementById('livePreviewCaption').innerText = `https://img.vietqr.io/image/${bank}-${acc}-${template}.png`;
+        }
+
+        function previewUploadImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('livePreviewImg').src = e.target.result;
+                    document.getElementById('livePreviewCaption').innerText = input.files[0].name;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            toggleQrMode();
+            updateQrPreview();
+        });
+    </script>
+}

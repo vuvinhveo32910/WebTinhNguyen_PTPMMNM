@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using WEB_TinhNguyen.DuLieu;
 using WEB_TinhNguyen.Areas.CuaHang.Models;
+using WEB_TinhNguyen.MoHinh;
 
 namespace WEB_TinhNguyen.Areas.CuaHang.Helpers
 {
@@ -16,14 +17,87 @@ namespace WEB_TinhNguyen.Areas.CuaHang.Helpers
         private static readonly object _syncLock = new object();
         private static readonly List<SanPhamGayQuy> _inMemoryProducts = new List<SanPhamGayQuy>();
         private static readonly List<DonHangGayQuy> _inMemoryOrders = new List<DonHangGayQuy>();
+        private static readonly List<CauHinhThanhToanQR> _inMemoryQrConfigs = new List<CauHinhThanhToanQR>();
+        private static readonly List<TaiKhoanAdmin> _inMemoryAdmins = new List<TaiKhoanAdmin>();
         private static int _nextProductId = 5;
         private static int _nextOrderId = 1;
+        private static int _nextQrConfigId = 2;
+        private static int _nextAdminId = 2;
         private static bool _sampleOrdersSeeded = false;
+
+        // Cache chuỗi muối và hash của admin mặc định để tối ưu hóa hiệu năng trong kiểm thử song song
+        private static string? _defaultAdminSalt;
+        private static string? _defaultAdminHash;
+        private static readonly object _adminHashLock = new object();
 
         static DbInitializer()
         {
             ResetInMemoryStore();
             SeedSampleOrders();
+        }
+
+        /// <summary>
+        /// Lấy hoặc tạo chuỗi muối và mã băm PBKDF2 của tài khoản admin mặc định ("Admin@123").
+        /// Sử dụng bộ nhớ đệm an toàn theo luồng để tối ưu hóa hiệu năng trong các kiểm thử đa luồng.
+        /// </summary>
+        private static (string salt, string hash) GetOrCreateDefaultAdminCredentials()
+        {
+            lock (_adminHashLock)
+            {
+                if (string.IsNullOrEmpty(_defaultAdminSalt) || string.IsNullOrEmpty(_defaultAdminHash))
+                {
+                    _defaultAdminSalt = BaoMatMatKhau.TaoMuoiNgauNhien();
+                    _defaultAdminHash = BaoMatMatKhau.BamMatKhau("Admin@123", _defaultAdminSalt);
+                }
+                return (_defaultAdminSalt, _defaultAdminHash);
+            }
+        }
+
+        /// <summary>
+        /// Danh sách tài khoản quản trị viên mặc định ("admin" / "Admin@123") với mật khẩu được băm bảo mật bằng PBKDF2.
+        /// </summary>
+        public static List<TaiKhoanAdmin> GetDefaultAdmins()
+        {
+            var (salt, hash) = GetOrCreateDefaultAdminCredentials();
+
+            return new List<TaiKhoanAdmin>
+            {
+                new TaiKhoanAdmin
+                {
+                    IDTaiKhoan = 1,
+                    TenDangNhap = "admin",
+                    MatKhauHash = hash,
+                    MuoiBaoMat = salt,
+                    HoTen = "Quản trị viên Hệ thống",
+                    Email = "admin@tinhnguyen.vn",
+                    VaiTro = "Admin",
+                    PhanQuyen = QuyenAdmin.All,
+                    TrangThaiHoatDong = true,
+                    NgayTao = DateTime.Now,
+                    LanDangNhapCuoi = null
+                }
+            };
+        }
+
+        /// <summary>
+        /// Tạo bản sao dữ liệu TaiKhoanAdmin để đảm bảo an toàn truy cập (Clone Isolation).
+        /// </summary>
+        private static TaiKhoanAdmin CloneAdmin(TaiKhoanAdmin a)
+        {
+            return new TaiKhoanAdmin
+            {
+                IDTaiKhoan = a.IDTaiKhoan,
+                TenDangNhap = a.TenDangNhap,
+                MatKhauHash = a.MatKhauHash,
+                MuoiBaoMat = a.MuoiBaoMat,
+                HoTen = a.HoTen,
+                Email = a.Email,
+                VaiTro = a.VaiTro,
+                PhanQuyen = string.IsNullOrWhiteSpace(a.PhanQuyen) ? QuyenAdmin.All : a.PhanQuyen,
+                TrangThaiHoatDong = a.TrangThaiHoatDong,
+                NgayTao = a.NgayTao,
+                LanDangNhapCuoi = a.LanDangNhapCuoi
+            };
         }
 
         /// <summary>
@@ -202,6 +276,33 @@ namespace WEB_TinhNguyen.Areas.CuaHang.Helpers
         }
 
         /// <summary>
+        /// Cấu hình mã QR thanh toán / ủng hộ mặc định ban đầu mang thương hiệu MBBank chiến dịch Trăng Sáng Langbiang 2026.
+        /// </summary>
+        public static CauHinhThanhToanQR GetDefaultQrConfig()
+        {
+            return new CauHinhThanhToanQR
+            {
+                IDCauHinhQR = 1,
+                TenCauHinh = "Tài khoản MBBank - Cửa hàng & Quyên góp",
+                MaNganHang = "MB",
+                TenNganHang = "Quân Đội (MBBank)",
+                SoTaiKhoan = "0924044283",
+                TenChuTaiKhoan = "NGUYEN THAI VINH",
+                CuPhapChuyenKhoan = "{MADON}",
+                MauVietQR = "compact2",
+                DuongDanAnhQRTuyChon = null,
+                SuDungVietQR = true,
+                HuongDanThanhToan = "Mở ứng dụng ngân hàng hoặc ví điện tử bất kỳ (Vietcombank, MBBank, Techcombank, MoMo...) và Quét mã để thanh toán tự động",
+                GhiChuThem = "Tài khoản thụ hưởng chính thức của chiến dịch thiện nguyện Trăng Sáng Langbiang 2026.",
+                ApDungChoCuaHang = true,
+                ApDungChoQuyenGop = true,
+                TrangThaiHoatDong = true,
+                ThuTu = 1,
+                NgayTao = DateTime.Now
+            };
+        }
+
+        /// <summary>
         /// Bí danh cho Seed() để hỗ trợ các cách gọi khác nhau.
         /// </summary>
         public static void Initialize(ApplicationDbContext context)
@@ -286,6 +387,52 @@ namespace WEB_TinhNguyen.Areas.CuaHang.Helpers
                                 CONSTRAINT [FK_ChiTietDonHangGayQuy_SanPhamGayQuy_IDSanPham] FOREIGN KEY ([IDSanPham]) REFERENCES [dbo].[SanPhamGayQuy]([IDSanPham]) ON DELETE SET NULL
                             );
                         END;
+
+                        IF OBJECT_ID(N'[dbo].[CauHinhThanhToanQR]', N'U') IS NULL
+                        BEGIN
+                            CREATE TABLE [dbo].[CauHinhThanhToanQR] (
+                                [IDCauHinhQR] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                                [TenCauHinh] NVARCHAR(150) NOT NULL,
+                                [MaNganHang] NVARCHAR(50) NOT NULL,
+                                [TenNganHang] NVARCHAR(150) NOT NULL,
+                                [SoTaiKhoan] NVARCHAR(50) NOT NULL,
+                                [TenChuTaiKhoan] NVARCHAR(150) NOT NULL,
+                                [CuPhapChuyenKhoan] NVARCHAR(255) NULL,
+                                [MauVietQR] NVARCHAR(50) NOT NULL DEFAULT N'compact2',
+                                [DuongDanAnhQRTuyChon] NVARCHAR(1000) NULL,
+                                [SuDungVietQR] BIT NOT NULL DEFAULT 1,
+                                [HuongDanThanhToan] NVARCHAR(MAX) NULL,
+                                [GhiChuThem] NVARCHAR(MAX) NULL,
+                                [ApDungChoCuaHang] BIT NOT NULL DEFAULT 1,
+                                [ApDungChoQuyenGop] BIT NOT NULL DEFAULT 1,
+                                [TrangThaiHoatDong] BIT NOT NULL DEFAULT 1,
+                                [ThuTu] INT NOT NULL DEFAULT 1,
+                                [NgayTao] DATETIME2 NOT NULL DEFAULT GETDATE(),
+                                [NgayCapNhat] DATETIME2 NULL
+                            );
+                        END;
+
+                        IF OBJECT_ID(N'[dbo].[TaiKhoanAdmin]', N'U') IS NULL
+                        BEGIN
+                            CREATE TABLE [dbo].[TaiKhoanAdmin] (
+                                [IDTaiKhoan] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                                [TenDangNhap] NVARCHAR(100) NOT NULL UNIQUE,
+                                [MatKhauHash] NVARCHAR(500) NOT NULL,
+                                [MuoiBaoMat] NVARCHAR(100) NOT NULL,
+                                [HoTen] NVARCHAR(150) NULL,
+                                [Email] NVARCHAR(150) NULL,
+                                [VaiTro] NVARCHAR(50) NOT NULL DEFAULT N'Admin',
+                                [PhanQuyen] NVARCHAR(MAX) NOT NULL DEFAULT N'ALL',
+                                [TrangThaiHoatDong] BIT NOT NULL DEFAULT 1,
+                                [NgayTao] DATETIME2 NOT NULL DEFAULT GETDATE(),
+                                [LanDangNhapCuoi] DATETIME2 NULL
+                            );
+                        END;
+
+                        IF COL_LENGTH(N'[dbo].[TaiKhoanAdmin]', N'PhanQuyen') IS NULL
+                        BEGIN
+                            ALTER TABLE [dbo].[TaiKhoanAdmin] ADD [PhanQuyen] NVARCHAR(MAX) NOT NULL DEFAULT N'ALL';
+                        END;
                     ");
 
                     if (!context.SanPhamGayQuys.Any())
@@ -318,6 +465,16 @@ namespace WEB_TinhNguyen.Areas.CuaHang.Helpers
                         }
                         context.SaveChanges();
                     }
+
+                    if (!context.CauHinhThanhToanQRs.Any())
+                    {
+                        var defaultQr = GetDefaultQrConfig();
+                        defaultQr.IDCauHinhQR = 0;
+                        context.CauHinhThanhToanQRs.Add(defaultQr);
+                        context.SaveChanges();
+                    }
+
+                    SeedAdmin(context);
                 }
             }
             catch
@@ -340,6 +497,14 @@ namespace WEB_TinhNguyen.Areas.CuaHang.Helpers
                 _nextOrderId = 1;
                 SeedSampleOrders();
                 _sampleOrdersSeeded = true;
+
+                _inMemoryQrConfigs.Clear();
+                _inMemoryQrConfigs.Add(GetDefaultQrConfig());
+                _nextQrConfigId = 2;
+
+                _inMemoryAdmins.Clear();
+                _inMemoryAdmins.AddRange(GetDefaultAdmins());
+                _nextAdminId = 2;
             }
         }
 
@@ -670,6 +835,467 @@ namespace WEB_TinhNguyen.Areas.CuaHang.Helpers
                 IDChienDich = p.IDChienDich
             };
         }
+
+        #region In-Memory QR Config Store Methods (Phục vụ Demo & Offline Fallback)
+
+        public static List<CauHinhThanhToanQR> GetInMemoryQrConfigs()
+        {
+            lock (_syncLock)
+            {
+                if (_inMemoryQrConfigs.Count == 0)
+                {
+                    _inMemoryQrConfigs.Add(GetDefaultQrConfig());
+                }
+                return _inMemoryQrConfigs
+                    .OrderBy(q => q.ThuTu)
+                    .ThenBy(q => q.IDCauHinhQR)
+                    .Select(q => CloneQrConfig(q))
+                    .ToList();
+            }
+        }
+
+        public static CauHinhThanhToanQR? GetInMemoryQrConfigById(int id)
+        {
+            lock (_syncLock)
+            {
+                if (_inMemoryQrConfigs.Count == 0)
+                {
+                    _inMemoryQrConfigs.Add(GetDefaultQrConfig());
+                }
+                var q = _inMemoryQrConfigs.FirstOrDefault(x => x.IDCauHinhQR == id);
+                return q == null ? null : CloneQrConfig(q);
+            }
+        }
+
+        public static CauHinhThanhToanQR? GetActiveStoreQrConfig()
+        {
+            lock (_syncLock)
+            {
+                if (_inMemoryQrConfigs.Count == 0)
+                {
+                    _inMemoryQrConfigs.Add(GetDefaultQrConfig());
+                }
+                var active = _inMemoryQrConfigs
+                    .Where(q => q.ApDungChoCuaHang && q.TrangThaiHoatDong)
+                    .OrderBy(q => q.ThuTu)
+                    .ThenBy(q => q.IDCauHinhQR)
+                    .FirstOrDefault();
+
+                return active != null ? CloneQrConfig(active) : null;
+            }
+        }
+
+        public static List<CauHinhThanhToanQR> GetActiveDonationQrConfigs()
+        {
+            lock (_syncLock)
+            {
+                if (_inMemoryQrConfigs.Count == 0)
+                {
+                    _inMemoryQrConfigs.Add(GetDefaultQrConfig());
+                }
+                return _inMemoryQrConfigs
+                    .Where(q => q.ApDungChoQuyenGop && q.TrangThaiHoatDong)
+                    .OrderBy(q => q.ThuTu)
+                    .ThenBy(q => q.IDCauHinhQR)
+                    .Select(q => CloneQrConfig(q))
+                    .ToList();
+            }
+        }
+
+        public static CauHinhThanhToanQR AddInMemoryQrConfig(CauHinhThanhToanQR item)
+        {
+            lock (_syncLock)
+            {
+                while (_inMemoryQrConfigs.Any(q => q.IDCauHinhQR == _nextQrConfigId))
+                {
+                    _nextQrConfigId++;
+                }
+                item.IDCauHinhQR = _nextQrConfigId++;
+                item.NgayTao = DateTime.Now;
+                var clone = CloneQrConfig(item);
+                _inMemoryQrConfigs.Add(clone);
+                return CloneQrConfig(clone);
+            }
+        }
+
+        public static bool UpdateInMemoryQrConfig(CauHinhThanhToanQR item)
+        {
+            lock (_syncLock)
+            {
+                var existing = _inMemoryQrConfigs.FirstOrDefault(x => x.IDCauHinhQR == item.IDCauHinhQR);
+                if (existing == null) return false;
+
+                existing.TenCauHinh = item.TenCauHinh;
+                existing.MaNganHang = item.MaNganHang;
+                existing.TenNganHang = item.TenNganHang;
+                existing.SoTaiKhoan = item.SoTaiKhoan;
+                existing.TenChuTaiKhoan = item.TenChuTaiKhoan;
+                existing.CuPhapChuyenKhoan = item.CuPhapChuyenKhoan;
+                existing.MauVietQR = item.MauVietQR;
+                existing.SuDungVietQR = item.SuDungVietQR;
+                existing.HuongDanThanhToan = item.HuongDanThanhToan;
+                existing.GhiChuThem = item.GhiChuThem;
+                existing.ApDungChoCuaHang = item.ApDungChoCuaHang;
+                existing.ApDungChoQuyenGop = item.ApDungChoQuyenGop;
+                existing.TrangThaiHoatDong = item.TrangThaiHoatDong;
+                existing.ThuTu = item.ThuTu;
+                existing.NgayCapNhat = DateTime.Now;
+
+                if (!string.IsNullOrEmpty(item.DuongDanAnhQRTuyChon))
+                {
+                    existing.DuongDanAnhQRTuyChon = item.DuongDanAnhQRTuyChon;
+                }
+
+                return true;
+            }
+        }
+
+        public static bool DeleteInMemoryQrConfig(int id)
+        {
+            lock (_syncLock)
+            {
+                var existing = _inMemoryQrConfigs.FirstOrDefault(x => x.IDCauHinhQR == id);
+                if (existing == null) return false;
+                _inMemoryQrConfigs.Remove(existing);
+                return true;
+            }
+        }
+
+        public static bool ToggleActiveInMemoryQrConfig(int id)
+        {
+            lock (_syncLock)
+            {
+                var existing = _inMemoryQrConfigs.FirstOrDefault(x => x.IDCauHinhQR == id);
+                if (existing == null) return false;
+                existing.TrangThaiHoatDong = !existing.TrangThaiHoatDong;
+                existing.NgayCapNhat = DateTime.Now;
+                return true;
+            }
+        }
+
+        private static CauHinhThanhToanQR CloneQrConfig(CauHinhThanhToanQR q)
+        {
+            return new CauHinhThanhToanQR
+            {
+                IDCauHinhQR = q.IDCauHinhQR,
+                TenCauHinh = q.TenCauHinh,
+                MaNganHang = q.MaNganHang,
+                TenNganHang = q.TenNganHang,
+                SoTaiKhoan = q.SoTaiKhoan,
+                TenChuTaiKhoan = q.TenChuTaiKhoan,
+                CuPhapChuyenKhoan = q.CuPhapChuyenKhoan,
+                MauVietQR = q.MauVietQR,
+                DuongDanAnhQRTuyChon = q.DuongDanAnhQRTuyChon,
+                SuDungVietQR = q.SuDungVietQR,
+                HuongDanThanhToan = q.HuongDanThanhToan,
+                GhiChuThem = q.GhiChuThem,
+                ApDungChoCuaHang = q.ApDungChoCuaHang,
+                ApDungChoQuyenGop = q.ApDungChoQuyenGop,
+                TrangThaiHoatDong = q.TrangThaiHoatDong,
+                ThuTu = q.ThuTu,
+                NgayTao = q.NgayTao,
+                NgayCapNhat = q.NgayCapNhat
+            };
+        }
+
+        #endregion
+
+        #region Quản trị viên & Phân quyền (Admin Authentication & Authorization)
+
+        /// <summary>
+        /// Khởi tạo tài khoản quản trị viên mặc định vào SQL Server nếu chưa tồn tại.
+        /// Nếu database offline hoặc không truyền context, đồng bộ đảm bảo bộ nhớ in-memory có sẵn admin.
+        /// </summary>
+        public static void SeedAdmin(ApplicationDbContext? context = null)
+        {
+            if (context != null)
+            {
+                try
+                {
+                    if (context.Database.CanConnect())
+                    {
+                        // Đảm bảo bảng TaiKhoanAdmin tồn tại (Idempotent DDL)
+                        context.Database.ExecuteSqlRaw(@"
+                            IF OBJECT_ID(N'[dbo].[TaiKhoanAdmin]', N'U') IS NULL
+                            BEGIN
+                                CREATE TABLE [dbo].[TaiKhoanAdmin] (
+                                    [IDTaiKhoan] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                                    [TenDangNhap] NVARCHAR(100) NOT NULL UNIQUE,
+                                    [MatKhauHash] NVARCHAR(500) NOT NULL,
+                                    [MuoiBaoMat] NVARCHAR(100) NOT NULL,
+                                    [HoTen] NVARCHAR(150) NULL,
+                                    [Email] NVARCHAR(150) NULL,
+                                    [VaiTro] NVARCHAR(50) NOT NULL DEFAULT N'Admin',
+                                    [PhanQuyen] NVARCHAR(MAX) NOT NULL DEFAULT N'ALL',
+                                    [TrangThaiHoatDong] BIT NOT NULL DEFAULT 1,
+                                    [NgayTao] DATETIME2 NOT NULL DEFAULT GETDATE(),
+                                    [LanDangNhapCuoi] DATETIME2 NULL
+                                );
+                            END;
+
+                            IF COL_LENGTH(N'[dbo].[TaiKhoanAdmin]', N'PhanQuyen') IS NULL
+                            BEGIN
+                                ALTER TABLE [dbo].[TaiKhoanAdmin] ADD [PhanQuyen] NVARCHAR(MAX) NOT NULL DEFAULT N'ALL';
+                            END;
+                        ");
+
+                        // Kiểm tra tài khoản admin mặc định
+                        var existingDefaultAdmin = context.TaiKhoanAdmins.FirstOrDefault(a => a.TenDangNhap == "admin");
+                        if (existingDefaultAdmin == null)
+                        {
+                            var defaultAdmins = GetDefaultAdmins();
+                            foreach (var adm in defaultAdmins)
+                            {
+                                var dbAdmin = CloneAdmin(adm);
+                                dbAdmin.IDTaiKhoan = 0; // Để SQL Server tự sinh ID Identity
+                                context.TaiKhoanAdmins.Add(dbAdmin);
+                            }
+                            context.SaveChanges();
+                        }
+                        else if (string.IsNullOrWhiteSpace(existingDefaultAdmin.PhanQuyen))
+                        {
+                            existingDefaultAdmin.PhanQuyen = QuyenAdmin.All;
+                            context.SaveChanges();
+                        }
+                    }
+                }
+                catch
+                {
+                    // SQL Server offline: bắt lỗi để không làm gián đoạn ứng dụng
+                }
+            }
+
+            // Đảm bảo bộ nhớ In-Memory luôn có tài khoản admin
+            lock (_syncLock)
+            {
+                if (_inMemoryAdmins.Count == 0)
+                {
+                    _inMemoryAdmins.AddRange(GetDefaultAdmins());
+                }
+            }
+        }
+
+        /// <summary>
+        /// Lấy thông tin tài khoản admin theo tên đăng nhập (không phân biệt chữ hoa thường).
+        /// Hỗ trợ dual-mode: truy vấn SQL Server trước, nếu offline hoặc không có context thì truy vấn từ In-Memory store.
+        /// Trả về bản sao đối tượng (clone) để tránh bị đột biến dữ liệu ngoài ý muốn.
+        /// </summary>
+        public static TaiKhoanAdmin? GetAdminByUsername(string username, ApplicationDbContext? context = null)
+        {
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                return null;
+            }
+
+            string normalized = username.Trim();
+
+            if (context != null)
+            {
+                try
+                {
+                    if (context.Database.CanConnect())
+                    {
+                        var dbAdmin = context.TaiKhoanAdmins
+                            .AsNoTracking()
+                            .FirstOrDefault(a => a.TenDangNhap.ToLower() == normalized.ToLower());
+
+                        if (dbAdmin != null)
+                        {
+                            return CloneAdmin(dbAdmin);
+                        }
+                    }
+                }
+                catch
+                {
+                    // Database gặp sự cố: chuyển xuống In-Memory fallback
+                }
+            }
+
+            lock (_syncLock)
+            {
+                if (_inMemoryAdmins.Count == 0)
+                {
+                    _inMemoryAdmins.AddRange(GetDefaultAdmins());
+                }
+
+                var inMemAdmin = _inMemoryAdmins.FirstOrDefault(a =>
+                    string.Equals(a.TenDangNhap, normalized, StringComparison.OrdinalIgnoreCase));
+
+                return inMemAdmin != null ? CloneAdmin(inMemAdmin) : null;
+            }
+        }
+
+        /// <summary>
+        /// Xác thực thông tin đăng nhập admin (tên đăng nhập và mật khẩu).
+        /// Kiểm tra mật khẩu bằng thuật toán PBKDF2 HMAC-SHA256 chống timing attack.
+        /// Nếu thông tin hợp lệ, tự động cập nhật thời điểm đăng nhập cuối (LanDangNhapCuoi).
+        /// </summary>
+        public static bool ValidateAdminCredentials(string username, string password, ApplicationDbContext? context = null)
+        {
+            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrEmpty(password))
+            {
+                return false;
+            }
+
+            var admin = GetAdminByUsername(username, context);
+            if (admin == null || !admin.TrangThaiHoatDong)
+            {
+                return false;
+            }
+
+            bool isValid = BaoMatMatKhau.KiemTraMatKhau(password, admin.MatKhauHash, admin.MuoiBaoMat);
+            if (!isValid)
+            {
+                return false;
+            }
+
+            // Cập nhật LanDangNhapCuoi khi đăng nhập thành công
+            var now = DateTime.Now;
+
+            // Cập nhật trong In-Memory Store
+            lock (_syncLock)
+            {
+                var inMem = _inMemoryAdmins.FirstOrDefault(a =>
+                    string.Equals(a.TenDangNhap, username.Trim(), StringComparison.OrdinalIgnoreCase));
+                if (inMem != null)
+                {
+                    inMem.LanDangNhapCuoi = now;
+                }
+            }
+
+            // Cập nhật trong CSDL nếu có context
+            if (context != null)
+            {
+                try
+                {
+                    if (context.Database.CanConnect())
+                    {
+                        var dbAdmin = context.TaiKhoanAdmins.FirstOrDefault(a =>
+                            a.TenDangNhap.ToLower() == username.Trim().ToLower());
+                        if (dbAdmin != null)
+                        {
+                            dbAdmin.LanDangNhapCuoi = now;
+                            context.SaveChanges();
+                        }
+                    }
+                }
+                catch
+                {
+                    // Bỏ qua lỗi ghi nhật ký đăng nhập nếu CSDL tạm thời mất kết nối
+                }
+            }
+
+            return true;
+        }
+
+        #region In-Memory Admin Store Methods (Phục vụ Demo & Offline Fallback)
+
+        public static List<TaiKhoanAdmin> GetInMemoryAdmins()
+        {
+            lock (_syncLock)
+            {
+                if (_inMemoryAdmins.Count == 0)
+                {
+                    _inMemoryAdmins.AddRange(GetDefaultAdmins());
+                }
+                return _inMemoryAdmins.Select(a => CloneAdmin(a)).ToList();
+            }
+        }
+
+        public static TaiKhoanAdmin? GetInMemoryAdminById(int id)
+        {
+            lock (_syncLock)
+            {
+                if (_inMemoryAdmins.Count == 0)
+                {
+                    _inMemoryAdmins.AddRange(GetDefaultAdmins());
+                }
+                var a = _inMemoryAdmins.FirstOrDefault(x => x.IDTaiKhoan == id);
+                return a == null ? null : CloneAdmin(a);
+            }
+        }
+
+        public static TaiKhoanAdmin? GetInMemoryAdminByUsername(string username)
+        {
+            return GetAdminByUsername(username);
+        }
+
+        public static TaiKhoanAdmin AddInMemoryAdmin(TaiKhoanAdmin item)
+        {
+            lock (_syncLock)
+            {
+                while (_inMemoryAdmins.Any(a => a.IDTaiKhoan == _nextAdminId))
+                {
+                    _nextAdminId++;
+                }
+                item.IDTaiKhoan = _nextAdminId++;
+                item.NgayTao = DateTime.Now;
+                var clone = CloneAdmin(item);
+                _inMemoryAdmins.Add(clone);
+                return CloneAdmin(clone);
+            }
+        }
+
+        public static bool UpdateInMemoryAdmin(TaiKhoanAdmin item)
+        {
+            lock (_syncLock)
+            {
+                var existing = _inMemoryAdmins.FirstOrDefault(x => x.IDTaiKhoan == item.IDTaiKhoan);
+                if (existing == null) return false;
+
+                existing.TenDangNhap = item.TenDangNhap;
+                if (!string.IsNullOrEmpty(item.MatKhauHash))
+                {
+                    existing.MatKhauHash = item.MatKhauHash;
+                }
+                if (!string.IsNullOrEmpty(item.MuoiBaoMat))
+                {
+                    existing.MuoiBaoMat = item.MuoiBaoMat;
+                }
+                existing.HoTen = item.HoTen;
+                existing.Email = item.Email;
+                existing.VaiTro = item.VaiTro;
+                if (!string.IsNullOrWhiteSpace(item.PhanQuyen))
+                {
+                    existing.PhanQuyen = item.PhanQuyen;
+                }
+                existing.TrangThaiHoatDong = item.TrangThaiHoatDong;
+                existing.LanDangNhapCuoi = item.LanDangNhapCuoi;
+                return true;
+            }
+        }
+
+        public static bool ToggleActiveInMemoryAdmin(int id)
+        {
+            lock (_syncLock)
+            {
+                var existing = _inMemoryAdmins.FirstOrDefault(x => x.IDTaiKhoan == id);
+                if (existing == null) return false;
+                if (string.Equals(existing.TenDangNhap, "admin", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Không cho phép vô hiệu hóa tài khoản quản trị gốc
+                    existing.TrangThaiHoatDong = true;
+                    return false;
+                }
+                existing.TrangThaiHoatDong = !existing.TrangThaiHoatDong;
+                return true;
+            }
+        }
+
+        public static bool DeleteInMemoryAdmin(int id)
+        {
+            lock (_syncLock)
+            {
+                var existing = _inMemoryAdmins.FirstOrDefault(x => x.IDTaiKhoan == id);
+                if (existing == null) return false;
+                _inMemoryAdmins.Remove(existing);
+                return true;
+            }
+        }
+
+        #endregion
+
+        #endregion
 
         #endregion
     }

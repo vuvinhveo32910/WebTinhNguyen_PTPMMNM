@@ -3,6 +3,17 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    overflow-x: hidden;
+    overflow-x: clip;
+  }
+
+  body {
+    overflow-x: hidden;
+    overflow-x: clip;
+    min-height: 100vh;
+  }
+
   :root {
     /* Nền trắng mặc định */
     --bg-page: #ffffff;

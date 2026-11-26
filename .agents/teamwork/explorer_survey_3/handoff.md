@@ -1,276 +1,292 @@
-# Handoff Report — Explorer 3 (Queries, Controllers, and Build Investigator)
+# Handoff Report: Database, Models & Auth Infra Survey (explorer_survey_3)
 
 ## 1. Observation
 
-### 1.1 Baseline Build Status (`dotnet build`)
-- **Command**:
-  ```bash
-  TMPDIR=/tmp XDG_RUNTIME_DIR=/tmp dotnet build
+### 1.1 Database Connectivity & SQL Server Configuration
+- **Configuration Files**:
+  - `WEB_TinhNguyen/appsettings.json` (lines 1-12):
+    ```json
+    {
+      "ConnectionStrings": {
+        "DefaultConnection": "Server=DESKTOP-C5LJ9BM\\SQL2025_DEV;Database=TinhNguyen;Integrated Security=True;TrustServerCertificate=True;MultipleActiveResultSets=true"
+      },
+      "Logging": {
+        "LogLevel": {
+          "Default": "Information",
+          "Microsoft.AspNetCore": "Warning"
+        }
+      },
+      "AllowedHosts": "*"
+    }
+    ```
+  - `WEB_TinhNguyen/appsettings.Development.json` (lines 1-12): Contains the identical connection string.
+- **SQL Server Instance & Database**:
+  - Target Server/Instance: `DESKTOP-C5LJ9BM\SQL2025_DEV`
+  - Target Database: `TinhNguyen`
+  - Authentication: Windows Integrated Security (`Integrated Security=True`), `TrustServerCertificate=True`, `MultipleActiveResultSets=true`.
+  - Machine Environment: SQL Server installation directory exists at `C:\Program Files\Microsoft SQL Server\MSSQL17.SQL2025_DEV` and `MSSQL16.SQLEXPRESS`. Windows sandbox restrictions prevent direct service manipulation, making the project's existing dual-mode persistence architecture essential.
+
+### 1.2 Data Access Layer & DbContext Architecture
+- **Framework & Package Versions** (`WEB_TinhNguyen/WEB_TinhNguyen.csproj`, lines 10-15):
+  - Target Framework: `net10.0`
+  - `Microsoft.EntityFrameworkCore`: `10.0.12`
+  - `Microsoft.EntityFrameworkCore.SqlServer`: `10.0.12`
+  - `Microsoft.EntityFrameworkCore.Tools`: `10.0.12`
+- **DbContext Definition** (`WEB_TinhNguyen/DuLieu/ApplicationDbContext.cs`, lines 7-52):
+  - Class: `public class ApplicationDbContext : DbContext`
+  - Declares 25 `DbSet` properties covering campaign, home config, countdown, memories, news, partners, store, orders, and payment QR.
+  - In `OnConfiguring` (lines 53-57):
+    `optionsBuilder.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));`
+  - In `OnModelCreating` (lines 59-219): Maps entities to table names, configures decimal precision (`decimal(18,2)`), and ignores legacy columns.
+- **EF Core Migrations**:
+  - 13 migrations exist in `WEB_TinhNguyen/Migrations/` ranging from `20261006032230_AddBannerTable.cs` to `20261104000000_XoaCotMauVaVietHoaTenBangCot.cs`.
+  - `ApplicationDbContextModelSnapshot.cs` (1442 lines) captures the snapshot up to the latest migration.
+- **Reference SQL Scripts**:
+  - `D:\web_tinh_nguyen\SQLQuery1.sql` (132 lines): Contains initial DDL scripts for tables `ChienDich`, `ChangChienDich`, `DangKyTNV`, `NhaTaiTro`, `TinTuc`, `ThuVienAnh`, `CauHoiThuongGap`, and `CauHinhTrangChu`.
+
+### 1.3 User / Account / Admin Entity Inventory
+- **Codebase Search**:
+  - Executed recursive search across all `.cs` files in `D:\web_tinh_nguyen\WEB_TinhNguyen` for classes matching `User`, `Account`, `TaiKhoan`, `NguoiDung`, `AdminUser`, or `QuanTriVien`.
+  - Result: **Zero existing user/account/identity entity classes exist in the project.**
+  - All occurrences of the string `TaiKhoan` in the codebase are strictly related to bank accounts (`SoTaiKhoan`, `TenChuTaiKhoan`) in `CauHinhThanhToanQR`, `KenhDongGop`, and `VietQrHelper`.
+  - No `Microsoft.AspNetCore.Identity.EntityFrameworkCore` package is referenced.
+
+### 1.4 Password Hashing Mechanism
+- **Current State**:
+  - Zero password hashing classes, interfaces, or utilities currently exist in `WEB_TinhNguyen`.
+- **Framework Capability**:
+  - The project targets .NET 10 via `<Project Sdk="Microsoft.NET.Sdk.Web">`, which references the `Microsoft.AspNetCore.App` shared framework.
+  - `Microsoft.AspNetCore.Identity.PasswordHasher<TUser>` and `System.Security.Cryptography.Rfc2898DeriveBytes` (PBKDF2 with HMAC-SHA256) are natively available out of the box with zero additional package dependencies.
+
+### 1.5 Database Initialization & Seeding Pattern
+- **Startup Flow in `WEB_TinhNguyen/Program.cs`** (lines 88-109):
+  ```csharp
+  // Khởi tạo dữ liệu mẫu ban đầu (DbInitializer Seed Data) với cơ chế phòng vệ khi offline
+  try
+  {
+      using var scope = app.Services.CreateScope();
+      var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+      if (context.Database.CanConnect())
+      {
+          try
+          {
+              context.Database.Migrate();
+          }
+          catch (Exception migrateEx)
+          {
+              app.Logger.LogWarning(migrateEx, "Bỏ qua bước tự động Migrate do cơ sở dữ liệu vật lý đã tồn tại trước đó.");
+          }
+      }
+      DbInitializer.Initialize(context);
+  }
+  catch (Exception ex)
+  {
+      app.Logger.LogWarning(ex, "Database initialization warning: SQL Server có thể đang offline, hệ thống sẽ sử dụng dữ liệu mẫu in-memory dự phòng.");
+  }
   ```
-- **Result**:
-  - `Build succeeded.`
-  - `0 Error(s)`
-  - `4 Warning(s)` (Nuget package `System.Security.Cryptography.Pkcs` 9.0.11 vulnerability notices NU1902 and NU1903).
-  - Note on environment: Executing plain `dotnet build` without `XDG_RUNTIME_DIR=/tmp` fails with `System.IO.IOException: The system cannot open the device or file specified. : 'NuGet-Migrations'. One or more system calls failed: lstat("/run/user/1000", ...) == -1; errno == ENOENT;` due to sandbox isolation of user runtime folders.
+- **Seeding & Idempotent DDL Mechanism in `WEB_TinhNguyen/Areas/CuaHang/Helpers/DbInitializer.cs`**:
+  - In `DbInitializer.Seed(ApplicationDbContext context)` (lines 253-383):
+    1. Checks `if (context.Database.CanConnect())`.
+    2. Runs idempotent raw SQL DDL using `context.Database.ExecuteSqlRaw(@"IF OBJECT_ID(N'[dbo].[TableName]', N'U') IS NULL BEGIN CREATE TABLE ... END")`.
+    3. Checks `if (!context.Set<T>().Any())` and inserts seed records.
+    4. Wraps in `try/catch` to safely fall back to in-memory store if database is unreachable.
+  - In-Memory Fallback Store (lines 392-906): Provides thread-safe in-memory collections protected by `_syncLock` for offline execution, testing, and demo resilience.
 
-### 1.2 Automated Test Execution
-- **Command**:
-  ```bash
-  TMPDIR=/tmp XDG_RUNTIME_DIR=/tmp DOTNET_CLI_HOME=/tmp HOME=/tmp bash tests/run_e2e_tests.sh --all
-  ```
-- **Result**:
-  - `OVERALL: 337 Tests | 337 Passed | 0 Failed | 0 Skipped in 5.22s (Exit code: 0)`
-  - The current in-memory / mock test suite passes completely.
-  - Crucially: Search across `tests/` with `grep -rnE "(DuongDanAnhBia|DuongDanAnhLinhVat|HienThiHieuUng3D|HienThiLinhVat|KieuChuNoiDung|KieuChuTieuDe|VeDuAn_DuongDanAnh|ViTriLinhVat)" tests/ --exclude-dir={bin,obj}` returned **0 matches**. Tests do NOT depend on the 8 invalid property names.
-
-### 1.3 Search for Raw SQL Queries & LINQ Projections
-- **Commands**:
-  ```bash
-  grep -rnE "(FromSql|ExecuteSql|SqlConnection|SqlCommand|SqlDataAdapter|Dapper)" --exclude-dir={bin,obj,node_modules,.git,.agents} .
-  grep -rn "SELECT " --exclude-dir={bin,obj,node_modules,.git,.agents} .
-  ```
-- **Result**:
-  - There are **ZERO raw SQL queries** (`FromSqlRaw`, `FromSqlInterpolated`, `ExecuteSqlRaw`, `Dapper`, `ADO.NET`, `SqlCommand`, `SELECT *`) in the application codebase.
-  - All database operations are executed via Entity Framework Core LINQ (`_context.CauHinhTrangChus.Include(...).FirstOrDefaultAsync()`, etc.).
-  - Because EF Core maps entity auto-properties to database columns by default, EF Core dynamically generates SQL `SELECT c.DuongDanAnhBia, c.DuongDanAnhLinhVat, c.HienThiHieuUng3D, c.HienThiLinhVat, c.KieuChuNoiDung, c.KieuChuTieuDe, c.VeDuAn_DuongDanAnh, c.ViTriLinhVat...` when executing queries against tables configured with these entity models.
-
-### 1.4 References in Controllers, ViewModels, and Views
-A systematic scan of all files across the project revealed:
-
-#### A. In Models (`WEB_TinhNguyen/MoHinh/Entities.cs`):
-1. **`CauHinhTrangChu`**:
-   - Line 33: `public string? DuongDanAnhBia { get; set; }`
-   - Line 35: `public string? LinkAnhBia { get => DuongDanAnhBia; set => DuongDanAnhBia = value; }`
-   - Line 40: `public string? KieuChuTieuDe { get; set; }`
-   - Line 42: `public string? FontTieuDe { get => KieuChuTieuDe; set => KieuChuTieuDe = value; }`
-   - Line 43: `public string? KieuChuNoiDung { get; set; }`
-   - Line 45: `public string? FontNoiDung { get => KieuChuNoiDung; set => KieuChuNoiDung = value; }`
-   - Line 47: `public bool HienThiHieuUng3D { get; set; }`
-   - Line 49: `public bool HienThiCanvas3D { get => HienThiHieuUng3D; set => HienThiHieuUng3D = value; }`
-   - Line 55: `public string? VeDuAn_DuongDanAnh { get; set; }`
-   - Line 57: `public string? VeDuAn_LinkAnh { get => VeDuAn_DuongDanAnh; set => VeDuAn_DuongDanAnh = value; }`
-   - Line 66: `public bool HienThiLinhVat { get; set; } = true;`
-   - Line 68: `public bool HienThiMascot { get => HienThiLinhVat; set => HienThiLinhVat = value; }`
-   - Line 69: `public string? DuongDanAnhLinhVat { get; set; }`
-   - Line 71: `public string? LinkAnhMascot { get => DuongDanAnhLinhVat; set => DuongDanAnhLinhVat = value; }`
-   - Line 72: `public string? ViTriLinhVat { get; set; } = "right";`
-   - Line 74: `public string? ViTriMascot { get => ViTriLinhVat; set => ViTriLinhVat = value; }`
-2. **`CauHinhKyUc`**:
-   - Line 243: `public string? DuongDanAnhBia { get; set; }`
-   - Line 245: `public string? LinkAnhBia { get => DuongDanAnhBia; set => DuongDanAnhBia = value; }`
-   - Line 251: `public string? KieuChuTieuDe { get; set; } = "Dancing Script";`
-   - Line 253: `public string? FontTieuDe { get => KieuChuTieuDe; set => KieuChuTieuDe = value; }`
-3. **`CauHinhChuongTrinh`**:
-   - Line 320: `public string? KieuChuTieuDe { get; set; } = "Be Vietnam Pro";`
-   - Line 322: `public string? FontTieuDe { get => KieuChuTieuDe; set => KieuChuTieuDe = value; }`
-4. **`CauHinhGayQuy`**:
-   - Line 377: `public string? KieuChuTieuDe { get; set; } = "Be Vietnam Pro";`
-   - Line 379: `public string? FontTieuDe { get => KieuChuTieuDe; set => KieuChuTieuDe = value; }`
-   - Line 380: `public string? KieuChuNoiDung { get; set; } = "Be Vietnam Pro";`
-   - Line 382: `public string? FontNoiDung { get => KieuChuNoiDung; set => KieuChuNoiDung = value; }`
-5. **`CauHinhBanToChuc`**:
-   - Line 511: `public string? KieuChuTieuDe { get; set; } = "Dancing Script";`
-   - Line 513: `public string? FontTieuDe { get => KieuChuTieuDe; set => KieuChuTieuDe = value; }`
-   - Line 514: `public string? KieuChuNoiDung { get; set; } = "Be Vietnam Pro";`
-   - Line 516: `public string? FontNoiDung { get => KieuChuNoiDung; set => KieuChuNoiDung = value; }`
-6. **`CauHinhTinTuc`**:
-   - Line 591: `public string? KieuChuTieuDe { get; set; } = "Dancing Script";`
-   - Line 593: `public string? FontTieuDe { get => KieuChuTieuDe; set => KieuChuTieuDe = value; }`
-   - Line 594: `public string? KieuChuNoiDung { get; set; } = "Be Vietnam Pro";`
-   - Line 596: `public string? FontNoiDung { get => KieuChuNoiDung; set => KieuChuNoiDung = value; }`
-
-#### B. In ViewModels (`WEB_TinhNguyen/MoHinh/CauHinhTrangChuVM.cs`):
-- `CauHinhTrangChuVM`: Lines 22-25, 27-28, 31-32, 37-38, 43-46, 48-49.
-- `CauHinhKyUcVM`: Lines 161-162, 164-165.
-- `CauHinhChuongTrinhVM`: Lines 207-208.
-- `CauHinhGayQuyVM`: Lines 249-252.
-- `CauHinhBanToChucVM`: Lines 345-348.
-- `CauHinhTinTucVM`: Lines 408-411.
-
-#### C. In Controllers (`WEB_TinhNguyen/BoDieuKhien/`):
-- **`AdminTrangChuController.cs`**:
-  - Edit GET (lines 173-185):
-    - `cauHinh.DuongDanAnhBia` (173)
-    - `cauHinh.KieuChuTieuDe` (175)
-    - `cauHinh.KieuChuNoiDung` (176)
-    - `cauHinh.HienThiHieuUng3D` (177)
-    - `cauHinh.VeDuAn_DuongDanAnh` (181)
-    - `cauHinh.HienThiLinhVat` (183)
-    - `cauHinh.DuongDanAnhLinhVat` (184)
-    - `cauHinh.ViTriLinhVat` (185)
-  - Edit POST (lines 218-238):
-    - `cauHinh.KieuChuTieuDe` (218)
-    - `cauHinh.KieuChuNoiDung` (219)
-    - `cauHinh.HienThiHieuUng3D` (220)
-    - `cauHinh.HienThiLinhVat` (224)
-    - `cauHinh.ViTriLinhVat` (225)
-    - `cauHinh.DuongDanAnhLinhVat` (227, 229)
-    - `cauHinh.DuongDanAnhBia` (232, 233)
-    - `cauHinh.VeDuAn_DuongDanAnh` (237, 238)
-- **`AdminKyUcController.cs`**:
-  - Line 72: `FontTieuDe = cauHinh.KieuChuTieuDe,`
-  - Line 73: `LinkAnhBiaCu = cauHinh.DuongDanAnhBia,`
-- **`AdminChuongTrinhController.cs`**:
-  - Line 74: `FontTieuDe = cauHinh.KieuChuTieuDe,`
-  - Line 110: `cauHinh.KieuChuTieuDe = vm.FontTieuDe;`
-- **`AdminGayQuyController.cs`**:
-  - Lines 102, 103: `FontTieuDe = config.KieuChuTieuDe`, `FontNoiDung = config.KieuChuNoiDung`
-  - Lines 171, 172: `config.KieuChuTieuDe = vm.FontTieuDe`, `config.KieuChuNoiDung = vm.FontNoiDung`
-- **`AdminBanToChucController.cs`**:
-  - Lines 102, 103: `FontTieuDe = config.KieuChuTieuDe`, `FontNoiDung = config.KieuChuNoiDung`
-  - Lines 156, 157: `config.KieuChuTieuDe = vm.FontTieuDe`, `config.KieuChuNoiDung = vm.FontNoiDung`
-- **`AdminTinTucController.cs`**:
-  - Lines 190, 191: `FontTieuDe = config.KieuChuTieuDe`, `FontNoiDung = config.KieuChuNoiDung`
-  - Lines 228, 229: `config.KieuChuTieuDe = vm.FontTieuDe`, `config.KieuChuNoiDung = vm.FontNoiDung`
-
-#### D. In Razor Views (`.cshtml`):
-- `grep -rnE "(DuongDanAnhBia|DuongDanAnhLinhVat|HienThiHieuUng3D|HienThiLinhVat|KieuChuNoiDung|KieuChuTieuDe|VeDuAn_DuongDanAnh|ViTriLinhVat)" --include="*.cshtml" .` returned **0 matches**.
-- Razor Views throughout the entire application **exclusively use the legacy/database column names**:
-  - `LinkAnhBia` / `LinkAnhBiaCu`
-  - `FontTieuDe`
-  - `FontNoiDung`
-  - `HienThiCanvas3D`
-  - `VeDuAn_LinkAnh` / `VeDuAn_LinkAnhCu`
-  - `HienThiMascot`
-  - `LinkAnhMascot` / `LinkAnhMascotCu`
-  - `ViTriMascot`
-- Specifically verified in:
-  - `WEB_TinhNguyen/GiaoDien/Shared/_Layout.cshtml` (lines 15, 24, 25, 182, 183, 530, 533, 534, 536)
-  - `WEB_TinhNguyen/Areas/CuaHang/Views/Shared/_CuaHangLayout.cshtml` (lines 14, 15)
-  - `WEB_TinhNguyen/GiaoDien/Home/Index.cshtml` (lines 6, 7, 30, 31, 129, 235)
-  - `WEB_TinhNguyen/GiaoDien/Home/GayQuy.cshtml` (lines 4, 5)
-  - `WEB_TinhNguyen/GiaoDien/Home/BanToChuc.cshtml` (lines 5, 6)
-  - `WEB_TinhNguyen/GiaoDien/Home/TinTuc.cshtml` (lines 5, 6)
-  - `WEB_TinhNguyen/GiaoDien/Home/KyUc.cshtml` (lines 10, 14, 23, 25)
-  - `WEB_TinhNguyen/GiaoDien/Home/ChuongTrinh.cshtml` (line 10)
-  - `WEB_TinhNguyen/GiaoDien/AdminTrangChu/Edit.cshtml` (lines 78, 81, 86, 103, 137, 144, 145, 148, 156, 261, 262, 264)
-  - `WEB_TinhNguyen/GiaoDien/AdminKyUc/Edit.cshtml` (lines 16, 23, 46, 48, 64)
-  - `WEB_TinhNguyen/GiaoDien/AdminChuongTrinh/Edit.cshtml` (line 24)
-  - `WEB_TinhNguyen/GiaoDien/AdminTinTuc/Edit.cshtml` (lines 201, 205)
-  - `WEB_TinhNguyen/GiaoDien/AdminBanToChuc/Edit.cshtml` (lines 326, 330)
-  - `WEB_TinhNguyen/GiaoDien/AdminGayQuy/Edit.cshtml` (lines 71, 83)
-
-### 1.5 Application Runtime Endpoints & Query Call Graph
-When client requests hit endpoints, the following database queries are issued:
-1. **Startup (`Program.cs:90-93`)**:
-   - `context.Database.CanConnect()` and `context.Database.Migrate()`.
-2. **Homepage `/` or `/Home/Index` (`HomeController.cs:27-41`)**:
-   - Calls `_context.CauHinhTrangChus.Include(...).Where(c => c.ChienDich.TrangThaiHoatDong == true).FirstOrDefaultAsync()`.
-   - Because `CauHinhTrangChu` entity currently declares properties `DuongDanAnhBia`, `DuongDanAnhLinhVat`, `HienThiHieuUng3D`, `HienThiLinhVat`, `KieuChuNoiDung`, `KieuChuTieuDe`, `VeDuAn_DuongDanAnh`, `ViTriLinhVat`, EF Core generates `SELECT c.DuongDanAnhBia, ... FROM CauHinhTrangChu AS c`.
-   - In SQL Server database `TinhNguyen`, the table `CauHinhTrangChu` was created with column names `LinkAnhBia`, `LinkAnhMascot`, `HienThiCanvas3D`, `HienThiMascot`, `FontNoiDung`, `FontTieuDe`, `VeDuAn_LinkAnh`, `ViTriMascot`.
-   - **Verbatim Error**: `Microsoft.Data.SqlClient.SqlException: Invalid column name 'DuongDanAnhBia'. Invalid column name 'DuongDanAnhLinhVat'...`
-3. **Storefront Shared Layout (`_CuaHangLayout.cshtml:13-17`)**:
-   - Calls `db.CauHinhTrangChus.FirstOrDefault(c => c.ChienDich != null && c.ChienDich.TrangThaiHoatDong == true)`.
-   - Hits `CauHinhTrangChu`, throwing identical `SqlException: Invalid column name`.
-4. **Sub-pages `/Home/ChuongTrinh`, `/Home/GayQuy`, `/Home/BanToChuc`, `/Home/TinTuc`, `/Home/KyUc`**:
-   - Query their respective configuration tables (`CauHinhChuongTrinh`, `CauHinhGayQuy`, `CauHinhBanToChuc`, `CauHinhTinTuc`, `CauHinhKyUc`).
-   - Throw `SqlException: Invalid column name 'KieuChuTieuDe'` / `'KieuChuNoiDung'` / `'DuongDanAnhBia'`.
-5. **Admin Configuration Endpoints (`/AdminTrangChu/Edit`, `/AdminKyUc/Edit`, etc.)**:
-   - Query and update entities in `_context.CauHinhTrangChus`, `_context.CauHinhKyUcs`, etc.
+### 1.6 Current Compilation & Test Suite Status
+- `dotnet build D:\web_tinh_nguyen\WEB_TinhNguyen\WEB_TinhNguyen.csproj`: Builds cleanly in 6.55s, 0 errors, 4 NU1902/NU1903 transitive package warnings.
+- `dotnet run --project tests/E2ETests/E2ETests.csproj`: All 477 tests pass (Tier 1: 161, Tier 2: 28, Tier 3: 18, Tier 4: 12, Tier 5: 258) in 10.33s with 0 failures and 0 skips.
 
 ---
 
 ## 2. Logic Chain
 
-1. **Premise 1 (Database Column Names)**:
-   - Migration history (`20261014042058_AddMascot.Designer.cs:583-680`) and SQL schema (`SQLQuery1.sql:108-132`) establish that the underlying relational database tables have the physical columns:
-     - `LinkAnhBia`
-     - `LinkAnhMascot`
-     - `HienThiCanvas3D`
-     - `HienThiMascot`
-     - `FontNoiDung`
-     - `FontTieuDe`
-     - `VeDuAn_LinkAnh`
-     - `ViTriMascot`
-   - In contrast, columns `DuongDanAnhBia`, `DuongDanAnhLinhVat`, `HienThiHieuUng3D`, `HienThiLinhVat`, `KieuChuNoiDung`, `KieuChuTieuDe`, `VeDuAn_DuongDanAnh`, `ViTriLinhVat` **do not exist** in the database table schema.
+### 2.1 Entity Design: `NguoiDung`
+- **Premise**: User requirement R1 requires creating a user/admin table structure in SQL Server and storing a default admin account with username `admin` and secure hashed password `Admin@123`.
+- **Inference**: A dedicated domain model `NguoiDung` must be created in `WEB_TinhNguyen.MoHinh` following the project's Vietnamese root naming convention.
+- **Contract Definition**:
+  - `IDNguoiDung`: `int`, Primary Key Identity
+  - `TenDangNhap`: `string`, Required, Max 100, Unique index (default `admin`)
+  - `MatKhauHash`: `string`, Required, Max 500 (stores PBKDF2 hashed password string, never plain-text)
+  - `HoTen`: `string?`, Max 200 (e.g. `Quản trị viên Hệ thống`)
+  - `Email`: `string?`, Max 200 (e.g. `admin@tinhnguyen.vn`)
+  - `VaiTro`: `string`, Max 50, Default `Admin`
+  - `TrangThai`: `bool`, Default `true` (Active)
+  - `NgayTao`: `DateTime`, Default `DateTime.Now`
+  - `LanDangNhapCuoi`: `DateTime?`
 
-2. **Premise 2 (EF Core Query Generation)**:
-   - In `WEB_TinhNguyen/DuLieu/ApplicationDbContext.cs`, there are currently **no** Fluent API mapping configurations (`modelBuilder.Entity<CauHinhTrangChu>().Property(...)`) overriding the column names for `CauHinhTrangChu`, `CauHinhKyUc`, `CauHinhChuongTrinh`, `CauHinhGayQuy`, `CauHinhBanToChuc`, or `CauHinhTinTuc`.
-   - In `WEB_TinhNguyen/MoHinh/Entities.cs`, the 8 invalid names are declared as regular auto-properties without `[NotMapped]` or `[Column("...")]`.
-   - Therefore, EF Core assumes the property names match the database column names 1:1, producing SQL SELECT queries containing `c.DuongDanAnhBia`, `c.DuongDanAnhLinhVat`, etc.
-   - When executed against SQL Server, SQL Server rejects the query with `SqlException: Invalid column name`.
+### 2.2 DbContext Integration & Idempotent Schema Creation
+- **Premise**: In production, SQL Server may run existing migrations or direct scripts. Using only EF migrations could fail if physical tables exist or if migrations drift.
+- **Inference**: Follow the established pattern used for `CauHinhThanhToanQR` and `SanPhamGayQuy`:
+  1. Add `public DbSet<NguoiDung> NguoiDungs { get; set; }` to `ApplicationDbContext.cs`.
+  2. In `OnModelCreating`, configure `entity.ToTable("NguoiDung")` and unique index on `TenDangNhap`.
+  3. In `DbInitializer.Seed()`, execute idempotent DDL:
+     ```sql
+     IF OBJECT_ID(N'[dbo].[NguoiDung]', N'U') IS NULL
+     BEGIN
+         CREATE TABLE [dbo].[NguoiDung] (
+             [IDNguoiDung] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+             [TenDangNhap] NVARCHAR(100) NOT NULL CONSTRAINT [UQ_NguoiDung_TenDangNhap] UNIQUE,
+             [MatKhauHash] NVARCHAR(500) NOT NULL,
+             [HoTen] NVARCHAR(200) NULL,
+             [Email] NVARCHAR(200) NULL,
+             [VaiTro] NVARCHAR(50) NOT NULL DEFAULT N'Admin',
+             [TrangThai] BIT NOT NULL DEFAULT 1,
+             [NgayTao] DATETIME2 NOT NULL DEFAULT GETDATE(),
+             [LanDangNhapCuoi] DATETIME2 NULL
+         );
+     END;
+     ```
+  4. This guarantees that table `NguoiDung` is automatically created on startup in SQL Server even if `context.Database.Migrate()` encounters pre-existing objects.
 
-3. **Premise 3 (Zero View Dependencies on Invalid Names)**:
-   - Direct inspection of all `.cshtml` view files confirms that views **only** bind to `LinkAnhBia`, `FontTieuDe`, `FontNoiDung`, `HienThiCanvas3D`, `VeDuAn_LinkAnh`, `HienThiMascot`, `LinkAnhMascot`, `ViTriMascot`.
-   - Direct inspection of all test files in `tests/` confirms that tests **do not** reference the 8 invalid names.
-   - The only non-model files referencing the 8 invalid names are the 6 Admin controllers (`AdminTrangChuController.cs`, `AdminKyUcController.cs`, `AdminChuongTrinhController.cs`, `AdminGayQuyController.cs`, `AdminBanToChucController.cs`, `AdminTinTucController.cs`) and ViewModel definitions in `CauHinhTrangChuVM.cs`.
+### 2.3 Password Hashing Design: `PasswordHelper`
+- **Premise**: Storing plain-text passwords violates acceptance criteria. The hashing algorithm must be secure, resilient against brute-force and rainbow table attacks, and maintainable without fragile external dependencies.
+- **Inference**: Use `Microsoft.AspNetCore.Identity.PasswordHasher<string>` (or `PasswordHasher<NguoiDung>`).
+  - Standard: PBKDF2 with HMAC-SHA256, 128-bit cryptographically secure random salt, 100,000 iterations.
+  - Output: Format Version 3 Base64 string (`AQAAAAIAAA...`).
+  - Verification: `VerifyHashedPassword` uses constant-time byte comparison (`CryptographicOperations.FixedTimeEquals`) to prevent timing side-channel attacks.
+  - Helper Service / Utility: `PasswordHelper.HashPassword(string password)` and `PasswordHelper.VerifyPassword(string hashedPassword, string providedPassword)`.
+  - Zero external NuGet package needed; 100% native to .NET 10.
 
-4. **Deduction (Remediation Architecture)**:
-   - Synchronizing C# Models and DbContext with the database requires making the real database columns (`LinkAnhBia`, `LinkAnhMascot`, `HienThiCanvas3D`, `HienThiMascot`, `FontNoiDung`, `FontTieuDe`, `VeDuAn_LinkAnh`, `ViTriMascot`) the primary mapped properties in `Entities.cs` (or mapping them explicitly via `[Column("...")]` or `ApplicationDbContext.OnModelCreating`).
-   - The 8 invalid names (`DuongDanAnhBia`, `DuongDanAnhLinhVat`, `HienThiHieuUng3D`, `HienThiLinhVat`, `KieuChuNoiDung`, `KieuChuTieuDe`, `VeDuAn_DuongDanAnh`, `ViTriLinhVat`) must be marked with `[NotMapped]` (or ignored in `OnModelCreating`) so EF Core never queries them from the database.
-   - In Admin controllers, updating property accesses to point to the mapped properties (or retaining `[NotMapped]` aliases) guarantees 100% compilation parity and 0 breaking changes.
+### 2.4 Automatic Admin Seeding Flow
+- **Premise**: On application startup, the default admin account (`admin` / `Admin@123`) must be automatically created in the database if it does not already exist.
+- **Inference**:
+  - In `DbInitializer.Seed(ApplicationDbContext context)`:
+    ```csharp
+    if (!context.NguoiDungs.Any(u => u.TenDangNhap == "admin"))
+    {
+        var admin = new NguoiDung
+        {
+            TenDangNhap = "admin",
+            HoTen = "Quản trị viên Hệ thống",
+            Email = "admin@tinhnguyen.vn",
+            VaiTro = "Admin",
+            TrangThai = true,
+            NgayTao = DateTime.Now,
+            MatKhauHash = PasswordHelper.HashPassword("Admin@123")
+        };
+        context.NguoiDungs.Add(admin);
+        context.SaveChanges();
+    }
+    ```
+  - In `DbInitializer` In-Memory Store:
+    Add `_inMemoryUsers` collection with the pre-seeded `admin` record so in-memory and offline testing modes authenticate successfully without needing live SQL Server.
+  - Provide helper method `DbInitializer.FindUser(ApplicationDbContext context, string username)` that queries SQL Server when connected and falls back to `_inMemoryUsers` when offline.
+
+### 2.5 Authentication & Authorization Middleware Flow
+- **Premise**: Requirement R2 & R3 specify that accessing any `/admin` route or add/edit/delete actions when unauthenticated must return HTTP 302 redirect to `/admin/login`.
+- **Inference**:
+  1. In `Program.cs`:
+     Register Cookie Authentication:
+     ```csharp
+     builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+         .AddCookie(options =>
+         {
+             options.LoginPath = "/admin/login";
+             options.LogoutPath = "/admin/logout";
+             options.AccessDeniedPath = "/admin/login";
+             options.ExpireTimeSpan = TimeSpan.FromHours(8);
+             options.SlidingExpiration = true;
+             options.Cookie.Name = ".WEB_TinhNguyen.AdminAuth";
+             options.Cookie.HttpOnly = true;
+             options.Cookie.SameSite = SameSiteMode.Lax;
+         });
+     ```
+  2. Middleware Pipeline Order:
+     ```csharp
+     app.UseRouting();
+     app.UseSession();
+     app.UseAuthentication(); // Must precede UseAuthorization
+     app.UseAuthorization();
+     ```
+  3. Controller Protection:
+     - Apply `[Authorize(Roles = "Admin")]` to all Admin controllers:
+       `AdminController`, `AdminTrangChuController`, `AdminChuongTrinhController`, `AdminGayQuyController`, `AdminCauHinhQRController`, `AdminKyUcController`, `AdminBanToChucController`, `AdminTinTucController`, `AdminHieuUngController`, `AdminSanPhamController`, `AdminDonHangController`.
+     - In `AdminController`:
+       - `[HttpGet("/admin/login")]` with `[AllowAnonymous]` -> renders `/GiaoDien/Admin/Login.cshtml`.
+       - `[HttpPost("/admin/login")]` with `[AllowAnonymous]` -> validates credentials, issues `ClaimsPrincipal` via `HttpContext.SignInAsync()`, redirects to `/admin` (or `returnUrl`).
+       - `[HttpGet("/admin/logout")]` / `[HttpPost("/admin/logout")]` -> calls `HttpContext.SignOutAsync()`, clears session, redirects to `/admin/login`.
+       - `[HttpGet("/admin")]` -> renders Admin dashboard (`Index.cshtml`).
+  4. Behavior Verification:
+     - When unauthenticated, any GET/POST to `/admin`, `/AdminTrangChu`, `/AdminChuongTrinh`, etc., is challenged by the Cookie Authentication handler and issued a `302 Found` with `Location: /admin/login?ReturnUrl=...`.
+     - When authenticated as admin, all routes return `200 OK`.
 
 ---
 
 ## 3. Caveats
 
-1. **Mssql Daemon Port Isolation in Sandbox**:
-   - While the MSSQL Server process (`/opt/mssql/bin/sqlservr`, PID 1798 / 3058) is active on the host OS, TCP port 1433 loopback is blocked inside the restricted sandbox container.
-   - The solution gracefully handles offline/unreachable database states in `Program.cs` (lines 86-99) and `DbInitializer.cs`, ensuring automated tests and application fallback to in-memory datasets operate smoothly.
-2. **Migration Snapshot State**:
-   - `ApplicationDbContextModelSnapshot.cs` and migration `20261104000000_XoaCotMauVaVietHoaTenBangCot.cs` contain the renamed names. Once Models and DbContext are re-aligned, creating a new migration or adjusting Fluent API ensures EF Core's migration history matches the database.
-3. **No Hidden Raw SQL**:
-   - Confirmed through multi-pattern regex searches across all file extensions that no hidden SQL queries, stored procedures, or Dapper calls exist.
+1. **Sandboxed Windows Environment**:
+   - In this execution environment, loopback network bindings and service controller permissions are sandboxed.
+   - Therefore, the application MUST strictly maintain its dual-mode persistence architecture: SQL Server DDL/seeding when online, and `DbInitializer` in-memory user store when offline or during automated in-memory E2E tests.
+2. **View Engine Structure**:
+   - The admin views are located in `WEB_TinhNguyen/GiaoDien/` rather than standard `Views/`. The Razor ViewEngine is configured via `VietnameseViewLocationExpander` to resolve `/GiaoDien/{1}/{0}.cshtml`.
+   - The login view should be created at `WEB_TinhNguyen/GiaoDien/Admin/Login.cshtml` and specify `Layout = null;` to render as a dedicated login page without sidebar clutter.
+3. **Admin Layout Navigation**:
+   - `_AdminLayout.cshtml` line 343 contains an inert logout anchor: `<a href="#" title="Đăng xuất" ...>`. This must be updated to target the logout action (`href="@Url.Action("Logout", "Admin", new { area = "" })"`).
+4. **Existing Test Suite Compatibility**:
+   - The 477 existing tests in `tests/E2ETests` instantiate controllers directly in C# using mock contexts (`CreateOfflineDbContext`). Direct C# method invocation bypasses ASP.NET Core filter pipeline and continues to return `ViewResult`.
+   - Adding `[Authorize]` attributes will not break existing unit/tier tests. New tests should be added to specifically verify authentication, password hashing, and redirection.
 
 ---
 
 ## 4. Conclusion
 
-1. **Root Cause**:
-   - Migration `20261104000000_XoaCotMauVaVietHoaTenBangCot.cs` renamed 8 entity properties in `Entities.cs` to `DuongDanAnhBia`, `DuongDanAnhLinhVat`, `HienThiHieuUng3D`, `HienThiLinhVat`, `KieuChuNoiDung`, `KieuChuTieuDe`, `VeDuAn_DuongDanAnh`, `ViTriLinhVat`.
-   - The actual database schema was not modified or retains the original column names: `LinkAnhBia`, `LinkAnhMascot`, `HienThiCanvas3D`, `HienThiMascot`, `FontNoiDung`, `FontTieuDe`, `VeDuAn_LinkAnh`, `ViTriMascot`.
-   - EF Core executes LINQ queries selecting these 8 non-existent columns, causing `SqlException: Invalid column name`.
-
-2. **Full Inventory of Files Requiring Modification**:
-   - `WEB_TinhNguyen/MoHinh/Entities.cs`:
-     - Revert primary mapped auto-properties to `LinkAnhBia`, `FontTieuDe`, `FontNoiDung`, `HienThiCanvas3D`, `VeDuAn_LinkAnh`, `HienThiMascot`, `LinkAnhMascot`, `ViTriMascot`.
-     - Decorate any aliases for `DuongDanAnhBia`, `DuongDanAnhLinhVat`, `HienThiHieuUng3D`, `HienThiLinhVat`, `KieuChuNoiDung`, `KieuChuTieuDe`, `VeDuAn_DuongDanAnh`, `ViTriLinhVat` with `[NotMapped]`.
-   - `WEB_TinhNguyen/DuLieu/ApplicationDbContext.cs`:
-     - In `OnModelCreating`, explicitly configure property-to-column mappings or ignore non-mapped aliases to guarantee EF Core never issues invalid column names.
-   - `WEB_TinhNguyen/BoDieuKhien/AdminTrangChuController.cs`: Lines 173-185, 218-238.
-   - `WEB_TinhNguyen/BoDieuKhien/AdminKyUcController.cs`: Lines 72-73, 112-113.
-   - `WEB_TinhNguyen/BoDieuKhien/AdminChuongTrinhController.cs`: Lines 74, 110.
-   - `WEB_TinhNguyen/BoDieuKhien/AdminGayQuyController.cs`: Lines 102-103, 171-172.
-   - `WEB_TinhNguyen/BoDieuKhien/AdminBanToChucController.cs`: Lines 102-103, 156-157.
-   - `WEB_TinhNguyen/BoDieuKhien/AdminTinTucController.cs`: Lines 190-191, 228-229.
-   - `WEB_TinhNguyen/MoHinh/CauHinhTrangChuVM.cs`: Ensure dual properties exist for binding compatibility.
-
-3. **Zero Impact on Views and Tests**:
-   - All 41 Razor `.cshtml` files already use the database-compatible property names.
-   - All 337 E2E tests pass and have zero dependency on the 8 invalid names.
+1. **Database Schema**:
+   - Table name: `NguoiDung`
+   - Primary key: `IDNguoiDung INT IDENTITY(1,1)`
+   - Columns: `TenDangNhap NVARCHAR(100) NOT NULL UNIQUE`, `MatKhauHash NVARCHAR(500) NOT NULL`, `HoTen NVARCHAR(200) NULL`, `Email NVARCHAR(200) NULL`, `VaiTro NVARCHAR(50) NOT NULL DEFAULT 'Admin'`, `TrangThai BIT NOT NULL DEFAULT 1`, `NgayTao DATETIME2 NOT NULL DEFAULT GETDATE()`, `LanDangNhapCuoi DATETIME2 NULL`.
+2. **Default Admin Seed Data**:
+   - Username: `admin`
+   - Password: `Admin@123`
+   - Stored Hash: PBKDF2 with HMAC-SHA256, salted (never plain-text)
+   - Role: `Admin`
+   - Seeded automatically on startup via `DbInitializer.Seed()` with idempotent `IF OBJECT_ID(...) IS NULL` DDL and in-memory fallback.
+3. **Security & Hashing Infrastructure**:
+   - Built-in `Microsoft.AspNetCore.Identity.PasswordHasher<string>` provides enterprise-grade PBKDF2 hashing with zero external dependencies.
+   - ASP.NET Core Cookie Authentication handles session tickets, login paths, and automatic HTTP 302 redirection to `/admin/login`.
+4. **Route Protection**:
+   - Applying `[Authorize(Roles = "Admin")]` to all 11 Admin controllers guarantees complete protection of `/admin` and all C-U-D operations.
+   - Anonymous access is explicitly granted only to `/admin/login`.
 
 ---
 
 ## 5. Verification Method
 
-To independently verify these findings:
+### 5.1 Build Verification
+Execute the project build command:
+```powershell
+dotnet build D:\web_tinh_nguyen\WEB_TinhNguyen\WEB_TinhNguyen.csproj
+```
+Expected output: 0 errors, build succeeds cleanly.
 
-1. **Verify Baseline Build**:
-   ```bash
-   TMPDIR=/tmp XDG_RUNTIME_DIR=/tmp dotnet build
-   ```
-   *Expected*: Build succeeded, 0 errors.
+### 5.2 Regression Test Execution
+Execute the existing test suite:
+```powershell
+dotnet run --project tests/E2ETests/E2ETests.csproj
+```
+Expected output: All 477 existing tests pass with 0 failures.
 
-2. **Verify Absence of Raw SQL Queries**:
-   ```bash
-   grep -rnE "(FromSql|ExecuteSql|SqlConnection|SqlCommand|SqlDataAdapter|Dapper)" --exclude-dir={bin,obj,node_modules,.git,.agents} .
-   ```
-   *Expected*: Exit code 1 (no occurrences).
+### 5.3 Automated Auth Verification Test Suite Design
+Implement `tests/E2ETests/Tier1/Tier1_AdminAuthTests.cs` to verify:
+1. `NguoiDung` entity contract: Properties, attributes, and uniqueness constraints.
+2. `PasswordHelper` verification:
+   - `HashPassword("Admin@123")` does not contain `"Admin@123"` (not plain text).
+   - `VerifyPassword(hash, "Admin@123")` returns `true`.
+   - `VerifyPassword(hash, "wrong_password")` returns `false`.
+3. `DbInitializer` seeding verification:
+   - Default user `admin` exists in both SQL Server seed routine and in-memory store.
+   - Stored password hash validates against `Admin@123`.
+4. Authorization attribute verification:
+   - `AdminController`, `AdminTrangChuController`, `AdminChuongTrinhController`, `AdminGayQuyController`, `AdminCauHinhQRController`, `AdminKyUcController`, `AdminBanToChucController`, `AdminTinTucController`, `AdminHieuUngController`, `AdminSanPhamController`, `AdminDonHangController` all have `[Authorize]` attributes.
+   - `AdminController.Login` has `[AllowAnonymous]`.
+5. Cookie Authentication configuration check in `Program.cs`:
+   - `AddAuthentication` and `AddCookie` registered with `LoginPath = "/admin/login"`.
+   - `app.UseAuthentication()` precedes `app.UseAuthorization()`.
+6. Login & Logout action lifecycle:
+   - Invalid credentials return login view with error message.
+   - Valid credentials create auth cookie and redirect to `/admin`.
+   - Logout clears auth ticket and redirects to `/admin/login`.
 
-3. **Verify Views Do Not Reference Invalid Column Names**:
-   ```bash
-   grep -rnE "(DuongDanAnhBia|DuongDanAnhLinhVat|HienThiHieuUng3D|HienThiLinhVat|KieuChuNoiDung|KieuChuTieuDe|VeDuAn_DuongDanAnh|ViTriLinhVat)" --include="*.cshtml" .
-   ```
-   *Expected*: Exit code 1 (no occurrences).
-
-4. **Verify Views Use Database Column Aliases**:
-   ```bash
-   grep -rnE "(LinkAnhBia|LinkAnhMascot|HienThiCanvas3D|HienThiMascot|FontNoiDung|FontTieuDe|VeDuAn_LinkAnh|ViTriMascot)" --include="*.cshtml" .
-   ```
-   *Expected*: Lists occurrences in `_Layout.cshtml`, `Index.cshtml`, `Edit.cshtml`, etc.
-
-5. **Verify Full Automated Test Suite**:
-   ```bash
-   TMPDIR=/tmp XDG_RUNTIME_DIR=/tmp DOTNET_CLI_HOME=/tmp HOME=/tmp bash tests/run_e2e_tests.sh --all
-   ```
-   *Expected*: 337 tests passed.
+### 5.4 Invalidation Conditions
+- Storing `Admin@123` in plain-text inside `NguoiDung.MatKhauHash` invalidates Acceptance Criteria.
+- Any admin route returning 200 OK without valid admin authentication cookie/session invalidates R3.
+- Failure of any existing 477 tests invalidates non-regression requirement.

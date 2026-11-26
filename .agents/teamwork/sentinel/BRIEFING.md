@@ -1,38 +1,35 @@
-# BRIEFING — 2026-11-04T02:19:00Z
+# BRIEFING — 2026-11-07T09:10:13Z
 
 ## Mission
-Sentinel monitoring and orchestration lifecycle for Website Tình Nguyện refactoring.
+Coordinate project execution for mobile responsive UI synchronization for public views in web_tinh_nguyen.
 
 ## 🔒 My Identity
 - Archetype: sentinel
-- Working directory: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/sentinel/
-- Orchestrator: 656d28b8-bcd4-4f61-b4e3-dd425076f84e
-- Victory Auditor: ad666b50-e84a-4fc2-a994-1e7d68031748
+- Working directory: D:\web_tinh_nguyen\.agents\teamwork\sentinel\
+- Orchestrator: 55581585-523d-44d0-807c-aeb70f9a76e5
+- Victory Auditor: [to be spawned on victory claim]
 
 ## 🔒 Key Constraints
 - No technical decisions — relay only
 - Victory Audit is MANDATORY before reporting completion
-- R1: Remove color columns, create EF Core migration, rename tables/columns and queries to Vietnamese
-- R2: Rename Controllers, Models, Views, Data folders to Vietnamese, reconfigure ViewEngine & routing
-- R3: Modern volunteer UI with Tailwind CSS, isolate Areas/CuaHang/ 100% unchanged
-- R4: Light/Dark mode toggle (excluding CuaHang area)
-- Must pass `dotnet build` without error
+- Bảo toàn khu vực quản trị (Admin): Tuyệt đối không thay đổi mã nguồn, bố cục, CSS hoặc hành vi của các trang/route thuộc `/admin`
+- Tối ưu hóa Responsive Web toàn bộ giao diện người dùng bên ngoài (viewport 375px-430px)
+- Không có trang công khai nào bị tràn ngang (`document.scrollingElement.scrollWidth <= window.innerWidth`)
+- Toàn bộ automated browser tests và dotnet build phải vượt qua 100%
 
 ## User Context
-- **Last user request**: Continue project execution after temporary quota wait
+- **Last user request**: Approved task prompt received for responsive web mobile optimization for public views.
 - **Pending clarifications**: none
-- **Delivered results**: Milestone M1 100% GATE PASS, M2 execution resumed
+- **Delivered results**: none
 
 ## Project Status
-- **Phase**: complete
-- **Route**: General (teamwork_orchestrator)
-- **Active Orchestrator**: 656d28b8-bcd4-4f61-b4e3-dd425076f84e
-- **Current Milestone**: Project Completed & Verified
+- **Phase**: in progress
+- **Route**: General -> teamwork_orchestrator
 
 ## Victory Audit Status
-- **Triggered**: yes
-- **Verdict**: VICTORY CONFIRMED
+- **Triggered**: no
+- **Verdict**: pending
 - **Retry count**: 0
 
 ## Artifact Index
-- `.agents/teamwork/ORIGINAL_REQUEST.md` — Authoritative record of approved task prompt
+- D:\web_tinh_nguyen\.agents\teamwork\ORIGINAL_REQUEST.md — Authoritative user request

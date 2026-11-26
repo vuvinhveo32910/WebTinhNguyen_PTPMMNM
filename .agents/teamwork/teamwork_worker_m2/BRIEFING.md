@@ -1,64 +1,59 @@
-# BRIEFING — 2026-11-03T13:41:00Z
+# BRIEFING — 2026-11-06T08:41:00Z
 
 ## Mission
-Implement Milestone 2: Admin Product Management for WEB_TinhNguyen charity store, covering AdminSanPhamController, Index/Create/Edit views, and Admin navigation.
+Implement dynamic QR resolution in controllers and dynamic view binding across Store Checkout, Admin Order Details, and Donation pages for Milestone 2 (R2).
 
 ## 🔒 My Identity
-- Archetype: worker
-- Roles: implementer, qa, specialist
-- Working directory: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_worker_m2
-- Original parent: 108b9d81-1dd6-495f-84eb-99dbb197aebe
-- Milestone: M2 (Admin Product Management)
+- Archetype: implementer
+- Roles: implementer, qa
+- Working directory: D:\web_tinh_nguyen\.agents\teamwork\teamwork_worker_m2
+- Original parent: 3ebaa881-f84a-47af-9d40-eda26cf6ddcc
+- Milestone: Milestone 2
 
 ## 🔒 Key Constraints
-- Follow minimal change principle and integrity mandate (no cheating, genuine logic only).
-- Exclusive write ownership:
-  - WEB_TinhNguyen/Areas/CuaHang/Controllers/AdminSanPhamController.cs
-  - WEB_TinhNguyen/Areas/CuaHang/Views/AdminSanPham/Index.cshtml
-  - WEB_TinhNguyen/Areas/CuaHang/Views/AdminSanPham/Create.cshtml
-  - WEB_TinhNguyen/Areas/CuaHang/Views/AdminSanPham/Edit.cshtml
-  - WEB_TinhNguyen/Views/Shared/_AdminLayout.cshtml
-  - WEB_TinhNguyen/Views/Admin/Index.cshtml
-- Do not modify files outside exclusive write ownership without permission.
-- All 25 Admin feature tests (Features 12 to 16) must PASS.
+- EXCLUSIVE WRITE FILE OWNERSHIP:
+  - WEB_TinhNguyen/Areas/CuaHang/Controllers/GioHangController.cs
+  - WEB_TinhNguyen/Areas/CuaHang/Controllers/AdminDonHangController.cs
+  - WEB_TinhNguyen/Areas/CuaHang/Views/GioHang/DatHangThanhCong.cshtml
+  - WEB_TinhNguyen/Areas/CuaHang/Views/AdminDonHang/ChiTiet.cshtml
+  - WEB_TinhNguyen/BoDieuKhien/HomeController.cs
+  - WEB_TinhNguyen/GiaoDien/Home/GayQuy.cshtml
+- Mandatory integrity: genuine dynamic resolution and binding, no hardcoded cheating.
+- Backward compatibility: Retain fallback tokens in Razor templates (`MB-0924044283`, `NGUYEN%20THAI%20VINH`, `img.vietqr.io`, `COD`, `0924044283`, `vietqr`, `NGUYEN THAI VINH`).
 
 ## Current Parent
-- Conversation ID: 108b9d81-1dd6-495f-84eb-99dbb197aebe
-- Updated: not yet
+- Conversation ID: 3ebaa881-f84a-47af-9d40-eda26cf6ddcc
+- Updated: 2026-11-06T08:28:17Z
 
 ## Task Summary
-- **What to build**: Admin product management CRUD (Controller, Views, Navigation, Uploads, In-Memory fallback).
-- **Success criteria**: Clean compilation with 0 errors, Features 12, 13, 14, 15, 16 all pass 100%.
-- **Interface contracts**: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/orchestrator/PROJECT.md
-- **Code layout**: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/orchestrator/PROJECT.md § Code Layout
+- **What to build**: Dynamic QR configuration resolution in GioHangController, AdminDonHangController, HomeController; dynamic bindings in DatHangThanhCong.cshtml, ChiTiet.cshtml, and GayQuy.cshtml.
+- **Success criteria**: `dotnet build WEB_TinhNguyen/WEB_TinhNguyen.csproj` 0 errors; `dotnet run --project tests/E2ETests/E2ETests.csproj` 100% pass (DynamicQR_F07_T01 and DynamicQR_F07_T02 pass, 0 skipped, 0 failed).
+- **Interface contracts**: PROJECT.md, CauHinhThanhToanQR.cs, VietQrHelper.cs, DbInitializer.cs
+- **Code layout**: ASP.NET Core MVC
 
 ## Key Decisions Made
-- Deployed full blueprints from Explorers M2-1, M2-2, and M2-3.
-- Implemented single `Delete(int id)` POST action with `[ValidateAntiForgeryToken]` and soft-delete protection when foreign keys exist.
-- Form inputs and views strictly adhered to contract anchors (multipart/form-data, PhanTramDongGop slider, hidden IDSanPham, confirm prompt).
-- Integrated Admin sidebar menu linking to `/CuaHang/AdminSanPham` and Dashboard quick link.
+- Dual-mode queries in `GioHangController.DatHangThanhCong` and `AdminDonHangController.ChiTiet`: query `_context.CauHinhThanhToanQRs.Where(q => q.ApDungChoCuaHang && q.TrangThaiHoatDong)` with fallback to `DbInitializer.GetActiveStoreQrConfig()`.
+- Dual-mode queries in `HomeController.GayQuy`: query `_context.CauHinhThanhToanQRs.Where(q => q.ApDungChoQuyenGop && q.TrangThaiHoatDong)` with fallback to `DbInitializer.GetActiveDonationQrConfigs()`.
+- Maintained fallback tokens `MB-0924044283`, `NGUYEN%20THAI%20VINH`, `img.vietqr.io`, `COD` in `DatHangThanhCong.cshtml`, and `0924044283`, `vietqr`, `NGUYEN THAI VINH` in `ChiTiet.cshtml` for backward test harness compatibility.
 
 ## Artifact Index
-- /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_worker_m2/DISPATCH.md
-- /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_worker_m2/BRIEFING.md
-- /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_worker_m2/progress.md
-- /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_worker_m2/handoff.md
+- `.agents/teamwork/teamwork_worker_m2/handoff.md` — Final 5-component handoff report
 
 ## Change Tracker
 - **Files modified**:
-  - `WEB_TinhNguyen/Areas/CuaHang/Controllers/AdminSanPhamController.cs`: Created full CRUD controller with image upload and offline fallback
-  - `WEB_TinhNguyen/Areas/CuaHang/Views/AdminSanPham/Index.cshtml`: Created admin product management table with KPI cards, search, and delete modals
-  - `WEB_TinhNguyen/Areas/CuaHang/Views/AdminSanPham/Create.cshtml`: Created responsive create product form with file upload and live preview
-  - `WEB_TinhNguyen/Areas/CuaHang/Views/AdminSanPham/Edit.cshtml`: Created edit product form with existing image preview and hidden ID
-  - `WEB_TinhNguyen/Views/Shared/_AdminLayout.cshtml`: Added sidebar item "Sản phẩm Gây Quỹ" linking to `/CuaHang/AdminSanPham`
-  - `WEB_TinhNguyen/Views/Admin/Index.cshtml`: Added dashboard quick link card for "Sản phẩm Gây Quỹ"
-- **Build status**: PASS (0 errors, 2 warnings)
+  - `WEB_TinhNguyen/Areas/CuaHang/Controllers/GioHangController.cs`: Dual-mode QR query in `DatHangThanhCong`, passes `ViewBag.CauHinhQR`.
+  - `WEB_TinhNguyen/Areas/CuaHang/Controllers/AdminDonHangController.cs`: Dual-mode QR query in `ChiTiet`, passes `ViewBag.CauHinhQR`.
+  - `WEB_TinhNguyen/Areas/CuaHang/Views/GioHang/DatHangThanhCong.cshtml`: Dynamic QR rendering and copy script bindings from `ViewBag.CauHinhQR`.
+  - `WEB_TinhNguyen/Areas/CuaHang/Views/AdminDonHang/ChiTiet.cshtml`: Dynamic QR rendering and copy script bindings from `ViewBag.CauHinhQR`.
+  - `WEB_TinhNguyen/BoDieuKhien/HomeController.cs`: Dual-mode QR query in `GayQuy`, passes `ViewBag.CauHinhQRDongGop`.
+  - `WEB_TinhNguyen/GiaoDien/Home/GayQuy.cshtml`: Dynamic donation channel cards and `#qrModal` dynamic binding with VietQR fallback.
+- **Build status**: PASS (0 errors, 47 pre-existing warnings)
 - **Pending issues**: None
 
 ## Quality Status
-- **Build/test result**: PASS. Solution builds cleanly. Features 12-16: 25/25 tests pass. Tier 4 Admin Scenarios (S07-S12): 6/6 pass.
-- **Lint status**: Clean
-- **Tests added/modified**: Covered existing E2ETests suite for Features 12 through 16
+- **Build/test result**: PASS. All 419 E2E tests passed (100% pass, 0 failed, 0 skipped).
+- **Lint status**: 0 compile errors.
+- **Tests added/modified**: Unlocked and passed `DynamicQR_F07_T01` and `DynamicQR_F07_T02` with 0 skipped.
 
 ## Loaded Skills
-- None specified
+- none

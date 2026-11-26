@@ -1,0 +1,194 @@
+@model WEB_TinhNguyen.MoHinh.AdminLoginViewModel
+@{
+    Layout = null;
+    ViewData["Title"] = "Đăng nhập Quản trị Hệ thống";
+}
+<!DOCTYPE html>
+<html lang="vi" class="h-full">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Trăng Sáng Langbiang</title>
+    <link rel="shortcut icon" href="/favicon.ico" />
+
+    <!-- Google Font: Be Vietnam Pro -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Be Vietnam Pro"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-slate-900 via-[#0e2717] to-[#161a2d] relative overflow-hidden select-none">
+
+    <!-- Ambient Lighting Effects -->
+    <div class="absolute -top-32 -left-32 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-32 -right-32 w-96 h-96 bg-green-600/20 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-yellow-400/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <!-- Login Card Container -->
+    <div class="relative z-10 w-full max-w-md bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 sm:p-10 transition-all">
+
+        <!-- Brand Header -->
+        <div class="text-center mb-7">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#1b5e20] to-[#4caf50] text-white text-2xl shadow-lg shadow-emerald-700/30 mb-4 ring-4 ring-emerald-50">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight">Cổng Quản Trị Hệ Thống</h1>
+            <p class="text-xs font-semibold text-emerald-700 mt-1 uppercase tracking-wider">Trăng Sáng Langbiang • Tình Nguyện</p>
+        </div>
+
+        <!-- Alert Error Summary Banner -->
+        @if (!ViewData.ModelState.IsValid || TempData["ErrorMessage"] != null)
+        {
+            <div class="mb-6 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-sm shadow-sm flex items-start gap-3" role="alert">
+                <div class="w-8 h-8 rounded-xl bg-red-100 text-red-600 flex items-center justify-center shrink-0 mt-0.5">
+                    <i class="fas fa-exclamation-circle text-base"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="font-bold text-red-800">Đăng nhập không thành công</p>
+                    <div class="text-xs text-red-600 mt-1 space-y-1">
+                        @if (TempData["ErrorMessage"] != null)
+                        {
+                            <p class="flex items-center gap-1.5"><i class="fas fa-circle text-[5px]"></i> @TempData["ErrorMessage"]</p>
+                        }
+                        @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+                        {
+                            foreach (var state in ViewData.ModelState.Values)
+                            {
+                                foreach (var error in state.Errors)
+                                {
+                                    <p class="flex items-center gap-1.5"><i class="fas fa-circle text-[5px]"></i> @error.ErrorMessage</p>
+                                }
+                            }
+                        }
+                        else if (TempData["ErrorMessage"] == null)
+                        {
+                            <p class="flex items-center gap-1.5"><i class="fas fa-circle text-[5px]"></i> Tên đăng nhập hoặc mật khẩu không chính xác.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Login Form -->
+        <form asp-action="Login" asp-controller="Admin" method="post" class="space-y-5">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="ReturnUrl" value="@Model?.ReturnUrl" />
+
+            <!-- Input: Tên đăng nhập -->
+            <div>
+                <label asp-for="TenDangNhap" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                    Tên đăng nhập
+                </label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                        <i class="fas fa-user text-sm"></i>
+                    </div>
+                    <input asp-for="TenDangNhap"
+                           type="text"
+                           autocomplete="username"
+                           autofocus
+                           required
+                           placeholder="admin"
+                           class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white text-sm" />
+                </div>
+                <span asp-validation-for="TenDangNhap" class="text-xs text-red-500 mt-1 block"></span>
+            </div>
+
+            <!-- Input: Mật khẩu -->
+            <div>
+                <label asp-for="MatKhau" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                    Mật khẩu
+                </label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                        <i class="fas fa-lock text-sm"></i>
+                    </div>
+                    <input asp-for="MatKhau"
+                           type="password"
+                           id="matKhauInput"
+                           autocomplete="current-password"
+                           required
+                           placeholder="••••••••••••"
+                           class="w-full pl-10 pr-11 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition text-gray-800 placeholder-gray-400 bg-gray-50/50 focus:bg-white text-sm" />
+                    <button type="button"
+                            id="togglePasswordBtn"
+                            onclick="togglePasswordVisibility()"
+                            tabindex="-1"
+                            class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-emerald-600 transition"
+                            title="Hiện/ẩn mật khẩu">
+                        <i class="fas fa-eye text-sm" id="passwordEyeIcon"></i>
+                    </button>
+                </div>
+                <span asp-validation-for="MatKhau" class="text-xs text-red-500 mt-1 block"></span>
+            </div>
+
+            <!-- Checkbox: Ghi nhớ đăng nhập & Security info -->
+            <div class="flex items-center justify-between pt-1">
+                <label class="flex items-center gap-2 cursor-pointer select-none">
+                    <input asp-for="GhiNhoDangNhap"
+                           type="checkbox"
+                           class="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer" />
+                    <span class="text-xs font-medium text-gray-600">Ghi nhớ đăng nhập</span>
+                </label>
+                <span class="text-[11px] text-gray-400 flex items-center gap-1">
+                    <i class="fas fa-shield-alt text-emerald-600"></i> Bảo mật 256-bit
+                </span>
+            </div>
+
+            <!-- Submit Button with Volunteer Palette -->
+            <button type="submit"
+                    class="w-full py-3.5 px-6 rounded-xl font-bold text-white bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-700 hover:to-green-800 shadow-lg shadow-emerald-700/25 hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2.5 text-sm active:scale-[0.99] mt-2 cursor-pointer">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>Đăng nhập Quản trị</span>
+            </button>
+        </form>
+
+        <!-- Back to Website Footer -->
+        <div class="mt-8 pt-5 border-t border-gray-100 text-center">
+            <a href="/" class="inline-flex items-center gap-2 text-xs font-semibold text-gray-500 hover:text-emerald-600 transition">
+                <i class="fas fa-arrow-left"></i> Quay lại Cổng thông tin Trăng Sáng Langbiang
+            </a>
+        </div>
+    </div>
+
+    <!-- Password Visibility Toggle Script -->
+    <script>
+        function togglePasswordVisibility() {
+            var input = document.getElementById('matKhauInput');
+            var icon = document.getElementById('passwordEyeIcon');
+            if (input && icon) {
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    input.type = 'password';
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            }
+        }
+    </script>
+</body>
+</html>

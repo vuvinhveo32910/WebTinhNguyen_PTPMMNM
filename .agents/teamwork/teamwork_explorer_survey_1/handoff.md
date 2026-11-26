@@ -1,299 +1,97 @@
-# Báo Cáo Khảo Sát Hệ Thống & Kiến Trúc Dự Án (System Survey Report)
-
-## Tóm tắt cốt lõi (Executive Summary)
-Dự án là ứng dụng Web ASP.NET Core (.NET 10.0) sử dụng Entity Framework Core 10.0.12 với cơ sở dữ liệu SQL Server. Giao diện người dùng sử dụng Tailwind CSS kết hợp FontAwesome và Google Fonts, hỗ trợ Responsive hoàn chỉnh với thanh điều hướng Desktop cố định và thanh Liquid Bottom Navigation trên thiết bị di động; giao diện Admin sở hữu Sidebar co giãn mượt mà. Dự án biên dịch thành công 100% (0 lỗi) khi cấu hình biến môi trường `XDG_RUNTIME_DIR=/tmp`. Tính năng cửa hàng gây quỹ mới sẽ được tích hợp thuận lợi theo mô hình ASP.NET Core Area với DbContext mở rộng, hỗ trợ giỏ hàng qua Session và cơ chế tự động Seed dữ liệu mẫu.
-
----
-
-## 1. Quan sát trực tiếp (Direct Observations)
-
-### 1.1 Cấu trúc Solution & Phiên bản .NET
-- **File Solution**: `/home/hutech/Vinh_Offline/WEB_TinhNguyen/WEB_TinhNguyen.slnx`
-  ```xml
-  <Solution>
-    <Project Path="WEB_TinhNguyen/WEB_TinhNguyen.csproj" />
-  </Solution>
-  ```
-- **Project File**: `/home/hutech/Vinh_Offline/WEB_TinhNguyen/WEB_TinhNguyen/WEB_TinhNguyen.csproj`
-  - Target Framework: `net10.0` (SDK phiên bản 10.0.114 trên Ubuntu 24.04).
-  - Implicit Usings: `enable`, Nullable: `enable`.
-  - NuGet Packages:
-    - `Microsoft.EntityFrameworkCore` v10.0.12
-    - `Microsoft.EntityFrameworkCore.SqlServer` v10.0.12
-    - `Microsoft.EntityFrameworkCore.Tools` v10.0.12
-  - Pre-build Target:
-    ```xml
-    <Target Name="TailwindCSS" BeforeTargets="Build">
-        <Exec Command="npm run build:css" />
-    </Target>
-    ```
-
-### 1.2 Môi trường thực thi & Lệnh biên dịch (`dotnet build`)
-- Khi thực thi lệnh mặc định `dotnet build /home/hutech/Vinh_Offline/WEB_TinhNguyen/WEB_TinhNguyen.slnx`, xuất hiện lỗi:
-  ```
-  /usr/lib/dotnet/sdk/10.0.114/NuGet.targets(196,5): error MSB4018: System.IO.IOException: The system cannot open the device or file specified. : 'NuGet-Migrations'. One or more system calls failed: lstat("/run/user/1000", ...) == -1; errno == ENOENT;
-  ```
-- Nguyên nhân: Trong môi trường sandbox Linux, thư mục `/run/user/1000` không tồn tại, khiến cơ chế Named Mutex của NuGet Restore trên .NET bị nghẽn.
-- Giải pháp xác minh: Thêm `XDG_RUNTIME_DIR=/tmp`:
-  ```bash
-  XDG_RUNTIME_DIR=/tmp dotnet build /home/hutech/Vinh_Offline/WEB_TinhNguyen/WEB_TinhNguyen.slnx
-  ```
-- Kết quả: **Build succeeded (0 Error(s), 4 Warning(s) về vulnerability đã biết của package Pkcs)**. Quá trình chạy `npm run build:css` tự động hoàn tất trong 424ms.
-
-### 1.3 Database Context, Provider & Migrations
-- **DbContext Path**: `/home/hutech/Vinh_Offline/WEB_TinhNguyen/WEB_TinhNguyen/Data/ApplicationDbContext.cs`
-  - Đang kế thừa `Microsoft.EntityFrameworkCore.DbContext`.
-  - Khai báo các `DbSet`: `ChienDichs`, `CauHinhTrangChus`, `CauHinhAnhNois`, `BannerTrangChus`, `ChuongTrinhDemNguocs`, `CauHinhKyUcs`, `AnhKyUcs`, `NhaTaiTroKyUcs`, `CauHinhChuongTrinhs`, `ChangChuongTrinhs`, `ChiTietLoTrinhs`, `CauHinhGayQuys`, `KenhDongGops`, `NhaTaiTroGayQuys`, `CauHinhBanToChucs`, `ThanhVienBanToChucs`, `CauHinhTinTucs`, `BaiVietTinTucs`, `ThuVienHieuUngs`.
-  - Chưa có DbSet cho `SanPham`, `DonHang`, hay `ChiTietDonHang`.
-- **Connection Strings** (`appsettings.json`):
-  ```json
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost;Database=TinhNguyen;User Id=sa;Password=Vuvinh2910@;TrustServerCertificate=True;MultipleActiveResultSets=true"
-  }
-  ```
-- **Migrations**: Thư mục `/home/hutech/Vinh_Offline/WEB_TinhNguyen/WEB_TinhNguyen/Migrations/` chứa 27 file migrations (từ `20261006032230_AddBannerTable` đến `20261014042058_AddMascot` và `ApplicationDbContextModelSnapshot.cs`). Provider mục tiêu là `SqlServerModelBuilderExtensions.UseIdentityColumns`.
-- Hiện tại cổng 1433 local không mở trong môi trường sandbox (không có service mssql chạy nền trong sandbox).
-
-### 1.4 Thành phần Giao diện & Điều hướng (Layouts & Navigation)
-- **Storefront Client Layout** (`/home/hutech/Vinh_Offline/WEB_TinhNguyen/WEB_TinhNguyen/Views/Shared/_Layout.cshtml`):
-  - **Desktop Navigation** (dòng 373-394):
-    ```html
-    <nav class="hidden items-center gap-1 lg:flex pr-24">
-        <a class="rounded-full px-3.5 py-2 text-sm font-medium text-gray-700 transition hover:bg-leaf/10 hover:text-leaf-deep dark:text-gray-100 dark:hover:bg-white/10 dark:hover:text-leaf-bright" asp-area="" asp-controller="Home" asp-action="Index">Trang chủ</a>
-        <a class="rounded-full px-3.5 py-2 text-sm font-medium text-gray-700 transition hover:bg-leaf/10 hover:text-leaf-deep dark:text-gray-100 dark:hover:bg-white/10 dark:hover:text-leaf-bright" asp-area="" asp-controller="Home" asp-action="ChuongTrinh">Chương trình</a>
-        <a class="rounded-full px-3.5 py-2 text-sm font-medium text-gray-700 transition hover:bg-leaf/10 hover:text-leaf-deep dark:text-gray-100 dark:hover:bg-white/10 dark:hover:text-leaf-bright" asp-area="" asp-controller="Home" asp-action="GayQuy">Đóng góp</a>
-        <a class="rounded-full px-3.5 py-2 text-sm font-medium text-gray-700 transition hover:bg-leaf/10 hover:text-leaf-deep dark:text-gray-100 dark:hover:bg-white/10 dark:hover:text-leaf-bright" asp-area="" asp-controller="Home" asp-action="BanToChuc">Ban tổ chức</a>
-        <a class="rounded-full px-3.5 py-2 text-sm font-medium text-gray-700 transition hover:bg-leaf/10 hover:text-leaf-deep dark:text-gray-100 dark:hover:bg-white/10 dark:hover:text-leaf-bright" asp-area="" asp-controller="Home" asp-action="TinTuc">Tin tức</a>
-        ...
-    </nav>
-    ```
-  - **Mobile Liquid Bottom Navigation** (dòng 476-516):
-    Thanh điều hướng nổi dưới chân trang (`.navigation lg:hidden`) có JavaScript tính toán vị trí vòng tròn chỉ báo (`indicator`) theo thuộc tính `data-url`.
-  - **Footer Links** (dòng 454-458): Khối danh mục "Khám phá" chứa danh sách các trang chính.
-  - **Thư viện UI/CSS**: Nhúng Tailwind CSS qua CDN `<script src="https://cdn.tailwindcss.com"></script>` cùng file CSS cục bộ `~/css/site.css`, FontAwesome 6.4, Google Fonts (Be Vietnam Pro, Dancing Script). Hỗ trợ Dark Mode qua cơ chế dây kéo tương tác (`#pullcord-wrapper`).
-
-- **Admin Layout** (`/home/hutech/Vinh_Offline/WEB_TinhNguyen/WEB_TinhNguyen/Views/Shared/_AdminLayout.cshtml`):
-  - Sidebar dạng Boys-Tech thu nhỏ 85px, hover nở rộng 280px (dòng 23-45).
-  - Danh sách Menu quản trị chia làm 3 nhóm: "Nội dung" (Trang chủ, Chương trình, Đóng góp, Ký ức, Ban Tổ chức, Tin tức), "Tương tác" (Đăng ký TNV), "Hệ thống" (Xem trang ngoài).
-  - Style đồng bộ nền xanh xám/tối `#161a2d`, màu nhấn xanh lá cây `#4caf50`.
-  - Sử dụng Tailwind CSS CDN và FontAwesome 6.0.
-
-### 1.5 Cấu hình Middleware & Routing trong `Program.cs`
-- `Program.cs` hiện tại (38 dòng):
-  ```csharp
-  var builder = WebApplication.CreateBuilder(args);
-  builder.Services.AddDbContext<ApplicationDbContext>(options =>
-      options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-  builder.Services.AddControllersWithViews();
-  builder.Services.AddControllersWithViews(); // Bị lặp dòng
-
-  var app = builder.Build();
-  ...
-  app.UseHttpsRedirection();
-  app.UseRouting();
-  app.UseAuthorization();
-  app.MapStaticAssets();
-  app.MapControllerRoute(
-      name: "default",
-      pattern: "{controller=Home}/{action=Index}/{id?}")
-      .WithStaticAssets();
-  app.Run();
-  ```
-- **Hiện trạng quan sát**:
-  1. Chưa có route cho Area: `app.MapControllerRoute(name: "areas", pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");`.
-  2. Chưa đăng ký Session (`builder.Services.AddSession()`, `app.UseSession()`) để lưu giỏ hàng của người dùng.
-  3. Dự án hiện chưa có thư mục `Areas/`.
+# BÁO CÁO BÀN GIAO KHẢO SÁT HỆ THỐNG PHÂN QUYỀN ADMIN (R1, R2, R3)
+**Agent**: `teamwork_explorer_survey_1`  
+**Working Directory**: `D:\web_tinh_nguyen\.agents\teamwork\teamwork_explorer_survey_1`  
+**Ngày thực hiện**: 2026-11-07  
 
 ---
 
-## 2. Chuỗi lập luận & Đề xuất kiến trúc (Logic Chain & Architecture Proposal)
+## 1. OBSERVATION (QUAN SÁT THỰC NGHIỆM)
 
-Từ các quan sát thực tế trên, quá trình phân tích dẫn đến giải pháp kỹ thuật chi tiết như sau:
+1. **Khảo sát 10 Controller hiện tại của 10 phân hệ chức năng**:
+   - `AdminController.cs` (`WEB_TinhNguyen/BoDieuKhien/AdminController.cs` dòng 20-48): `[Authorize]` trên lớp, action `Index()` dòng 43-48 trả về View Dashboard `/Admin`. Action `Login` dòng 58-142 có `[AllowAnonymous]` và `[ValidateAntiForgeryToken]` trên POST. Action `Logout` dòng 153-175 hỗ trợ cả GET và POST.
+   - 9 Controller còn lại trong `WEB_TinhNguyen/BoDieuKhien/`:
+     - `AdminTrangChuController.cs` (dòng 16, 5 Action POST CRUD: `CreateChienDich`, `ToggleStatus`, `DeleteChienDich`, `Edit`, `UploadHieuUngNhanh`).
+     - `AdminChuongTrinhController.cs` (dòng 17, 1 Action POST: `Edit`).
+     - `AdminGayQuyController.cs` (dòng 17, 1 Action POST: `Edit`).
+     - `AdminCauHinhQRController.cs` (dòng 23, 4 Action POST: `Create`, `Edit`, `ToggleActive`, `Delete`).
+     - `AdminKyUcController.cs` (dòng 17, 1 Action POST: `Edit`).
+     - `AdminBanToChucController.cs` (dòng 17, 1 Action POST: `Edit`).
+     - `AdminTinTucController.cs` (dòng 17, 1 Action POST: `Edit`).
+     - `AdminHieuUngController.cs` (dòng 16, 2 Action POST: `Save`, `Delete`).
+   - 2 Controller trong `WEB_TinhNguyen/Areas/CuaHang/Controllers/`:
+     - `AdminSanPhamController.cs` (dòng 22-24, `[Area("CuaHang")]`, `[Authorize]`, 3 Action POST: `Create`, `Edit`, `Delete`).
+     - `AdminDonHangController.cs` (dòng 20-22, `[Area("CuaHang")]`, `[Authorize]`, 2 Action POST: `CapNhatTrangThai`, `XoaDonHang`).
+   - Tổng cộng: Đúng 21 Action POST CRUD phân bố trên 10 controller nghiệp vụ.
 
-```
-[Khảo sát hiện trạng]
- ├── .NET 10 Web App + EF Core SqlServer
- ├── Chưa có Area, Chưa có Session, Chưa có Entity Sản phẩm/Đơn hàng
- ├── _Layout.cshtml có Desktop Navbar + Mobile Liquid Bottom Nav
- └── _AdminLayout.cshtml có Sidebar mở rộng với các module quản trị
-         │
-         ▼
-[Yêu cầu từ ORIGINAL_REQUEST.md]
- ├── R1: Điều hướng Desktop & Mobile, Storefront danh sách, chi tiết, giỏ hàng, đặt mua
- ├── R2: Admin CRUD Sản phẩm (Thêm, Sửa, Xóa, hiển thị bảng, upload ảnh)
- └── R3: Lưu trữ dữ liệu DB, cấu trúc trong thư mục riêng biệt theo ASP.NET Core Area, Seed Data >= 3 sản phẩm
-         │
-         ▼
-[Thiết kế giải pháp chi tiết]
- ├── 1. Routing & Session: Bổ sung MapControllerRoute cho Area và AddSession vào Program.cs
- ├── 2. Cấu trúc Area: Tạo thư mục Areas/Admin (hoặc Areas/CuaHang) cho tính năng gây quỹ
- ├── 3. Data Models & DbContext: Tạo SanPham, DonHang, ChiTietDonHang + DbSets + Seed Data tự phục hồi
- ├── 4. Storefront UI: Tích hợp menu trên _Layout.cshtml (ngang hàng Trang chủ), View danh sách, chi tiết, giỏ hàng, xác nhận
- └── 5. Admin UI: Thêm mục menu trên _AdminLayout.cshtml, giao diện quản lý CRUD sản phẩm đồng bộ phong cách
-```
+2. **Cấu trúc điều hướng `_AdminLayout.cshtml` (`WEB_TinhNguyen/GiaoDien/Shared/_AdminLayout.cshtml`)**:
+   - Menu hiện có liên kết cho 9 controller: `Admin`, `AdminTrangChu`, `AdminChuongTrinh`, `AdminGayQuy`, `AdminSanPham` (`/CuaHang/AdminSanPham`), `AdminDonHang` (`/CuaHang/AdminDonHang`), `AdminCauHinhQR`, `AdminKyUc`, `AdminBanToChuc`, `AdminTinTuc`.
+   - Tất cả các liên kết `@Url.Action(...)` ở root đều có `new { area = "" }`.
+   - Logic active: `ViewContext.RouteData.Values["Controller"]?.ToString() == "<ControllerName>"`.
+   - **Mục còn thiếu trong sidebar**: `AdminHieuUng` (phân hệ 8) và `AdminTaiKhoan` (phân hệ 11 chưa xây dựng).
 
-### 2.1 Cấu trúc Thư mục Area (ASP.NET Core Area)
-Để đáp ứng triệt để R3 và Tiêu chí chấp nhận ("Toàn bộ Controllers, Views, Models/ViewModels liên quan đến tính năng mới được đặt trong thư mục riêng biệt theo cấu trúc ASP.NET Core Area"):
+3. **Cơ chế dữ liệu `TaiKhoanAdmin` và Dual-Mode Store**:
+   - Thực thể `TaiKhoanAdmin.cs` (`WEB_TinhNguyen/MoHinh/TaiKhoanAdmin.cs` dòng 13-79) hiện có: `IDTaiKhoan`, `TenDangNhap`, `MatKhauHash`, `MuoiBaoMat`, `HoTen`, `Email`, `VaiTro`, `TrangThaiHoatDong`, `NgayTao`, `LanDangNhapCuoi`. Chưa có trường lưu danh sách phân quyền chi tiết.
+   - `DbInitializer.cs` (`WEB_TinhNguyen/Areas/CuaHang/Helpers/DbInitializer.cs` dòng 21, 59-79, 413-428, 1172-1250) quản lý `_inMemoryAdmins` và khởi tạo bảng SQL Server `[dbo].[TaiKhoanAdmin]`. Tài khoản mặc định là `admin` / `Admin@123` băm PBKDF2.
 
-```
-WEB_TinhNguyen/
-├── Areas/
-│   ├── Admin/
-│   │   ├── Controllers/
-│   │   │   └── SanPhamGayQuyController.cs       (CRUD Sản phẩm Admin: Index, Create, Edit, Delete)
-│   │   │   └── DonHangGayQuyController.cs       (Xem danh sách đơn hàng ủng hộ)
-│   │   ├── Models/
-│   │   │   └── SanPhamVM.cs                    (ViewModels cho form Thêm/Sửa/Danh sách)
-│   │   └── Views/
-│   │       ├── _ViewImports.cshtml
-│   │       ├── _ViewStart.cshtml               (Chỉ định Layout = "~/Views/Shared/_AdminLayout.cshtml")
-│   │       ├── SanPhamGayQuy/
-│   │       │   ├── Index.cshtml                (Bảng danh sách sản phẩm)
-│   │       │   ├── Create.cshtml               (Form thêm mới)
-│   │       │   └── Edit.cshtml                 (Form chỉnh sửa)
-│   │       └── DonHangGayQuy/
-│   │           └── Index.cshtml                (Danh sách đơn đặt hàng)
-│   │
-│   └── CuaHang/ (hoặc tích hợp Storefront trong Controllers/CuaHangController)
-│       ├── Controllers/
-│       │   ├── CuaHangController.cs            (Danh sách sản phẩm, chi tiết sản phẩm)
-│       │   └── GioHangController.cs            (Thêm vào giỏ, xem giỏ, thanh toán/đặt mua)
-│       ├── Models/
-│       │   ├── CartItem.cs
-│       │   ├── CartViewModel.cs
-│       │   └── CheckoutViewModel.cs
-│       └── Views/
-│           ├── _ViewImports.cshtml
-│           ├── _ViewStart.cshtml               (Chỉ định Layout = "~/Views/Shared/_Layout.cshtml")
-│           ├── CuaHang/
-│           │   ├── Index.cshtml                (Giao diện cửa hàng gây quỹ)
-│           │   └── ChiTiet.cshtml              (Chi tiết sản phẩm)
-│           └── GioHang/
-│               ├── Index.cshtml                (Giỏ hàng & biểu mẫu thông tin đặt mua)
-│               └── DatHangThanhCong.cshtml     (Trang cảm ơn & xác nhận đơn)
-```
-
-> **Lưu ý định tuyến trong Program.cs**: Cần thêm route Area trước default route:
-> ```csharp
-> app.MapControllerRoute(
->     name: "areas",
->     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
-> ```
-
-### 2.2 Thiết kế Thực thể Dữ liệu (Entities & DbContext)
-Trong `ApplicationDbContext.cs` hoặc file model riêng biệt:
-
-1. **`SanPhamGayQuy`**:
-   - `int IDSanPham` (Khóa chính, Identity)
-   - `string TenSanPham` (Tên sản phẩm, ví dụ: "Áo thun Tình nguyện Trăng Sáng", "Móc khóa Gấu bông Langbiang")
-   - `decimal GiaBan` (Giá bán / Mức ủng hộ, ví dụ: 120.000 VNĐ)
-   - `int SoLuongTon` (Số lượng có sẵn trong kho)
-   - `string? MoTaNgan` (Mô tả tóm tắt)
-   - `string? MoTaChiTiet` (Mô tả chi tiết sản phẩm và ý nghĩa gây quỹ)
-   - `string? LinkHinhAnh` (Đường dẫn ảnh trong `/uploads/sanpham/` hoặc URL ngoài)
-   - `string? ThongTinGayQuy` (Ví dụ: "100% lợi nhuận dùng mua bánh Trung thu & lồng đèn cho trẻ em Langbiang")
-   - `bool TrangThai` (Còn hàng / Mở bán)
-   - `bool DaXoa` (Hỗ trợ xóa mềm hoặc xóa trực tiếp)
-   - `DateTime NgayTao` (Ngày tạo)
-
-2. **`DonHangGayQuy`**:
-   - `int IDDonHang` (Khóa chính)
-   - `string MaDonHang` (Mã đơn, ví dụ: "LB-2026-XXXX")
-   - `string HoTenNguoiMua` (Họ và tên người ủng hộ)
-   - `string SoDienThoai` (Số điện thoại liên hệ)
-   - `string? Email`
-   - `string DiaChiNhanHang` (Địa chỉ giao hàng)
-   - `string? LoiNhanUngHo` (Lời nhắn gửi tới các em nhỏ vùng cao)
-   - `string PhuongThucThanhToan` ("Chuyển khoản QR", "Tiền mặt khi nhận hàng - COD")
-   - `decimal TongTien` (Tổng giá trị đơn hàng)
-   - `string TrangThaiDonHang` ("Chờ xác nhận", "Đã thanh toán", "Đang giao", "Hoàn thành")
-   - `DateTime NgayDatHang`
-   - Navigation property: `ICollection<ChiTietDonHangGayQuy> ChiTietDonHangs`
-
-3. **`ChiTietDonHangGayQuy`**:
-   - `int IDChiTiet` (Khóa chính)
-   - `int IDDonHang` (Khóa ngoại)
-   - `int IDSanPham` (Khóa ngoại)
-   - `string TenSanPham` (Snapshot tên sản phẩm tại thời điểm mua)
-   - `decimal DonGia`
-   - `int SoLuong`
-   - `decimal ThanhTien`
-
-### 2.3 Cơ chế Dữ liệu mẫu ban đầu (Seed Data Pattern)
-Dự án có sẵn cơ chế tự động khởi tạo dữ liệu (tương tự như `AdminTinTucController` hay `AdminBanToChucController` khi dữ liệu rỗng). Có thể tạo lớp trợ giúp `DbInitializer.Seed(ApplicationDbContext context)` hoặc kích hoạt khi controller truy cập lần đầu:
-- **Sản phẩm mẫu 1**: Áo Thun Tình Nguyện "Trăng Sáng Langbiang 2026" - 150.000 VNĐ - Tồn kho: 100 - Gây quỹ: Góp 1 phần quà trung thu trị giá 50.000đ.
-- **Sản phẩm mẫu 2**: Móc Khóa Gỗ Linh Vật Langbiang Khắc Tên - 35.000 VNĐ - Tồn kho: 200 - Gây quỹ: Góp 1 lồng đèn truyền thống cho em nhỏ.
-- **Sản phẩm mẫu 3**: Túi Tote Vải Canvas "Nụ Cười Vùng Cao" - 85.000 VNĐ - Tồn kho: 80 - Gây quỹ: Góp 2 bữa ăn dinh dưỡng "Nấu ăn cho em".
-
-### 2.4 Tích hợp Điều hướng trên `Views/Shared/_Layout.cshtml`
-- **Thanh Menu Desktop** (ngang hàng Trang chủ):
-  ```html
-  <a class="rounded-full px-3.5 py-2 text-sm font-medium text-gray-700 transition hover:bg-leaf/10 hover:text-leaf-deep dark:text-gray-100 dark:hover:bg-white/10 dark:hover:text-leaf-bright"
-     asp-area="CuaHang" asp-controller="CuaHang" asp-action="Index">
-     <i class="fas fa-store mr-1 text-emerald-600"></i> Cửa hàng gây quỹ
-  </a>
-  ```
-- **Thanh Liquid Bottom Navigation trên Mobile**:
-  Bổ sung một mục item `data-url="/cuahang"` với icon `<i class="fas fa-shopping-bag"></i>` và text `Cửa hàng`.
-- **Icon Giỏ hàng góc trên Header**:
-  Hiển thị badge số lượng sản phẩm trong giỏ hàng để người dùng truy cập nhanh.
-
-### 2.5 Tích hợp Menu Sidebar Admin trên `Views/Shared/_AdminLayout.cshtml`
-- Trong danh mục `<h4><span>Nội dung</span>...</h4>`:
-  ```html
-  <li>
-      <a href="@Url.Action("Index", "SanPhamGayQuy", new { area = "Admin" })" 
-         class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "SanPhamGayQuy" ? "active" : "")">
-          <i class="fas fa-box-open"></i> <span class="link-text">Sản phẩm gây quỹ</span>
-      </a>
-  </li>
-  ```
-- Trong danh mục `<h4><span>Tương tác</span>...</h4>`:
-  ```html
-  <li>
-      <a href="@Url.Action("Index", "DonHangGayQuy", new { area = "Admin" })" 
-         class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "DonHangGayQuy" ? "active" : "")">
-          <i class="fas fa-shopping-cart"></i> <span class="link-text">Đơn hàng gây quỹ</span>
-      </a>
-  </li>
-  ```
+4. **Kiểm thử tự động hiện tại**:
+   - Thực thi lệnh: `dotnet run --project tests/E2ETests/E2ETests.csproj`.
+   - Kết quả: **518 Tests | 518 Passed | 0 Failed | 0 Skipped in 13.05s**.
+   - Bài test `Tier5_ChallengerM2_2_RouteProtectionHarness` (Test `M2_2_01` & `M2_2_03`) và `Tier5_ChallengerM2_3_AuthPipelineHarness` (Test `M2_3_01` & `M2_3_02`) xác minh danh sách 11 controller và chính xác 21 Action POST CRUD.
+   - Bài test `Tier5_ChallengerM2_2_RouteProtectionHarness` (Test `M2_2_06_CuaHangViewsPreserved`) khóa bất biến 12 tệp View trong `Areas/CuaHang/Views/`.
 
 ---
 
-## 3. Các lưu ý & Giả định (Caveats & Assumptions)
+## 2. LOGIC CHAIN (CHUỖI SUY LUẬN TỪ QUAN SÁT ĐẾN KẾT LUẬN)
 
-1. **Môi trường Database SQL Server**:
-   - Máy chủ SQL Server không mở cổng 1433 trực tiếp trong môi trường sandbox hiện tại. 
-   - Đảm bảo các mô hình Entity sử dụng chuẩn EF Core DataAnnotations/Fluent API tương thích hoàn toàn với SQL Server. Khi chạy kiểm thử hoặc chạy demo offline, có thể linh hoạt cấu hình kết nối hoặc có cơ chế fallback thích hợp.
-2. **Biến môi trường Build**:
-   - Luôn sử dụng tiền tố `XDG_RUNTIME_DIR=/tmp` khi chạy `dotnet build` hoặc `dotnet run` trên máy trạm Ubuntu này để tránh lỗi NuGet Mutex.
-3. **Session State**:
-   - `Program.cs` cần bổ sung `builder.Services.AddDistributedMemoryCache();` và `builder.Services.AddSession(...)` cùng `app.UseSession()` để hỗ trợ lưu trữ giỏ hàng nếu sử dụng Session. Có thể hỗ trợ đồng thời Cookie/LocalStorage dự phòng.
-4. **Quyền ghi tệp tải lên (Uploads)**:
-   - Thư mục `/home/hutech/Vinh_Offline/WEB_TinhNguyen/WEB_TinhNguyen/wwwroot/uploads/sanpham` cần được tạo nếu chưa tồn tại khi tải ảnh lên.
-
----
-
-## 4. Kết luận (Conclusion)
-
-- Kiến trúc hiện tại của dự án là nền tảng sạch, hiện đại (.NET 10.0 MVC), sẵn sàng để mở rộng thêm Area mới mà không gây ảnh hưởng hay xung đột với các module hiện có (`TrangChu`, `GayQuy`, `BanToChuc`, `TinTuc`, `KyUc`).
-- Cấu trúc đề xuất đáp ứng 100% tất cả các tiêu chí trong `ORIGINAL_REQUEST.md`:
-  - **R1**: Điều hướng ngang hàng Trang chủ trên Header/Navbar, trải nghiệm Responsive cho cả Mobile/Desktop, đầy đủ chức năng xem sản phẩm, xem chi tiết, giỏ hàng và đặt mua/ủng hộ.
-  - **R2**: Quản trị Admin đầy đủ CRUD (danh sách bảng, thêm, sửa, xóa sản phẩm, upload ảnh), chuẩn phong cách dark-sidebar & Be Vietnam Pro.
-  - **R3**: Cấu trúc module nằm trong ASP.NET Core Area riêng biệt, lưu trữ dữ liệu với Entity Framework Core, biên dịch `dotnet build` sạch sẽ 0 lỗi, kèm sẵn Seed Data ít nhất 3 sản phẩm gây quỹ mang ý nghĩa thiện nguyện sâu sắc.
+1. Từ **Observation 1 & 4**: Dự án có các bài test tự động phản chiếu (Reflection tests) kiểm tra danh sách 11 controller hiện có và 21 action POST CRUD. Mọi thay đổi không được làm mất thuộc tính `[Authorize]` trên các controller hiện có, không được thay đổi chữ ký 21 action POST, và không được vi phạm `[ValidateAntiForgeryToken]`.
+2. Từ **Observation 2 & 4**: Các bài test giao diện (`CH2_04`, `CH2_05`, `CH2_06`, `F19_T01`, `F19_T02`) đọc mã nguồn tệp `_AdminLayout.cshtml` bằng `File.ReadAllText` và kiểm tra tĩnh các chuỗi `@Url.Action("Index", "...", new { area = "" })` cũng như `ViewContext.RouteData.Values["Controller"]?.ToString() == "..."`. Vì vậy:
+   - Các liên kết hiện có không được sửa đổi URL hoặc xóa bỏ.
+   - Khi áp dụng phân quyền động R3 qua `@if (User.CoQuyen("..."))`, các chuỗi mã nguồn trên vẫn tồn tại đầy đủ trong tệp nguồn, nên 100% test tĩnh vẫn đạt (PASS).
+   - Bổ sung `AdminHieuUng` và `AdminTaiKhoan` vào `_AdminLayout.cshtml` phải tuân thủ nghiêm ngặt quy tắc `new { area = "" }` để không vi phạm `CH2_05`.
+3. Từ **Observation 3**: Để thực hiện R1 bền vững trong cả môi trường SQL Server và Sandbox In-Memory:
+   - Bổ sung trường `public string? PhanQuyen { get; set; } = "ALL";` vào `TaiKhoanAdmin`.
+   - Cập nhật DDL trong `DbInitializer.cs` (`ALTER TABLE [dbo].[TaiKhoanAdmin] ADD [PhanQuyen] NVARCHAR(1000) NULL`).
+   - Cập nhật các hàm `CloneAdmin`, `AddInMemoryAdmin`, `UpdateInMemoryAdmin`, và gán `PhanQuyen = "ALL"` cho tài khoản `admin` mặc định.
+4. Từ **Observation 1 & 3**: Phân hệ thứ 11 nên được đặt tại `AdminTaiKhoanController` trong `WEB_TinhNguyen/BoDieuKhien/AdminTaiKhoanController.cs` theo đúng quy ước đặt tên và cấu trúc MVC của toàn bộ dự án (`Admin*Controller`), với các view tương ứng trong `WEB_TinhNguyen/GiaoDien/AdminTaiKhoan/`.
+5. Từ **Observation 4**: Khu vực `Areas/CuaHang/Views/` bị khóa SHA-256 bất biến. Do đó, kiểm soát phân quyền cho `AdminSanPham` và `AdminDonHang` chỉ được thực hiện ở Controller và Menu sidebar, không được can thiệp vào các tệp view này.
 
 ---
 
-## 5. Phương pháp Xác minh Độc lập (Independent Verification Method)
+## 3. CAVEATS (CÁC ĐIỂM CẦN LƯU Ý VÀ GIẢ ĐỊNH)
 
-1. **Kiểm tra biên dịch dự án**:
-   ```bash
-   XDG_RUNTIME_DIR=/tmp dotnet build /home/hutech/Vinh_Offline/WEB_TinhNguyen/WEB_TinhNguyen.slnx
+1. **Tài khoản `admin` gốc**: Tài khoản `admin` mặc định (`Admin@123`) phải luôn mang quyền `"ALL"`. Không được phép chỉnh sửa xóa bỏ tài khoản này để các test suite hiện tại không bị ảnh hưởng.
+2. **Không sửa đổi `Areas/CuaHang/Views/`**: Tuyệt đối không chỉnh sửa bất kỳ tệp Razor nào trong thư mục này.
+3. **Thứ tự Middleware `Program.cs`**: Phải giữ nguyên: `UseRouting -> UseSession -> UseAuthentication -> UseAuthorization -> UseStaticFiles`.
+4. **Mã phản hồi từ chối quyền (R2)**: Trả về HTTP 403 Forbidden hoặc HTTP 302 chuyển hướng kèm thông báo không có quyền đều hợp lệ theo ORIGINAL_REQUEST §R2 và Acceptance Criteria. Khuyến nghị trả về HTTP 403 Forbidden với View `AccessDenied.cshtml`.
+
+---
+
+## 4. CONCLUSION (KẾT LUẬN)
+
+1. **Khảo sát hoàn thành 100%**: Đã định vị, lập danh mục và phân tích toàn bộ 10 phân hệ hiện có, cùng thiết kế chi tiết cho phân hệ 11 (`AdminTaiKhoanController`).
+2. **Giải pháp kiến trúc khả thi**:
+   - **R1**: `AdminTaiKhoanController` + `TaiKhoanAdmin.PhanQuyen` + Dual-mode SQL/In-Memory.
+   - **R2**: `[PhanQuyenAdmin("Code")]` + Claims-based authorization + HTTP 403 Forbidden response.
+   - **R3**: `User.CoQuyen(...)` extension method trong `_AdminLayout.cshtml`, tương thích 100% với các bài test tĩnh hiện tại.
+   - **R4**: Bộ kịch bản kiểm thử tự động xác minh phân quyền độc lập, đảm bảo bảo toàn 518/518 test hiện có.
+3. Toàn bộ thiết kế chi tiết đã được ghi chép đầy đủ tại `analysis.md`.
+
+---
+
+## 5. VERIFICATION METHOD (PHƯƠNG PHÁP XÁC MINH ĐỘC LẬP)
+
+1. **Biên dịch dự án**:
+   ```powershell
+   dotnet build
    ```
-   *Kỳ vọng*: Mã thoát bằng 0, không có lỗi biên dịch (`0 Error(s)`).
+   *Yêu cầu*: Build succeeded, 0 errors.
 
-2. **Kiểm tra các thành phần cấu trúc mã nguồn**:
-   - Xem `WEB_TinhNguyen/Program.cs`: Kiểm tra route areas và session service.
-   - Xem `WEB_TinhNguyen/Data/ApplicationDbContext.cs`: Kiểm tra các DbSet.
-   - Xem `WEB_TinhNguyen/Views/Shared/_Layout.cshtml`: Xác nhận liên kết dẫn tới cửa hàng gây quỹ trên navbar.
-   - Xem `WEB_TinhNguyen/Views/Shared/_AdminLayout.cshtml`: Xác nhận mục quản lý sản phẩm trong sidebar.
+2. **Chạy toàn bộ 518 kiểm thử tự động hiện tại**:
+   ```powershell
+   dotnet run --project tests/E2ETests/E2ETests.csproj
+   ```
+   *Yêu cầu*: 518 Tests | 518 Passed | 0 Failed.
+
+3. **Kiểm tra các tệp tài liệu khảo sát**:
+   - `D:\web_tinh_nguyen\.agents\teamwork\teamwork_explorer_survey_1\analysis.md`
+   - `D:\web_tinh_nguyen\.agents\teamwork\teamwork_explorer_survey_1\handoff.md`

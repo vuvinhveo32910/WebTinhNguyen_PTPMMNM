@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,6 +13,8 @@ using WEB_TinhNguyen.MoHinh;
 
 namespace WEB_TinhNguyen.BoDieuKhien
 {
+    [Authorize]
+    [PhanQuyenAdmin(QuyenAdmin.GayQuy)]
     public class AdminGayQuyController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -22,17 +26,28 @@ namespace WEB_TinhNguyen.BoDieuKhien
             _env = env;
         }
 
+        private bool BiChanQuyen() => User?.Identity?.IsAuthenticated == true && !User.CoQuyen(QuyenAdmin.GayQuy);
+
         // 1. DANH SÁCH CHIẾN DỊCH THEO NĂM
         public async Task<IActionResult> Index()
         {
-            var list = await _context.ChienDichs.OrderByDescending(c => c.Nam).ToListAsync();
-            return View(list);
+            if (BiChanQuyen()) return StatusCode(StatusCodes.Status403Forbidden);
+            try
+            {
+                var list = await _context.ChienDichs.OrderByDescending(c => c.Nam).ToListAsync();
+                return View(list);
+            }
+            catch
+            {
+                return View(new List<ChienDich>());
+            }
         }
 
         // 2. MỞ TRANG CẤU HÌNH (GET)
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
+            if (BiChanQuyen()) return StatusCode(StatusCodes.Status403Forbidden);
             var chienDich = await _context.ChienDichs.FindAsync(id);
             if (chienDich == null) return NotFound();
 
@@ -160,6 +175,7 @@ namespace WEB_TinhNguyen.BoDieuKhien
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(CauHinhGayQuyVM vm)
         {
+            if (BiChanQuyen()) return StatusCode(StatusCodes.Status403Forbidden);
             var config = await _context.CauHinhGayQuys
                 .Include(c => c.KenhDongGops)
                 .Include(c => c.NhaTaiTroGayQuys)

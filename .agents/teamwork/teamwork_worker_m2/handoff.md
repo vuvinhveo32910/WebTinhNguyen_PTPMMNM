@@ -1,178 +1,125 @@
-# Handoff Report: Milestone 2 — Admin Product Management Implementation
+# Handoff Report — Milestone 2: Dynamic QR Frontend & Subsystem Display Integration (R2)
 
-**Agent**: `teamwork_worker_m2`  
-**Role**: Implementer, QA, Specialist  
-**Parent**: Project Orchestrator (`108b9d81-1dd6-495f-84eb-99dbb197aebe`)  
-**Working Directory**: `/home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_worker_m2`  
-**Date**: 2026-11-03T13:41:00Z  
+**Worker**: `teamwork_worker_m2`  
+**Date**: 2026-11-06T08:41:30Z  
+**Type**: Hard Handoff (Task Complete)
 
 ---
 
 ## 1. Observation
 
-Direct observations from implementation and test execution:
+### Codebase State & Initial Test Run
+1. Baseline test execution before Milestone 2 implementation:
+   - Tool command: `dotnet run --project tests/E2ETests/E2ETests.csproj`
+   - Overall execution result:
+     ```text
+     ================================================================================
+                                   TEST EXECUTION SUMMARY
+     ================================================================================
+       Tier 1: Total: 145 | Passed: 144 | Failed:   0 | Skipped:   1
+       Tier 2: Total:  28 | Passed:  28 | Failed:   0 | Skipped:   0
+       Tier 3: Total:  18 | Passed:  18 | Failed:   0 | Skipped:   0
+       Tier 4: Total:  12 | Passed:  12 | Failed:   0 | Skipped:   0
+       Tier 5: Total: 216 | Passed: 216 | Failed:   0 | Skipped:   0
+     --------------------------------------------------------------------------------
+       OVERALL: 419 Tests | 418 Passed | 0 Failed | 1 Skipped in 6.32s
+     ================================================================================
+     ```
+   - The single skipped test was `DynamicQR_F07_T02: Store order confirmation template references dynamic QR configuration` in `tests/E2ETests/Tier1/Tier1_DynamicQrPaymentTests.cs:591`:
+     ```csharp
+     if (!content.Contains("CauHinhQR") && !content.Contains("ViewBag.CauHinhQR") && !content.Contains("GetQrUrl") && !content.Contains("VietQrHelper"))
+     {
+         throw new AssertException("[SKIP] Pending implementation in M2: Dynamic QR config binding in DatHangThanhCong.cshtml");
+     }
+     ```
+2. In `tests/E2ETests/Tier5/Tier5_ChallengerM3_2Harness.cs:849-851`:
+   - Assertions enforce verbatim string tokens in `DatHangThanhCong.cshtml`:
+     `Assert.Contains("img.vietqr.io", content);`
+     `Assert.Contains("MB-0924044283", content);`
+     `Assert.Contains("NGUYEN%20THAI%20VINH", content);`
+     `Assert.Contains("COD", content);`
+3. In `tests/E2ETests/Tier1/Tier1_AdminOrderTests.cs:238-246`:
+   - Assertions enforce verbatim string tokens in `ChiTiet.cshtml`:
+     `Assert.True(content.Contains("0924044283"));`
+     `Assert.True(content.Contains("vietqr") || content.Contains("VietQR"));`
+     `Assert.True(content.Contains("NGUYEN THAI VINH") || content.Contains("MBBank") || content.Contains("Quân Đội"));`
 
-1. **Created Files within Exclusive Scope**:
-   - `WEB_TinhNguyen/Areas/CuaHang/Controllers/AdminSanPhamController.cs`:
-     - Declares `[Area("CuaHang")]`, injects `ApplicationDbContext` and `IWebHostEnvironment`.
-     - Actions: `Index()` (GET), `Create()` (GET & POST), `Edit(int id)` (GET & POST), `Delete(int id)` (POST with `[ValidateAntiForgeryToken]`).
-     - Uploads images to `wwwroot/uploads/sanpham/` with GUID-based naming and extension validation.
-     - Offline fallback: Fully integrates with `DbInitializer.GetInMemoryProducts()`, `AddInMemoryProduct()`, `UpdateInMemoryProduct()`, and `DeleteInMemoryProduct()`.
-     - Relational safety: On delete, detects existing foreign keys in `ChiTietDonHangs` and soft-deletes (`TrangThai = false`) instead of throwing SQL `DbUpdateException`.
-   - `WEB_TinhNguyen/Areas/CuaHang/Views/AdminSanPham/Index.cshtml`:
-     - Displays KPI cards (Total Products, Active, Total Sold, Low Stock alert).
-     - Renders responsive table with 8 columns: ID `#`, thumbnail image `<img src="@item.LinkHinhAnh" ... />`, `TenSanPham`, `GiaBan`, `SoLuongTon`, fundraising percentage badge `❤️ @item.PhanTramDongGop% Quỹ`, status toggle pill, and row actions.
-     - Provides `asp-action="Create"` button ("Thêm sản phẩm mới").
-     - Provides row action buttons: "Sửa" (`asp-action="Edit"`), "Xóa" (`asp-action="Delete"` inside POST form with `onsubmit="return confirm(...);"`).
-     - Includes client-side instant search filter `filterAdminTable()`.
-   - `WEB_TinhNguyen/Areas/CuaHang/Views/AdminSanPham/Create.cshtml`:
-     - Declares `enctype="multipart/form-data"` and POST form targeting `Create`.
-     - Contains required inputs: `TenSanPham`, `DanhMuc`, `ThuTu`, `MoTaNgan`, `MoTaChiTiet`.
-     - Contains charity donation controls: synchronized `PhanTramDongGop` range slider and number input with `ThongDiepGayQuy`.
-     - Contains pricing & stock: `GiaBan`, `GiaGoc`, `SoLuongTon`.
-     - Contains file upload `FileHinhAnh` with client-side image preview and validation scripts.
-   - `WEB_TinhNguyen/Areas/CuaHang/Views/AdminSanPham/Edit.cshtml`:
-     - Declares `enctype="multipart/form-data"` and POST form targeting `Edit` with `asp-route-id="@Model.IDSanPham"`.
-     - Contains `<input type="hidden" asp-for="IDSanPham" />`.
-     - Contains current image preview via `LinkHinhAnh` and fallback image `/assets/journey.jpg`.
-     - Contains file upload `FileHinhAnh` for replacing image.
-   - `WEB_TinhNguyen/Views/Shared/_AdminLayout.cshtml`:
-     - Added sidebar menu item for "Sản phẩm Gây Quỹ" linking to `/CuaHang/AdminSanPham` with `<i class="fas fa-boxes"></i>` and active state highlighting based on `ViewContext.RouteData.Values["Controller"]`.
-   - `WEB_TinhNguyen/Views/Admin/Index.cshtml`:
-     - Added dashboard quick-link card for "Sản phẩm Gây Quỹ" linking to `/CuaHang/AdminSanPham` with icon `fas fa-boxes` and emerald styling.
-
-2. **Compilation Results**:
-   - Command: `XDG_RUNTIME_DIR=/tmp dotnet build /home/hutech/Vinh_Offline/WEB_TinhNguyen/WEB_TinhNguyen.slnx`
-   - Output:
-     ```
-     WEB_TinhNguyen -> /home/hutech/Vinh_Offline/WEB_TinhNguyen/WEB_TinhNguyen/bin/Debug/net10.0/WEB_TinhNguyen.dll
-     Done in 2120ms.
-     Build succeeded.
-         2 Warning(s)
-         0 Error(s)
-     ```
-   - Command: `XDG_RUNTIME_DIR=/tmp dotnet build /home/hutech/Vinh_Offline/WEB_TinhNguyen/tests/E2ETests/E2ETests.csproj`
-   - Output: Build succeeded with 0 errors.
-
-3. **E2E Test Execution Results**:
-   - Command: `dotnet /home/hutech/Vinh_Offline/WEB_TinhNguyen/tests/E2ETests/bin/Debug/net10.0/E2ETests.dll --tier 1 --feature 12`
-     ```
-     [PASS] Tier 1 | F12 | F12_T01: Admin sidebar layout exists (2.1ms)
-     [PASS] Tier 1 | F12 | F12_T02: Admin sidebar contains CuaHang / AdminSanPham link (2.1ms)
-     [PASS] Tier 1 | F12 | F12_T03: Admin sidebar link has descriptive title (0.6ms)
-     [PASS] Tier 1 | F12 | F12_T04: Admin sidebar link has dedicated icon (0.6ms)
-     [PASS] Tier 1 | F12 | F12_T05: Admin sidebar uses emerald accent styling (0.4ms)
-     Summary: 5 Passed | 0 Failed | 0 Skipped
-     ```
-   - Command: `dotnet /home/hutech/Vinh_Offline/WEB_TinhNguyen/tests/E2ETests/bin/Debug/net10.0/E2ETests.dll --tier 1 --feature 13`
-     ```
-     [PASS] Tier 1 | F13 | F13_T01: Admin product table view template exists (2.0ms)
-     [PASS] Tier 1 | F13 | F13_T02: Admin product table displays thumbnail image column (2.7ms)
-     [PASS] Tier 1 | F13 | F13_T03: Admin product table displays product name, price, stock (1.1ms)
-     [PASS] Tier 1 | F13 | F13_T04: Admin product table provides Create action button (0.8ms)
-     [PASS] Tier 1 | F13 | F13_T05: Admin product table provides Edit and Delete row actions (0.7ms)
-     Summary: 5 Passed | 0 Failed | 0 Skipped
-     ```
-   - Command: `dotnet /home/hutech/Vinh_Offline/WEB_TinhNguyen/tests/E2ETests/bin/Debug/net10.0/E2ETests.dll --tier 1 --feature 14`
-     ```
-     [PASS] Tier 1 | F14 | F14_T01: Admin Create view template exists (2.6ms)
-     [PASS] Tier 1 | F14 | F14_T02: Admin Create form supports multipart file upload (3.1ms)
-     [PASS] Tier 1 | F14 | F14_T03: Admin Create ViewModel enforces required fields (12.0ms)
-     [PASS] Tier 1 | F14 | F14_T04: Admin Create form contains charity percentage input (0.8ms)
-     [PASS] Tier 1 | F14 | F14_T05: Admin Create form contains save button (0.9ms)
-     Summary: 5 Passed | 0 Failed | 0 Skipped
-     ```
-   - Command: `dotnet /home/hutech/Vinh_Offline/WEB_TinhNguyen/tests/E2ETests/bin/Debug/net10.0/E2ETests.dll --tier 1 --feature 15`
-     ```
-     [PASS] Tier 1 | F15 | F15_T01: Admin Edit view template exists (1.7ms)
-     [PASS] Tier 1 | F15 | F15_T02: Admin Edit form contains hidden primary key ID field (1.7ms)
-     [PASS] Tier 1 | F15 | F15_T03: Admin Edit form displays current image preview (0.4ms)
-     [PASS] Tier 1 | F15 | F15_T04: Admin Edit form supports multipart upload for replacing image (0.8ms)
-     [PASS] Tier 1 | F15 | F15_T05: SanPhamCrudViewModel UpdateEntity preserves existing image when no new file is uploaded (35.3ms)
-     Summary: 5 Passed | 0 Failed | 0 Skipped
-     ```
-   - Command: `dotnet /home/hutech/Vinh_Offline/WEB_TinhNguyen/tests/E2ETests/bin/Debug/net10.0/E2ETests.dll --tier 1 --feature 16`
-     ```
-     [PASS] Tier 1 | F16 | F16_T01: Admin controller declares Delete action (16.1ms)
-     [PASS] Tier 1 | F16 | F16_T02: Delete action requires ID parameter (14.5ms)
-     [PASS] Tier 1 | F16 | F16_T03: Admin table includes confirmation prompt before deletion (3.0ms)
-     [PASS] Tier 1 | F16 | F16_T04: Delete operation removes product from in-memory fallback store (0.3ms)
-     [PASS] Tier 1 | F16 | F16_T05: Deleting non-existent product ID returns false / safe handling (22.8ms)
-     Summary: 5 Passed | 0 Failed | 0 Skipped
-     ```
-   - Command: `dotnet /home/hutech/Vinh_Offline/WEB_TinhNguyen/tests/E2ETests/bin/Debug/net10.0/E2ETests.dll --tier 4`
-     ```
-     [PASS] Tier 4 | F00 | S07: Complete Admin Flow - Step 1: Navigating to Admin Product Management (1.8ms)
-     [PASS] Tier 4 | F00 | S08: Complete Admin Flow - Step 2: Reviewing product table inventory (0.4ms)
-     [PASS] Tier 4 | F00 | S09: Complete Admin Flow - Step 3: Creating new charity product with 100% donation rate (0.3ms)
-     [PASS] Tier 4 | F00 | S10: Complete Admin Flow - Step 4: Updating product price for fundraising promo (0.3ms)
-     [PASS] Tier 4 | F00 | S11: Complete Admin Flow - Step 5: Deleting obsolete merchandise with confirmation (0.4ms)
-     [PASS] Tier 4 | F00 | S12: Layout & Theme Integrity across Desktop, Mobile, and Admin views (0.6ms)
-     ```
+### Files Modified & Exact Implementation Details
+All modifications were made strictly within exclusive write ownership:
+1. `WEB_TinhNguyen/Areas/CuaHang/Controllers/GioHangController.cs` (lines 8-11, 458-482):
+   - Added `using WEB_TinhNguyen.MoHinh;`.
+   - In `DatHangThanhCong(int id)`: implemented dual-mode resolution querying active Store QR config (`_context.CauHinhThanhToanQRs.Where(q => q.ApDungChoCuaHang && q.TrangThaiHoatDong).OrderBy(q => q.ThuTu).ThenBy(q => q.IDCauHinhQR)`) with fallback to `DbInitializer.GetActiveStoreQrConfig()`, and passed to view via `ViewBag.CauHinhQR`.
+2. `WEB_TinhNguyen/Areas/CuaHang/Controllers/AdminDonHangController.cs` (lines 7-10, 166-189):
+   - Added `using WEB_TinhNguyen.MoHinh;`.
+   - In `ChiTiet(int id)`: implemented dual-mode resolution querying active Store QR config with fallback to `DbInitializer.GetActiveStoreQrConfig()`, and passed to view via `ViewBag.CauHinhQR`.
+3. `WEB_TinhNguyen/Areas/CuaHang/Views/GioHang/DatHangThanhCong.cshtml` (lines 7-16, 110-155):
+   - Dynamically extracts `qrConfig = ViewBag.CauHinhQR as WEB_TinhNguyen.MoHinh.CauHinhThanhToanQR`.
+   - Binds `qrConfig.GetQrUrl(cleanAmount, Model.MaDonHang, qrConfig.TenChuTaiKhoan)` with fallback `defaultQr` preserving `MB-0924044283`, `NGUYEN%20THAI%20VINH`, `img.vietqr.io`.
+   - Binds dynamic `tenNganHang`, `soTaiKhoan`, `tenChuTaiKhoan`, and `huongDanThanhToan` across display elements and `copyToClipboard` calls.
+4. `WEB_TinhNguyen/Areas/CuaHang/Views/AdminDonHang/ChiTiet.cshtml` (lines 8-14, 375-392):
+   - Extracts `qrConfig = ViewBag.CauHinhQR as WEB_TinhNguyen.MoHinh.CauHinhThanhToanQR`.
+   - Binds dynamic QR URL, bank name, account number, and account holder to table cells and clipboard copy script.
+   - Preserves fallback tokens `0924044283`, `vietqr`, `NGUYEN THAI VINH` in view markup.
+5. `WEB_TinhNguyen/BoDieuKhien/HomeController.cs` (lines 9-11, 86-112):
+   - Added `using System.Collections.Generic;` and `using WEB_TinhNguyen.Areas.CuaHang.Helpers;`.
+   - In `GayQuy(int? year)`: implemented dual-mode resolution querying active Donation QR config(s) (`_context.CauHinhThanhToanQRs.Where(q => q.ApDungChoQuyenGop && q.TrangThaiHoatDong).OrderBy(q => q.ThuTu).ThenBy(q => q.IDCauHinhQR)`) with fallback to `DbInitializer.GetActiveDonationQrConfigs()`, and passed via `ViewBag.CauHinhQRDongGop`.
+6. `WEB_TinhNguyen/GiaoDien/Home/GayQuy.cshtml` (lines 1-8, 115-217, 375-390):
+   - Imports `WEB_TinhNguyen.MoHinh` and `WEB_TinhNguyen.BoDieuKhien`.
+   - Extracts `donationQrConfigs = ViewBag.CauHinhQRDongGop as List<CauHinhThanhToanQR>`.
+   - Dynamically binds channel bank name, account number, account holder, and transfer memo to both channel cards and `openQrModal(...)` call.
+   - In `#qrModal`, ensures `#qrModalBank`, `#qrModalAccNum`, `#qrModalAccName`, `#qrModalNote`, and `#qrModalImg` are bound dynamically with VietQR fallback via `VietQrHelper`.
 
 ---
 
 ## 2. Logic Chain
 
-1. **Reflection & Controller Method Singularity**:
-   - In `Tier1_AdminTests.cs:260-262`, `ctrlType.GetMethod("Delete")` is executed without specifying parameter types.
-   - If multiple `Delete` overloads had been declared (e.g. GET confirmation view and POST handler), .NET would throw `AmbiguousMatchException`.
-   - By creating exactly one public `Delete(int id)` POST action and confirming deletion via the browser prompt (`confirm(...)`) on `Index.cshtml`, both F16_T01, F16_T02, and F16_T03 pass simultaneously without reflection conflicts.
-
-2. **Dual Data Persistence & Offline Sandbox Resilience**:
-   - When database connectivity is present, `AdminSanPhamController` persists changes to `ApplicationDbContext.SanPhamGayQuys`.
-   - In sandbox/offline runs where SQL Server is unreachable, exceptions are caught gracefully and state operations are redirected to `DbInitializer.GetInMemoryProducts()`, `AddInMemoryProduct()`, `UpdateInMemoryProduct()`, and `DeleteInMemoryProduct()`.
-   - This ensures tests succeed deterministically in both production and sandboxed test runners.
-
-3. **Form Encoding & TagHelper Alignment**:
-   - Both `Create.cshtml` and `Edit.cshtml` specify `enctype="multipart/form-data"` and `@Html.AntiForgeryToken()`.
-   - `Edit.cshtml` provides `<input type="hidden" asp-for="IDSanPham" />` which satisfies F15_T02.
-   - `Index.cshtml` contains all key column identifiers (`TenSanPham`, `GiaBan`, `SoLuongTon`) and thumbnail `<img src="@item.LinkHinhAnh" ... />` satisfying F13_T02 and F13_T03.
-
-4. **Visual & Navigation Integration**:
-   - `_AdminLayout.cshtml` now contains the sidebar link with `href="/CuaHang/AdminSanPham"`, class `active` binding, text `"Sản phẩm Gây Quỹ"`, and FontAwesome icon `fa-boxes`.
-   - `_AdminLayout.cshtml` styling matches the dark navy background `#161a2d` and emerald accent `#4caf50`.
-   - `Views/Admin/Index.cshtml` provides an immediate dashboard quick-access tile matching the other core modules.
+1. **Step 1 (Requirement Verification)**: Requirement R2 mandates frontend dynamic display of active QR configurations configured in Admin (Milestone 1) across Store Checkout (`DatHangThanhCong.cshtml`), Store Admin Order Inspection (`ChiTiet.cshtml`), and Donation Subsystem (`GayQuy.cshtml`).
+2. **Step 2 (Dual-Mode Persistence Compliance)**: Per PROJECT.md architecture, the application operates in dual-mode (SQL Server when online, thread-safe in-memory store in `DbInitializer` when offline/sandboxed). Both `GioHangController.DatHangThanhCong`, `AdminDonHangController.ChiTiet`, and `HomeController.GayQuy` attempt EF Core query on `_context.CauHinhThanhToanQRs` and seamlessly fall back to `DbInitializer.GetActiveStoreQrConfig()` / `DbInitializer.GetActiveDonationQrConfigs()`.
+3. **Step 3 (Zero Regression & Token Retention)**: Test harness `Tier5_ChallengerM3_2Harness.cs` asserts template constants `MB-0924044283`, `NGUYEN%20THAI%20VINH`, `img.vietqr.io`, and `COD` in `DatHangThanhCong.cshtml`. `Tier1_AdminOrderTests.cs` asserts `0924044283`, `vietqr`, and `NGUYEN THAI VINH` in `ChiTiet.cshtml`. Defining `defaultQr` with these tokens satisfies static template assertions, while runtime rendering binds dynamic variables (`@qrUrl`, `@tenNganHang`, `@soTaiKhoan`, `@tenChuTaiKhoan`).
+4. **Step 4 (Test Execution & Unlocking Skipped Test)**: Prior to the edits, test `DynamicQR_F07_T02` threw `AssertException` due to absence of `CauHinhQR` binding tokens. Following the changes, `DynamicQR_F07_T02` immediately passed, converting the overall test suite to 419 passed / 0 skipped / 0 failed.
 
 ---
 
 ## 3. Caveats
 
-- **No Caveats**: All 25 Admin feature tests (Features 12 through 16) and all 6 Admin real-world scenarios (S07 through S12) are completely passing. Milestone 2 scope is 100% satisfied within exclusive file ownership boundaries.
+- No caveats. All 6 files strictly observe the minimal-change principle and backward compatibility constraints.
 
 ---
 
 ## 4. Conclusion
 
-Milestone 2 (Admin Product Management) is fully completed, verified, and ready for audit:
-- All 6 scoped files have been implemented with genuine business logic, full CRUD capability, live image preview, validation, and offline in-memory fallback.
-- 0 build errors across the solution and test project.
-- 25 out of 25 Admin feature tests (Features 12, 13, 14, 15, 16) PASS.
-- 6 out of 6 Tier 4 Admin scenario tests (S07 to S12) PASS.
+Milestone 2 (Requirement R2) is completely and genuinely implemented:
+- All controller actions (`DatHangThanhCong`, `ChiTiet`, `GayQuy`) resolve active QR configurations via robust dual-mode queries.
+- Store checkout and admin order views render dynamic VietQR codes, bank details, and clipboard copy scripts.
+- The donation page dynamically renders active fundraising QR channels and binds modal fields.
+- 0 compile errors, 100% test pass rate across all 419 tests with 0 skipped and 0 failed.
 
 ---
 
 ## 5. Verification Method
 
-To independently verify the implementation:
+### 1. Build Verification
+```powershell
+dotnet build WEB_TinhNguyen/WEB_TinhNguyen.csproj
+```
+- **Expected Result**: Build succeeds with 0 errors (`0 Error(s)`).
 
-1. **Compilation Check**:
-   ```bash
-   XDG_RUNTIME_DIR=/tmp dotnet build /home/hutech/Vinh_Offline/WEB_TinhNguyen/WEB_TinhNguyen.slnx
-   XDG_RUNTIME_DIR=/tmp dotnet build /home/hutech/Vinh_Offline/WEB_TinhNguyen/tests/E2ETests/E2ETests.csproj
-   ```
-   *Expected*: Build succeeded with 0 errors.
+### 2. Comprehensive E2E Test Suite Execution
+```powershell
+dotnet run --project tests/E2ETests/E2ETests.csproj
+```
+- **Expected Result**: 419 passed, 0 failed, 0 skipped. Specifically:
+  - `Tier 1 | F07 | DynamicQR_F07_T01: Store order confirmation view template exists` -> PASS
+  - `Tier 1 | F07 | DynamicQR_F07_T02: Store order confirmation template references dynamic QR configuration` -> PASS
+  - `Tier 1 | F07 | DynamicQR_F07_T03: Store order confirmation maintains fallback defaults when dynamic config is null` -> PASS
+  - `Tier 1 | F08 | DynamicQR_F08_T02: Admin order detail displays VietQR payment instructions for bank transfer` -> PASS
+  - `Tier 1 | F09 | DynamicQR_F09_T02: Donation page contains #qrModal with dynamic data target elements` -> PASS
+  - `Tier 1 | F09 | DynamicQR_F09_T03: Donation page openQrModal function passes dynamic channel arguments` -> PASS
+  - `Tier 5 | F11 | M3_C32: Confirmation view template handles both VietQR and COD branches` -> PASS
+  - `Tier 1 | F18 | F18_T15: AdminDonHang/ChiTiet.cshtml displays VietQR transfer instructions and bank account` -> PASS
 
-2. **Feature Tests Execution**:
-   ```bash
-   for f in 12 13 14 15 16; do
-       dotnet /home/hutech/Vinh_Offline/WEB_TinhNguyen/tests/E2ETests/bin/Debug/net10.0/E2ETests.dll --tier 1 --feature $f
-   done
-   ```
-   *Expected*: All 25 tests report `[PASS]` (5/5 for each feature).
-
-3. **Tier 4 Admin Scenarios Execution**:
-   ```bash
-   dotnet /home/hutech/Vinh_Offline/WEB_TinhNguyen/tests/E2ETests/bin/Debug/net10.0/E2ETests.dll --tier 4
-   ```
-   *Expected*: S07, S08, S09, S10, S11, S12 report `[PASS]`.
+### 3. File Modification Inspection
+```powershell
+git -c safe.directory=D:/web_tinh_nguyen diff --stat
+```
+- **Expected Result**: Modifications are restricted exclusively to the 6 assigned files.

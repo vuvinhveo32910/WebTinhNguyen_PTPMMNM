@@ -1,135 +1,131 @@
-# BÁO CÁO TỔNG KẾT BÀN GIAO ĐỒ ÁN (FINAL PROJECT HANDOFF REPORT)
-## TÁI CẤU TRÚC WEBSITE TÌNH NGUYỆN ASP.NET CORE MVC HƯỚNG TỚI PRODUCTION
+# Orchestrator Soft Handoff (State Dump) — Generation 1 to Generation 2
 
-- **Dự án**: Website Tình Nguyện ASP.NET Core MVC trên nền tảng .NET 10 (`net10.0`)
-- **Đơn vị điều phối**: Project Orchestrator (`orchestrator`)
-- **Thư mục làm việc**: `/home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/orchestrator/`
-- **Hồ sơ yêu cầu gốc**: `/home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/ORIGINAL_REQUEST.md`
-- **Kế hoạch dự án**: `/home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/orchestrator/PROJECT.md`
-- **Bảng trạng thái kiểm soát (Gate Status)**: `/home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/orchestrator/GATE_STATUS.md`
-- **Thời gian hoàn thành**: 2026-11-04T08:22:00Z
-- **Kết quả nghiệm thu tổng thể**: **100% GATE PASS — CLEAN INTEGRITY AUDIT**
-
----
-
-## 1. Observation (Tổng hợp Kết quả Triển khai & Hiện trạng Hệ thống)
-
-Đồ án đã phân công vai trò chuyên sâu và hoàn thành trọn vẹn 100% 4 nhóm yêu cầu nghiệp vụ khắt khe:
-
-### 1.1. Yêu cầu R1: Tái cấu trúc Cơ sở Dữ liệu & Dọn dẹp Mã nguồn (EF Core Architect)
-- **Xóa 100% thuộc tính màu**: Toàn bộ 66 trường màu HEX (`MauNen...`, `MauChu...`, `Color...`) đã được loại bỏ hoàn toàn khỏi `MoHinh/Entities.cs` và `MoHinh/CauHinhTrangChuVM.cs`.
-- **Code First Migration thực tế**: Tệp Migration `WEB_TinhNguyen/Migrations/20261104000000_XoaCotMauVaVietHoaTenBangCot.cs` thực thi:
-  - 66 thao tác `DropColumn` xóa triệt để các cột màu trong CSDL SQL Server.
-  - 3 thao tác `RenameTable`: `BannerTrangChus` -> `BieuNguTrangChus`, `TVKhoanhKhacs` -> `ThuVienKhoanhKhacs`, `FAQTrangChus` -> `CauHoiThuongGapTrangChus`.
-  - Hơn 34 thao tác `RenameColumn`: `IDBanner` -> `IDBieuNgu`, `CTA_...` -> `KeuGoi_...`, `Hero_...` -> `NoiBat_...`, `Link...` -> `DuongDan...`.
-- **Đồng bộ DbContext Snapshot**: `ApplicationDbContextModelSnapshot.cs` được cập nhật đồng bộ 100%, không còn bất kỳ cột màu nào.
-- **Cập nhật LINQ/SQL**: 100% các câu truy vấn và `.Include(...)` trong 7 Controller cốt lõi đã chuyển đổi sang tên tiếng Việt thực tế.
-- **Làm sạch Form Admin**: Xóa bỏ hoàn toàn 100% các thẻ `<input type="color">` và ô nhập mã HEX trong 6 view Edit của Admin.
-
-### 1.2. Yêu cầu R2: Việt hóa Cấu trúc Thư mục & Cấu hình Razor ViewEngine (C# .NET 10 Developer)
-- **Đổi tên 4 thư mục cấp gốc sang tiếng Việt chuẩn mực**:
-  - `Controllers/` -> `BoDieuKhien/` (Namespace: `WEB_TinhNguyen.BoDieuKhien`).
-  - `Models/` -> `MoHinh/` (Namespace: `WEB_TinhNguyen.MoHinh`).
-  - `Views/` -> `GiaoDien/` (Tổ chức 29 view files qua 10 thư mục).
-  - `Data/` -> `DuLieu/` (Namespace: `WEB_TinhNguyen.DuLieu`).
-- **Cấu hình ViewEngine 2 tầng**:
-  - `VietnameseViewLocationExpander : IViewLocationExpander` phân giải view theo quy tắc `/GiaoDien/{1}/{0}.cshtml`.
-  - Đăng ký `RazorViewEngineOptions.ViewLocationFormats` và `AreaViewLocationFormats` trong `Program.cs`.
-- **Cập nhật 22 Layout paths**: Toàn bộ các view đã chuyển đổi tham chiếu sang `~/GiaoDien/Shared/_Layout.cshtml` và `~/GiaoDien/Shared/_AdminLayout.cshtml`.
-- **Cập nhật `tailwind.config.js`**: Bổ sung đường dẫn nội dung `./GiaoDien/**/*.cshtml` và chế độ `darkMode: 'class'`.
-
-### 1.3. Yêu cầu R3: Đổi mới Giao diện Tailwind CSS & Bảo toàn Cửa hàng (UI/UX Specialist)
-- **Bảng màu Volunteer Identity**:
-  - Nền trang mặc định màu trắng (`--bg-page: #ffffff`).
-  - Chữ màu xanh ngọc bích sẫm Tây Nguyên (`--text-main: #143823`), đạt tỷ lệ tương phản WCAG AAA vượt trội **12.97:1** (vượt xa ngưỡng chuẩn AAA 7.0:1).
-- **Animations mượt mà**: 4 bộ keyframe animation (`float`, `pulse-slow`, `heartbeat`, `fade-in-up`) được thiết lập trong `tailwind.config.js` và biên dịch tối ưu vào `WEB_TinhNguyen/wwwroot/css/site.css` (~100KB).
-- **Làm mới toàn bộ giao diện Client**: Các trang Chủ, Chương trình, Gây quỹ, Ban tổ chức, Tin tức, Ký ức được thiết kế lại hiện đại, truyền cảm hứng, giàu bản sắc tình nguyện.
-- **Bảo toàn 100% Phân hệ Bán hàng (`Areas/CuaHang/`)**:
-  - `git diff HEAD WEB_TinhNguyen/Areas/CuaHang/Views/`: **Rỗng 100% (0 lines changed)**.
-  - Toàn bộ 12 view của Cửa Hàng khớp 100% mã băm SHA-256 gốc.
-  - Cấu trúc DOM giỏ hàng, đặt hàng giữ nguyên vẹn.
-  - Tạo riêng Layout `Areas/CuaHang/Views/Shared/_CuaHangLayout.cshtml` với class `<html class="light">` và `<body class="light cuahang-body">`, hoàn toàn cô lập khỏi giao diện mới.
-
-### 1.4. Yêu cầu R4: Tính năng Chuyển đổi Sáng/Tối (Light/Dark Mode Toggle)
-- **Nút chuyển đổi tinh tế**:
-  - Nút Desktop (`#themeToggleBtn`) tại Header Navigation và nút Mobile (`#themeToggleBtnMobile`) tại thanh Header Mobile.
-  - Hiệu ứng icon Mặt trăng (`fa-moon text-emerald-700`) khi ở chế độ Sáng và Mặt trời (`fa-sun text-amber-400` kèm ánh hào quang ấm) khi ở chế độ Tối.
-- **Script Anti-FOUC (Zero-Flash)**: Đặt ngay đầu thẻ `<head>` trong `_Layout.cshtml`, nạp trạng thái từ `localStorage.getItem('site_theme')`, áp dụng class `dark`/`light` trước khi body nạp, triệt tiêu hoàn toàn hiện tượng chớp màn hình.
-- **Bảng màu Dark Mode**: Nền đêm rừng Tây Nguyên `--bg-page: #0a140e`, card surface `--bg-surface: #13241b`, chữ sáng `--text-main: #f8fafc`, đạt tỷ lệ tương phản **17.93:1** (chuẩn WCAG AAA).
-- **Cơ chế Khóa An toàn Đa tầng cho Cửa Hàng**:
-  1. Script Anti-FOUC tự động tước bỏ class `dark` và nạp class `light` đồng bộ khi URL thuộc `/cuahang*`.
-  2. Nút toggle trên Header được bảo vệ bằng Razor: `@if (ViewContext.RouteData.Values["area"]?.ToString() != "CuaHang")`.
-  3. Hàm `toggleThemeMode()` chặn đứng mọi lệnh chuyển đổi nếu đang ở `/cuahang*`.
-  4. Lưu trữ `localStorage.site_theme` được giữ nguyên vẹn, tự động khôi phục chế độ Dark mode khi người dùng quay lại trang chủ.
+## 1. Milestone State
+- **Overall Mission**: Đồng bộ và tối ưu hóa toàn bộ giao diện người dùng bên ngoài của dự án web hiện tại (`D:\web_tinh_nguyen`) để hiển thị trực quan, dễ nhìn và thuận tiện thao tác trên trình duyệt di động theo chuẩn responsive web (viewport 375px - 430px, không tràn ngang `scrollWidth <= innerWidth`, menu hamburger/drawer, co giãn linh hoạt), giữ nguyên hoàn toàn khu vực quản trị (`/admin`), đạt 100% kiểm thử tự động.
+- **Milestone Overview**:
+  - **Survey & Architecture Mapping**: [DONE] (3 Explorers completed, `PROJECT.md` authored).
+  - **Milestone 4 (E2E Testing Track)**: [DONE / TEST_READY] (`TEST_INFRA.md`, `TEST_READY.md`, `tests/run_mobile_viewport_browser_tests.js`, Tier 1 & Tier 4 C# tests).
+  - **Milestone 1 (Public Layouts & Navigation Infrastructure)**: [DONE - Gate PASS]
+    - Modified: `_Layout.cshtml`, `_CuaHangLayout.cshtml`, `Styles/app.css`, `LoiChuc.cshtml`.
+    - Gate passed unconditionally: Reviewer 1 (APPROVE), Reviewer 2 (APPROVE), Challenger 1 (CONFIRM), Challenger 2 (CONFIRM), Forensic Auditor (CLEAN).
+  - **Milestone 2 (Public Home Views Responsive Optimization)**: [IN_PROGRESS - Investigation Phase COMPLETED]
+    - All 3 Explorers (`m2_explorer_1`, `m2_explorer_2`, `m2_explorer_3`) have delivered comprehensive handoff reports with exact before/after code replacement specifications.
+    - **READY FOR WORKER IMPLEMENTATION & GATE VERIFICATION**.
+  - **Milestone 3 (Storefront, Cart & Checkout Views)**: [PLANNED]
+  - **Milestone 5 (Final E2E Pass & Adversarial Hardening)**: [PLANNED]
 
 ---
 
-## 2. Logic Chain & Kết Quả Thẩm Định Độc Lập (Multi-Role Gate Audit)
-
-Dự án đã trải qua 5 mốc kiểm định độc lập khắt khe với sự tham gia của các chuyên gia độc lập:
-
-| Mốc | Tên Mốc Nghiệm Thu | Kết Quả Thẩm Định | Tỷ Lệ Test | Kết Quả Forensic Audit |
-|:---:|---|:---:|:---:|:---:|
-| **M1** | Việt hóa Thư mục & Razor ViewEngine (R2) | **100% GATE PASS** | 316/316 Passed | **CLEAN** |
-| **M2** | Tái cấu trúc CSDL & Dọn dẹp Mã nguồn (R1) | **100% GATE PASS** | 325/325 Passed | **CLEAN** |
-| **M3** | Giao diện Tailwind CSS & Bảo toàn CuaHang (R3) | **100% GATE PASS** | 325/325 Passed | **CLEAN** |
-| **M4** | Tính năng Chuyển đổi Sáng/Tối Light/Dark Mode (R4) | **100% GATE PASS** | 337/337 Passed | **CLEAN** |
-| **M5** | Final E2E Integration & Forensic Audit Gate | **100% GATE PASS** | **733/733 Passed** | **CLEAN** |
-
-### Chi tiết các bộ test suite kiểm chứng:
-1. `tests/E2ETests/E2ETests.csproj`: **337 / 337 tests PASSED** (Tiers 1-5).
-2. `tests/M3Challenger2/M3Challenger2.csproj`: **128 / 128 tests PASSED** (Adversarial Oracles & SHA-256 Hashes).
-3. `tests/M1Challenger/M1Challenger.csproj`: **67 / 67 tests PASSED** (Directory Structure & View Locations).
-4. `tests/adversarial_store_isolation_test.js`: **109 / 109 tests PASSED** (URL variations, Anti-FOUC, Storage).
-5. `tests/adversarial_final_stress_harness.js`: **201 / 201 tests PASSED** (Multi-state resilience & Edge-cases).
-- **Tổng cộng**: **733 / 733 bài test độc lập vượt qua 100% (0 thất bại)**.
+## 2. Active Subagents
+- Cumulative spawn count: **16 / 16** (Threshold reached).
+- Active/running subagents: **NONE**. All 16 subagents (`survey_explorer_1..3`, `e2e_test_writer_1`, `m1_explorer_1..3`, `m1_worker_1`, `m1_reviewer_1..2`, `m1_challenger_1..2`, `m1_auditor_1`, `m2_explorer_1..3`) are in `idle` state and have delivered their handoff reports.
 
 ---
 
-## 3. Caveats & Ghi chú Môi trường
+## 3. Pending Decisions & Immediate Next Steps for Successor
 
-1. **Môi trường Sandbox Ngoại tuyến (Offline Sandbox)**: Khi chạy lệnh `dotnet build`, hệ thống có thể hiển thị cảnh báo `NU1900` (timeout kết nối tới `api.nuget.org`). Đây là hành vi tiêu chuẩn khi thực thi trong môi trường sandbox khép kín, hoàn toàn không ảnh hưởng đến chất lượng biên dịch sạch (`0 Error(s)`).
-2. **Biến môi trường trên Linux**: Bắt buộc kèm `XDG_RUNTIME_DIR=/tmp DOTNET_CLI_HOME=/tmp` khi chạy các lệnh `dotnet` trên terminal sandbox.
+### Immediate Next Step: Dispatch Milestone 2 Worker (`m2_worker_1`)
+The successor orchestrator must dispatch a `teamwork_worker` with Role "Home Views Responsive Worker" to apply the synthesized changes across the 8 Home views (`WEB_TinhNguyen/GiaoDien/Home/`), `_Layout.cshtml`, and `tests/run_mobile_viewport_browser_tests.js`.
+
+#### Concrete Specifications for `m2_worker_1`:
+1. **`WEB_TinhNguyen/GiaoDien/Home/TinTuc.cshtml`**:
+   - Hero title (line 93-96): Replace inline `font-size: @(Model?.Hero_CoChuTieuDe ?? "64px")` with `font-size: clamp(1.875rem, 6vw, @(Model?.Hero_CoChuTieuDe ?? "64px"))` and `leading-[1.2]`.
+   - Card titles (line 166-169): Replace `font-size: @(news.CoChuTieuDe ?? "18px")` with `font-size: clamp(1rem, 2.5vw, @(news.CoChuTieuDe ?? "18px"))` + `line-clamp-2 break-words`.
+   - Like button (line 184-191): Upgrade to `min-h-[40px] min-w-[40px]`.
+   - Modal close button (line 225-230): Upgrade to `h-10 w-10 min-w-[40px] min-h-[40px]`.
+   - Modal FB link (line 243-246): Add `min-h-[44px]`.
+
+2. **`WEB_TinhNguyen/GiaoDien/Home/GayQuy.cshtml`**:
+   - Hero title (line 68-71): Replace inline `font-size: @(Model?.Hero_CoChuTieuDe ?? "48px")` with `font-size: clamp(1.625rem, 5.5vw, @(Model?.Hero_CoChuTieuDe ?? "48px"))`.
+   - Section headings (lines 107, 278, 303): `text-2xl font-black leading-tight sm:text-3xl md:text-4xl lg:text-5xl`.
+   - Donation cards (lines 153 & 225): `w-full max-w-full sm:max-w-[360px] p-5 sm:p-7`.
+   - Bank details (lines 174-192 & 246-249): Add `break-all` on `@effectiveAccNum` and `@effectiveMemo`, `shrink-0` on labels (`Ngân hàng:`, `Số tài khoản:`, `Chủ TK:`, `Cú pháp:`). **Resolves E2E test `M4_F06_T01`!**
+   - Sponsor buttons (line 329): Replace `w-44` with `w-[calc(50%-0.75rem)] max-w-[176px] sm:w-56 h-24 sm:h-32`.
+   - Modal close buttons (lines 348 & 365): Upgrade to `h-10 w-10 min-w-[40px] min-h-[40px]`.
+   - Modal note (line 357): Add `break-all`.
+
+3. **`WEB_TinhNguyen/GiaoDien/Home/Index.cshtml`**:
+   - Countdown card (line 152): `p-4 sm:p-8 md:p-14 rounded-3xl sm:rounded-[2.5rem]`.
+   - Slide (line 150): `px-2 sm:px-6 md:px-12`.
+   - Countdown title (line 167): `text-2xl sm:text-4xl md:text-6xl lg:text-7xl` (or `text-3xl sm:text-5xl md:text-7xl`).
+   - Countdown boxes (line 187-204): `flex-nowrap sm:flex-wrap justify-center gap-2 sm:gap-3 md:gap-5 max-w-full`, each box `w-16 sm:w-20 md:w-28 flex-1 min-w-[62px] max-w-[80px] sm:max-w-none py-3 px-2 sm:p-4`, numbers `text-2xl sm:text-3xl md:text-5xl`, labels `text-[9px] sm:text-[10px] md:text-xs`.
+   - CTA buttons (lines 209-215): `w-full sm:w-auto text-center px-6 sm:px-8 py-3 sm:py-3.5`.
+   - "Về dự án" (line 244): `text-2xl sm:text-3xl md:text-4xl lg:text-6xl`.
+   - Section headings (lines 280, 329, 374, 418, 460): `text-2xl sm:text-3xl md:text-4xl lg:text-5xl`.
+   - News card title (line 343): `clamp(1rem, 2.5vw, @(n.KichCoTieuDe ?? "18px"))` + `line-clamp-2 break-words`.
+   - News "Đọc tiếp" and Like buttons (lines 349-357): `min-h-[40px] min-w-[40px]`.
+   - Modal close button (line 483): `w-10 h-10 min-w-[40px] min-h-[40px]`.
+   - Sponsor logo tooltips (line 393): `max-w-[200px] truncate` (was `whitespace-nowrap`).
+
+4. **`WEB_TinhNguyen/GiaoDien/Home/BanToChuc.cshtml`**:
+   - Main title H1 (line 264): `text-2xl sm:text-4xl md:text-5xl`.
+   - Cấp 1 card (line 294, 315, 327): `p-5 sm:px-10 sm:py-7`, name pill `max-w-full truncate`.
+   - Cấp 1, 2, 3 Facebook icon buttons (lines 305-309, 413-416, 527-531): Upgrade to `h-10 w-10 min-w-[40px] min-h-[40px]` with `-bottom-1 -right-1` on avatar, `shadow-md hover:scale-110`.
+   - Cấp 3 container (line 495): `p-3 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl`.
+   - Cấp 3 member card (line 504): `p-3 sm:p-4 rounded-xl sm:rounded-2xl`.
+   - `#btnShowMoreMembers` (line 540) & CTA (line 559): `min-h-[44px]`.
+
+5. **`WEB_TinhNguyen/GiaoDien/Home/KyUc.cshtml`**:
+   - Hero section (lines 20, 40): `px-4 sm:px-6 py-20 sm:py-32`, title `text-2xl sm:text-4xl md:text-6xl lg:text-7xl`.
+   - Summary rich text (lines 52, 62): `px-4 sm:px-6`, card `p-4 sm:p-8 md:p-10 rounded-2xl sm:rounded-3xl`.
+   - Section headings (lines 56, 76, 104): `text-2xl sm:text-3xl md:text-4xl lg:text-5xl`.
+   - Gallery (line 85): `w-full @(img.LaAnhDoc ? "h-full min-h-[220px]" : "aspect-square")`.
+   - Sponsor cards (lines 123, 126): `h-24 w-[150px] sm:h-32 sm:w-56 gap-3 sm:gap-5 md:gap-6 p-3 sm:p-6`.
+
+6. **`WEB_TinhNguyen/GiaoDien/Home/ChuongTrinh.cshtml`**:
+   - Hero section (lines 17, 26): `px-4 sm:px-6`, title `text-2xl sm:text-4xl lg:text-6xl`.
+   - Hero floating photo (line 56): `translate-x-0 sm:translate-x-3` and `border-2 sm:border-4`.
+   - Roadmap heading (line 75): `text-2xl sm:text-3xl lg:text-5xl`.
+   - Timeline cards (line 106): `p-4 sm:p-6 rounded-2xl sm:rounded-3xl`.
+   - Timeline connecting line (line 118, 123): `flex-1 min-h-[1.5rem] w-0.5 my-1 bg-emerald-200 dark:bg-emerald-900` with container `self-stretch shrink-0`.
+
+7. **`WEB_TinhNguyen/GiaoDien/Home/LoiChuc.cshtml` & `ComingSoon.cshtml`**:
+   - `LoiChuc.cshtml` (line 35): Title `text-2xl sm:text-4xl md:text-5xl`.
+   - `ComingSoon.cshtml` (lines 74, 78): `text-2xl sm:text-3xl md:text-5xl` and `text-2xl md:text-4xl`.
+
+8. **`WEB_TinhNguyen/GiaoDien/Shared/_Layout.cshtml`**:
+   - Header logo `<a>` (line 475): Add `max-w-[calc(100%-96px)] flex-1`.
+   - Header title `<span>` (line 482): `class="min-w-0 flex-1 block leading-tight overflow-hidden"`.
+   - Mobile buttons `<div>` (line 543): `class="flex items-center gap-2 md:hidden shrink-0"`.
+
+9. **`tests/run_mobile_viewport_browser_tests.js`**:
+   - Line 223-224: Replace double-replace with `layout = layout.replace(/~?\/css\/site\.css/, cssUrl);`.
+
+10. **Build & Verification after Worker**:
+    - `dotnet build` -> 0 errors.
+    - `npm run build:css` -> builds Tailwind CSS.
+    - `dotnet run --project tests/E2ETests/E2ETests.csproj` -> **552/552 PASS (100%)** (with `M4_F06_T01` passing).
+    - `node tests/run_mobile_viewport_browser_tests.js` -> 100% PASS on all Home views across 375px, 390px, 412px, 430px.
 
 ---
 
-## 4. Conclusion (Kết Luận Nghiệm Thu)
-
-Đồ án Tái cấu trúc Website Tình Nguyện ASP.NET Core MVC trên nền tảng .NET 10 đã **HOÀN THÀNH TOÀN DIỆN 100%** theo mọi tiêu chuẩn sản xuất (production-ready):
-- Không còn bất kỳ thuộc tính màu hay cột màu nào trong CSDL và Entity Framework Core.
-- Thư mục được Việt hóa chuẩn mực, Razor ViewEngine phân giải view trơn tru 100%.
-- Giao diện Tailwind CSS hiện đại, truyền cảm hứng, animations sống động, độ tương phản WCAG AAA.
-- Phân hệ bán hàng `Areas/CuaHang/` được bảo toàn tuyệt đối 100% cấu trúc DOM và diện mạo nguyên bản.
-- Tính năng chuyển đổi Sáng/Tối hoạt động mượt mà, không nhấp nháy (Anti-FOUC), cô lập an toàn khỏi Cửa hàng.
-- Báo cáo kiểm định pháp y khẳng định mã nguồn **CLEAN 100%**, không có gian lận, không có facade hay hardcode.
+### M2 Verification Gate Execution
+After Worker completes:
+1. Spawn 2 Reviewers (`teamwork_reviewer`): `m2_reviewer_1`, `m2_reviewer_2`.
+2. Spawn 2 Challengers (`teamwork_challenger`): `m2_challenger_1`, `m2_challenger_2`.
+3. Spawn 1 Forensic Auditor (`teamwork_auditor`): `m2_auditor_1`.
+4. Gate check: If all APPROVE/CONFIRM/CLEAN, mark M2 DONE in `PROJECT.md` and `GATE_STATUS.md`.
+5. Proceed to Milestone 3 (Storefront & Cart).
 
 ---
 
-## 5. Verification Method (Hướng dẫn Tái Kiểm Chứng Độc Lập)
+## 4. Key Constraints & Commitments
+1. **Zero Modifications to Admin**: Absolutely no files under `WEB_TinhNguyen/GiaoDien/Admin*`, `WEB_TinhNguyen/BoDieuKhien/Admin*`, `WEB_TinhNguyen/Areas/CuaHang/Controllers/Admin*`, `WEB_TinhNguyen/Areas/CuaHang/Views/Admin*`, or `_AdminLayout.cshtml` may be touched or modified.
+2. **Dispatch-Only Orchestrator**: The orchestrator must NEVER write code directly, never run build/test commands, and never explore code directly. Delegate all technical execution to subagents.
+3. **Forensic Audit Veto**: A Forensic Auditor verdict of `INTEGRITY VIOLATION` is a strict, unconditional binary veto.
+4. **Mandatory Worker Warning**: Every worker dispatch MUST include the verbatim integrity warning:
+   > DO NOT CHEAT. All implementations must be genuine. DO NOT hardcode test results, create dummy/facade implementations, or circumvent the intended task. A teamwork_auditor will independently verify your work. Integrity violations WILL be detected and your work WILL be rejected.
+5. **Mandatory Authoritative Request Path**: Every subagent dispatch MUST include the path to `ORIGINAL_REQUEST.md` (`D:\web_tinh_nguyen\.agents\teamwork\ORIGINAL_REQUEST.md`).
 
-Bất kỳ chuyên gia đánh giá nào cũng có thể kiểm chứng độc lập đồ án bằng các lệnh sau:
+---
 
-```bash
-# 1. Kiểm tra biên dịch sạch toàn bộ Solution (Kỳ vọng: 0 Errors)
-XDG_RUNTIME_DIR=/tmp DOTNET_CLI_HOME=/tmp dotnet build /home/hutech/Vinh_Offline/WEB_TinhNguyen/WEB_TinhNguyen.slnx
-
-# 2. Chạy toàn bộ bộ kiểm thử E2E Test Suite (337 tests)
-XDG_RUNTIME_DIR=/tmp DOTNET_CLI_HOME=/tmp dotnet run --project /home/hutech/Vinh_Offline/WEB_TinhNguyen/tests/E2ETests/E2ETests.csproj
-
-# 3. Chạy bộ kiểm định cô lập Cửa Hàng M3Challenger2 (128 tests)
-XDG_RUNTIME_DIR=/tmp DOTNET_CLI_HOME=/tmp dotnet run --project /home/hutech/Vinh_Offline/WEB_TinhNguyen/tests/M3Challenger2/M3Challenger2.csproj
-
-# 4. Chạy bộ kiểm định cấu trúc thư mục tiếng Việt M1Challenger (67 tests)
-XDG_RUNTIME_DIR=/tmp DOTNET_CLI_HOME=/tmp dotnet run --project /home/hutech/Vinh_Offline/WEB_TinhNguyen/tests/M1Challenger/M1Challenger.csproj
-
-# 5. Chạy bộ kiểm định đối kháng đa tầng (Adversarial Stress Harness)
-node /home/hutech/Vinh_Offline/WEB_TinhNguyen/tests/adversarial_store_isolation_test.js
-node /home/hutech/Vinh_Offline/WEB_TinhNguyen/tests/adversarial_final_stress_harness.js
-
-# 6. Kiểm tra tính bất biến 100% của phân hệ Cửa Hàng (Kỳ vọng: 0 output)
-git diff HEAD -- /home/hutech/Vinh_Offline/WEB_TinhNguyen/WEB_TinhNguyen/Areas/CuaHang/Views/
-
-# 7. Quét sạch thuộc tính màu trong Models và Views Admin (Kỳ vọng: 0 kết quả)
-grep -in "Mau" /home/hutech/Vinh_Offline/WEB_TinhNguyen/WEB_TinhNguyen/MoHinh/Entities.cs
-grep -rn 'type="color"' /home/hutech/Vinh_Offline/WEB_TinhNguyen/WEB_TinhNguyen/GiaoDien/Admin*
-```
+## 5. Key Artifacts
+- User Request: `D:\web_tinh_nguyen\.agents\teamwork\ORIGINAL_REQUEST.md`
+- Project Plan & Feature Inventory: `D:\web_tinh_nguyen\PROJECT.md`
+- E2E Test Infra: `D:\web_tinh_nguyen\TEST_INFRA.md`
+- E2E Test Ready: `D:\web_tinh_nguyen\TEST_READY.md`
+- Gate Status: `D:\web_tinh_nguyen\.agents\teamwork\orchestrator\GATE_STATUS.md`
+- M2 Explorer 1 Report: `D:\web_tinh_nguyen\.agents\teamwork\m2_explorer_1\handoff.md`
+- M2 Explorer 2 Report: `D:\web_tinh_nguyen\.agents\teamwork\m2_explorer_2\handoff.md`
+- M2 Explorer 3 Report: `D:\web_tinh_nguyen\.agents\teamwork\m2_explorer_3\handoff.md`
+- Parent Conversation ID: `5600af65-871f-41d3-a6b8-02719bfd993c`

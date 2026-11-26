@@ -1,149 +1,141 @@
-# Handoff Report — Worker 1 (Entity, DbContext and Synchronization Implementer)
+# Worker 1 Handoff Report: Admin Navigation, Routing, and Offline Resilience Remediation
+
+**Agent**: `teamwork_worker` (Worker 1)  
+**Role**: implementer, qa, specialist  
+**Working Directory**: `D:\web_tinh_nguyen\.agents\teamwork\worker_1`  
+**Date**: 2026-11-06  
+**Type**: Hard Handoff (Tasks Complete)  
+
+---
 
 ## 1. Observation
 
-### 1.1 Root Cause & File Observations
-1. **Physical Database Schema**:
-   - In `/home/hutech/Vinh_Offline/WEB_TinhNguyen/SQLQuery1.sql` (lines 108–132) and baseline migrations 1–13 (`WEB_TinhNguyen/Migrations/`), the physical database table `CauHinhTrangChu` defines columns:
-     `IDCauHinh`, `IDChienDich`, `TieuDeChinh`, `TieuDePhu`, `DoanVanMoTa`, `LinkAnhBia`, `MauChuDao`, `MauNen`, `MauChu`, `FontTieuDe`, `FontNoiDung`, `NgayCapNhat`, `TocDoChuyenSlide`, `HienThiCanvas3D`, `VeDuAn_LinkAnh`, `HienThiMascot`, `LinkAnhMascot`, `ViTriMascot`.
-   - The columns `DuongDanAnhBia`, `DuongDanAnhLinhVat`, `HienThiHieuUng3D`, `HienThiLinhVat`, `KieuChuNoiDung`, `KieuChuTieuDe`, `VeDuAn_DuongDanAnh`, `ViTriLinhVat` **do not exist** in the physical SQL database.
-2. **Prior State in C# Entities (`WEB_TinhNguyen/MoHinh/Entities.cs`)**:
-   - The non-existent columns were declared as unannotated public auto-properties in `CauHinhTrangChu` (lines 33, 40, 43, 47, 55, 66, 69, 72), while the real database columns (`LinkAnhBia`, `FontTieuDe`, etc.) were annotated with `[NotMapped]`.
-   - Similarly, in `CauHinhKyUc`, `CauHinhChuongTrinh`, `CauHinhGayQuy`, `CauHinhBanToChuc`, and `CauHinhTinTuc`, properties `KieuChuTieuDe`, `KieuChuNoiDung`, `DuongDanAnhBia` were unannotated auto-properties while physical columns (`FontTieuDe`, `FontNoiDung`, `LinkAnhBia`) were unmapped.
-3. **Prior State in DbContext (`WEB_TinhNguyen/DuLieu/ApplicationDbContext.cs`)**:
-   - `OnModelCreating` contained no Fluent API mappings or `.Ignore(...)` calls for `CauHinhTrangChu`, `CauHinhKyUc`, `CauHinhChuongTrinh`, `CauHinhGayQuy`, `CauHinhBanToChuc`, or `CauHinhTinTuc`.
-   - EF Core default conventions resulted in attempting to query columns matching the property names 1:1, producing `SqlException: Invalid column name 'DuongDanAnhBia' (and other 7 column names)`.
-4. **Prior State in ModelSnapshot (`WEB_TinhNguyen/Migrations/ApplicationDbContextModelSnapshot.cs`)**:
-   - `CauHinhTrangChu` tracked scalar properties for `DuongDanAnhBia`, `DuongDanAnhLinhVat`, `HienThiHieuUng3D`, `HienThiLinhVat`, `KieuChuNoiDung`, `KieuChuTieuDe`, `VeDuAn_DuongDanAnh`, `ViTriLinhVat`.
-   - `CauHinhBanToChuc`, `CauHinhChuongTrinh`, `CauHinhGayQuy`, `CauHinhKyUc`, `CauHinhTinTuc` also tracked `KieuChuTieuDe`, `KieuChuNoiDung`, `DuongDanAnhBia`.
+### Observation 1.1: Pre-existing Malformed Controller Paths in `_AdminLayout.cshtml`
+Prior to remediation, `D:\web_tinh_nguyen\WEB_TinhNguyen\GiaoDien\Shared\_AdminLayout.cshtml` contained:
+```html
+253: <a href="@Url.Action("Index", "GiaoDien/AdminTrangChu")" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminTrangChu" ? "active" : "")">
+258: <a href="@Url.Action("Index", "GiaoDien/AdminChuongTrinh")" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "GiaoDien/AdminChuongTrinh" ? "active" : "")">
+263: <a href="@Url.Action("Index", "GiaoDien/AdminGayQuy")" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "GiaoDien/AdminGayQuy" ? "active" : "")">
+283: <a href="@Url.Action("Index", "GiaoDien/AdminKyUc")" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminKyUc" ? "active" : "")">
+288: <a href="@Url.Action("Index", "GiaoDien/AdminBanToChuc")" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminBanToChuc" ? "active" : "")">
+293: <a href="@Url.Action("Index", "GiaoDien/AdminTinTuc")" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminTinTuc" ? "active" : "")">
+```
+- In ASP.NET Core URL generation, `"GiaoDien/..."` was percent-encoded as `%2F`, generating URLs like `/GiaoDien%2FAdminTrangChu` which resulted in HTTP 404 Not Found.
+- No root admin link specified `area = ""`, causing ambient area inheritance when navigating from `CuaHang` pages.
+- Lines 258 and 263 checked active state against `"GiaoDien/..."` which never matched runtime RouteData.
 
-### 1.2 Modifications Made
-1. **`WEB_TinhNguyen/MoHinh/Entities.cs`**:
-   - In `CauHinhTrangChu`:
-     - Reverted primary mapped auto-properties to the physical DB columns:
-       - `public string? LinkAnhBia { get; set; }`
-       - `public string? FontTieuDe { get; set; }`
-       - `public string? FontNoiDung { get; set; }`
-       - `public bool HienThiCanvas3D { get; set; }`
-       - `public string? VeDuAn_LinkAnh { get; set; }`
-       - `public bool HienThiMascot { get; set; } = true;`
-       - `public string? LinkAnhMascot { get; set; }`
-       - `public string? ViTriMascot { get; set; } = "right";`
-     - Marked all 8 invalid column names with `[NotMapped]` and implemented bidirectional getter/setter proxies:
-       - `[NotMapped] public string? DuongDanAnhBia { get => LinkAnhBia; set => LinkAnhBia = value; }`
-       - `[NotMapped] public string? KieuChuTieuDe { get => FontTieuDe; set => FontTieuDe = value; }`
-       - `[NotMapped] public string? KieuChuNoiDung { get => FontNoiDung; set => FontNoiDung = value; }`
-       - `[NotMapped] public bool HienThiHieuUng3D { get => HienThiCanvas3D; set => HienThiCanvas3D = value; }`
-       - `[NotMapped] public string? VeDuAn_DuongDanAnh { get => VeDuAn_LinkAnh; set => VeDuAn_LinkAnh = value; }`
-       - `[NotMapped] public bool HienThiLinhVat { get => HienThiMascot; set => HienThiMascot = value; }`
-       - `[NotMapped] public string? DuongDanAnhLinhVat { get => LinkAnhMascot; set => LinkAnhMascot = value; }`
-       - `[NotMapped] public string? ViTriLinhVat { get => ViTriMascot; set => ViTriMascot = value; }`
-   - In `CauHinhKyUc`:
-     - Primary mapped: `LinkAnhBia`, `FontTieuDe`, `FontTieuDeTongKet`.
-     - `[NotMapped]` proxies: `DuongDanAnhBia`, `KieuChuTieuDe`, `KieuChuTieuDeTongKet`.
-   - In `CauHinhChuongTrinh`:
-     - Primary mapped: `FontTieuDe`.
-     - `[NotMapped]` proxy: `KieuChuTieuDe`.
-   - In `CauHinhGayQuy`:
-     - Primary mapped: `FontTieuDe`, `FontNoiDung`.
-     - `[NotMapped]` proxies: `KieuChuTieuDe`, `KieuChuNoiDung`.
-   - In `CauHinhBanToChuc`:
-     - Primary mapped: `FontTieuDe`, `FontNoiDung`.
-     - `[NotMapped]` proxies: `KieuChuTieuDe`, `KieuChuNoiDung`.
-   - In `CauHinhTinTuc`:
-     - Primary mapped: `FontTieuDe`, `FontNoiDung`.
-     - `[NotMapped]` proxies: `KieuChuTieuDe`, `KieuChuNoiDung`.
+### Observation 1.2: Dead Shortcut Link in `Admin/Index.cshtml`
+In `D:\web_tinh_nguyen\WEB_TinhNguyen\GiaoDien\Admin\Index.cshtml` at line 149:
+```html
+<a href="#" class="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4 hover:border-orange-500 hover:shadow-lg transition-all group">
+    ...
+    <p class="font-bold text-gray-800 text-sm mb-0.5 group-hover:text-orange-700 transition-colors">Quản lý Tin tức</p>
+</a>
+```
 
-2. **`WEB_TinhNguyen/DuLieu/ApplicationDbContext.cs`**:
-   - In `OnModelCreating`, added explicit Fluent API configuration for `CauHinhTrangChu`:
-     - `.Ignore(...)` for `DuongDanAnhBia`, `DuongDanAnhLinhVat`, `HienThiHieuUng3D`, `HienThiLinhVat`, `KieuChuNoiDung`, `KieuChuTieuDe`, `VeDuAn_DuongDanAnh`, `ViTriLinhVat`.
-     - Explicit `.Property(...)` mapping for `LinkAnhBia`, `FontTieuDe`, `FontNoiDung`, `HienThiCanvas3D`, `VeDuAn_LinkAnh`, `HienThiMascot`, `LinkAnhMascot`, `ViTriMascot`.
-   - Added `.Ignore(...)` and `.Property(...)` mappings for `CauHinhKyUc`, `CauHinhChuongTrinh`, `CauHinhGayQuy`, `CauHinhBanToChuc`, and `CauHinhTinTuc`.
+### Observation 1.3: Controller Database Dependency
+The six campaign controllers (`AdminTrangChu`, `AdminChuongTrinh`, `AdminGayQuy`, `AdminKyUc`, `AdminBanToChuc`, `AdminTinTuc`) in `WEB_TinhNguyen/BoDieuKhien/` performed `await _context.ChienDichs.OrderByDescending(c => c.Nam).ToListAsync()` without exception handling. If SQL Server was unreachable, this threw an unhandled exception rather than returning a valid view.
 
-3. **`WEB_TinhNguyen/Migrations/ApplicationDbContextModelSnapshot.cs`**:
-   - Replaced scalar properties `DuongDanAnhBia`, `DuongDanAnhLinhVat`, `HienThiHieuUng3D`, `HienThiLinhVat`, `KieuChuNoiDung`, `KieuChuTieuDe`, `VeDuAn_DuongDanAnh`, `ViTriLinhVat` with `FontNoiDung`, `FontTieuDe`, `HienThiCanvas3D`, `HienThiMascot`, `LinkAnhBia`, `LinkAnhMascot`, `VeDuAn_LinkAnh`, `ViTriMascot` in `CauHinhTrangChu`.
-   - Synchronized `CauHinhBanToChuc`, `CauHinhChuongTrinh`, `CauHinhGayQuy`, `CauHinhKyUc`, and `CauHinhTinTuc`.
-
-### 1.3 Build & Test Tool Results
-1. `TMPDIR=/tmp XDG_RUNTIME_DIR=/tmp DOTNET_CLI_HOME=/tmp dotnet build WEB_TinhNguyen.slnx`:
-   - Output: `Build succeeded. 0 Error(s).`
-2. `TMPDIR=/tmp XDG_RUNTIME_DIR=/tmp DOTNET_CLI_HOME=/tmp HOME=/tmp bash tests/run_e2e_tests.sh --all`:
-   - Output: `OVERALL: 337 Tests | 337 Passed | 0 Failed | 0 Skipped in 3.64s`
-3. `dotnet run --no-build --project tests/M1Challenger/M1Challenger.csproj`:
-   - Output: `RESULTS: 67 PASSED, 0 FAILED`
-4. `dotnet run --no-build --project tests/M3Challenger2/M3Challenger2.csproj`:
-   - Output: `RESULTS: 128 PASSED | 0 FAILED | TOTAL: 128`
-5. **EF Core Generated SQL Output**:
-   ```sql
-   SELECT [c].[IDCauHinh], [c].[DoanVanMoTa], [c].[FontNoiDung], [c].[FontTieuDe], [c].[HienThiCanvas3D], [c].[HienThiLaRoi], [c].[HienThiMascot], [c].[IDChienDich], [c].[IDHieuUng], [c].[LinkAnhBia], [c].[LinkAnhMascot], [c].[NgayCapNhat], [c].[TieuDeChinh], [c].[TieuDePhu], [c].[TocDoChuyenSlide], [c].[VeDuAn_LinkAnh], [c].[VeDuAn_NoiDung], [c].[VeDuAn_TieuDe], [c].[ViTriMascot], [c0].[IDChienDich], [c0].[Nam], [c0].[TenHienThiMenu], [c0].[TieuDe], [c0].[TrangThaiHoatDong]
-   FROM [CauHinhTrangChu] AS [c]
-   INNER JOIN [ChienDich] AS [c0] ON [c].[IDChienDich] = [c0].[IDChienDich]
-   WHERE [c0].[TrangThaiHoatDong] = CAST(1 AS bit)
-   ```
-   - Matches physical SQL Server database columns 100%. Zero invalid column names generated.
+### Observation 1.4: Build and Test Results
+- Solution build command:
+  ```powershell
+  dotnet build "D:\web_tinh_nguyen\WEB_TinhNguyen.slnx"
+  ```
+  Result:
+  ```
+  Build succeeded.
+      4 Warning(s)
+      0 Error(s)
+  Time Elapsed 00:00:04.41
+  ```
+- E2E test execution command:
+  ```powershell
+  dotnet run --project "D:\web_tinh_nguyen\tests\E2ETests\E2ETests.csproj" --no-build
+  ```
+  Result:
+  ```
+  ================================================================================
+                                TEST EXECUTION SUMMARY
+  ================================================================================
+    Tier 1: Total: 161 | Passed: 161 | Failed:   0 | Skipped:   0
+    Tier 2: Total:  28 | Passed:  28 | Failed:   0 | Skipped:   0
+    Tier 3: Total:  18 | Passed:  18 | Failed:   0 | Skipped:   0
+    Tier 4: Total:  12 | Passed:  12 | Failed:   0 | Skipped:   0
+    Tier 5: Total: 250 | Passed: 250 | Failed:   0 | Skipped:   0
+  --------------------------------------------------------------------------------
+    OVERALL: 469 Tests | 469 Passed | 0 Failed | 0 Skipped in 6.13s
+  ================================================================================
+  ```
 
 ---
 
 ## 2. Logic Chain
 
-1. **Schema Ground Truth (Observation 1.1)**:
-   The physical SQL Server database `TinhNguyen` was provisioned using `SQLQuery1.sql` and Migrations 1–13, creating columns `LinkAnhBia`, `FontTieuDe`, `FontNoiDung`, `HienThiCanvas3D`, `VeDuAn_LinkAnh`, `HienThiMascot`, `LinkAnhMascot`, `ViTriMascot`. The 8 Vietnamese column names never existed in the database table schema.
-2. **EF Core Mapping Semantics (Observation 1.1 & 1.2)**:
-   By decorating the real database column properties as primary auto-properties and decorating the 8 invalid column names with `[NotMapped]`, EF Core excludes the 8 names from all relational model metadata (`model.FindEntityType(...).FindProperty(...) == null`).
-3. **Fluent API Defense-in-Depth (Observation 1.2)**:
-   Calling `entity.Ignore(e => e.DuongDanAnhBia)`, etc., in `ApplicationDbContext.OnModelCreating` provides a compile-time and runtime guarantee that EF Core's query builder will never include these properties in SQL `SELECT`, `INSERT`, or `UPDATE` projections.
-4. **Backward Compatibility via Proxies (Observation 1.2)**:
-   By providing two-way getter/setter proxying between `DuongDanAnhBia` and `LinkAnhBia` (and all other 7 pairs), existing controllers (`AdminTrangChuController`, `AdminKyUcController`, etc.) and viewmodels continue to function and mutate the underlying entity state without any compilation errors (`CS0103`, `CS1061`).
-5. **Empirical Query Validation (Observation 1.3)**:
-   The generated SQL verification confirmed that EF Core translates `_context.CauHinhTrangChus` queries into SQL containing strictly `LinkAnhBia`, `FontTieuDe`, `FontNoiDung`, `HienThiCanvas3D`, `VeDuAn_LinkAnh`, `HienThiMascot`, `LinkAnhMascot`, `ViTriMascot`. Therefore, SQL Server will never throw `SqlException: Invalid column name`.
+1. **URL Generation & Routing Resolution**:  
+   - Based on Observation 1.1, replacing `"GiaoDien/<Controller>"` with pure controller names (`AdminTrangChu`, `AdminChuongTrinh`, `AdminGayQuy`, `AdminKyUc`, `AdminBanToChuc`, `AdminTinTuc`) causes `@Url.Action` to generate standard, unescaped root URLs (`/AdminTrangChu`, `/AdminChuongTrinh`, etc.).  
+   - Adding `new { area = "" }` ensures that when links are rendered from within an area-scoped controller (such as `Areas.CuaHang.Controllers.AdminSanPhamController`), ambient route data values (`area = "CuaHang"`) are suppressed and the links reliably target root controllers.
+
+2. **Active State Highlight Logic**:  
+   - Fixing lines 258 and 263 in `_AdminLayout.cshtml` to check for `"AdminChuongTrinh"` and `"AdminGayQuy"` aligns the check with actual runtime `RouteData.Values["Controller"]`, restoring the visual indicator for active pages.
+
+3. **Dashboard Shortcut Continuity**:  
+   - Based on Observation 1.2, updating `Admin/Index.cshtml` line 149 from `href="#"` to `href="@Url.Action("Index", "AdminTinTuc", new { area = "" })"` ensures quick access from the dashboard to news management works properly.
+
+4. **Guaranteed HTTP 200 via Offline Resilience**:  
+   - Based on Observation 1.3, wrapping the database query in all 6 campaign controllers with `try { ... } catch { return View(new List<ChienDich>()); }` guarantees that even if SQL Server is stopped or offline, the action returns a valid `ViewResult`.  
+   - The corresponding Razor views iterate over `@Model` via `@foreach (var item in Model)`. When given `new List<ChienDich>()`, the Razor views render empty tables without throwing null references, guaranteeing HTTP 200 and valid HTML rendering under all test and production environments.
+
+5. **Automated Verification Coverage**:  
+   - Based on Observation 1.4, all 16 new automated tests in `Tier1_AdminRoutingTests.cs` (Feature 19) verify the integrity of the layout links, route mapping, offline resilience, and HTTP 200 equivalence, passing with 100% success (469/469 total tests pass).
 
 ---
 
 ## 3. Caveats
 
-1. **Running Database Service in Sandbox**: TCP port 1433 is isolated from the sandbox environment; live connection to external SQL Server is offline during test execution. However, EF Core model configuration and SQL query generation were fully verified using the SQL Server relational query compiler (`ToQueryString()`).
-2. **Admin Controllers**: Controllers did not require source modifications because bidirectional proxies in `Entities.cs` maintain seamless transparent access.
-3. No caveats regarding implementation completeness or stability.
+- **Sandbox Network Sockets**: Loopback TCP sockets (`127.0.0.1:port`) are restricted in the Windows sandbox environment (Win32 Error 10013). Verification relies on in-process controller action execution and ASP.NET Core pipeline model validation, which fully exercises the controller, model binding, and view result generation without socket dependencies.
+- **Physical SQL Server**: If physical SQL Server `DESKTOP-C5LJ9BM\SQL2025_DEV` is online, the controllers query live campaign data; if offline, they seamlessly fall back to an empty collection rather than returning HTTP 500 errors.
 
 ---
 
 ## 4. Conclusion
 
-- The 8 invalid column names (`DuongDanAnhBia`, `DuongDanAnhLinhVat`, `HienThiHieuUng3D`, `HienThiLinhVat`, `KieuChuNoiDung`, `KieuChuTieuDe`, `VeDuAn_DuongDanAnh`, `ViTriLinhVat`) are completely eliminated from EF Core's relational model mapping.
-- All physical database columns (`LinkAnhBia`, `FontTieuDe`, `FontNoiDung`, `HienThiCanvas3D`, `VeDuAn_LinkAnh`, `HienThiMascot`, `LinkAnhMascot`, `ViTriMascot`) are directly mapped.
-- `CauHinhKyUc`, `CauHinhChuongTrinh`, `CauHinhGayQuy`, `CauHinhBanToChuc`, and `CauHinhTinTuc` are synchronized.
-- Build compiles with 0 errors.
-- 100% of all automated test suites pass (337 E2E tests + 67 M1Challenger tests + 128 M3Challenger2 tests).
-- EF Core generated SQL contains zero invalid column names.
+All tasks assigned in the dispatch have been completed:
+1. `WEB_TinhNguyen/GiaoDien/Shared/_AdminLayout.cshtml` navigation links and active state checks have been fixed with pure controller names and explicit `new { area = "" }`.
+2. `WEB_TinhNguyen/GiaoDien/Admin/Index.cshtml` dead shortcut link has been resolved.
+3. Offline database resilience has been implemented across all 6 campaign controllers (`AdminTrangChu`, `AdminChuongTrinh`, `AdminGayQuy`, `AdminKyUc`, `AdminBanToChuc`, `AdminTinTuc`).
+4. Theme wrappers in `AdminChuongTrinh/Index.cshtml` and `AdminKyUc/Index.cshtml` have been polished.
+5. Automated test suite `Tier1_AdminRoutingTests.cs` (Feature 19) has been added with 16 tests covering all requirements. The entire suite passes with 469/469 tests green and 0 build errors.
 
 ---
 
 ## 5. Verification Method
 
-1. **Build Verification**:
-   ```bash
-   TMPDIR=/tmp XDG_RUNTIME_DIR=/tmp DOTNET_CLI_HOME=/tmp dotnet build /home/hutech/Vinh_Offline/WEB_TinhNguyen/WEB_TinhNguyen.slnx
-   ```
-   *Expected Result*: `Build succeeded. 0 Error(s).`
+### 1. Solution Build
+```powershell
+dotnet build "D:\web_tinh_nguyen\WEB_TinhNguyen.slnx"
+```
+**Expected Outcome**: 0 Errors.
 
-2. **Automated Test Suite Execution**:
-   ```bash
-   TMPDIR=/tmp XDG_RUNTIME_DIR=/tmp DOTNET_CLI_HOME=/tmp HOME=/tmp bash /home/hutech/Vinh_Offline/WEB_TinhNguyen/tests/run_e2e_tests.sh --all
-   ```
-   *Expected Result*: `OVERALL: 337 Tests | 337 Passed | 0 Failed | 0 Skipped`
+### 2. Full Test Suite Execution
+```powershell
+dotnet run --project "D:\web_tinh_nguyen\tests\E2ETests\E2ETests.csproj" --no-build
+```
+**Expected Outcome**: 469 Tests | 469 Passed | 0 Failed | 0 Skipped.
 
-3. **Challenger Suites Execution**:
-   ```bash
-   TMPDIR=/tmp XDG_RUNTIME_DIR=/tmp DOTNET_CLI_HOME=/tmp HOME=/tmp dotnet run --no-build --project /home/hutech/Vinh_Offline/WEB_TinhNguyen/tests/M1Challenger/M1Challenger.csproj
-   TMPDIR=/tmp XDG_RUNTIME_DIR=/tmp DOTNET_CLI_HOME=/tmp HOME=/tmp dotnet run --no-build --project /home/hutech/Vinh_Offline/WEB_TinhNguyen/tests/M3Challenger2/M3Challenger2.csproj
-   ```
-   *Expected Result*: All tests pass (67 passed and 128 passed).
+### 3. Feature 19 Targeted Execution
+```powershell
+dotnet run --project "D:\web_tinh_nguyen\tests\E2ETests\E2ETests.csproj" --no-build -- --tier 1 --feature 19 --verbose
+```
+**Expected Outcome**: 16 Tests | 16 Passed | 0 Failed | 0 Skipped.
 
-4. **ModelSnapshot Cleanliness Check**:
-   ```bash
-   grep -E "(DuongDanAnhBia|DuongDanAnhLinhVat|HienThiHieuUng3D|HienThiLinhVat|KieuChuNoiDung|KieuChuTieuDe|VeDuAn_DuongDanAnh|ViTriLinhVat)" /home/hutech/Vinh_Offline/WEB_TinhNguyen/WEB_TinhNguyen/Migrations/ApplicationDbContextModelSnapshot.cs
-   ```
-   *Expected Result*: Exit code 1 (0 matches).
+### 4. Layout Link Inspection
+Run:
+```powershell
+Select-String -Path "D:\web_tinh_nguyen\WEB_TinhNguyen\GiaoDien\Shared\_AdminLayout.cshtml" -Pattern "GiaoDien/"
+```
+**Expected Outcome**: 0 matches found.
 
-5. **Invalidation Condition**:
-   If any of the 8 invalid names appears in the SQL query generated by `_context.CauHinhTrangChus.ToQueryString()`, or if `model.FindEntityType(typeof(CauHinhTrangChu)).FindProperty("DuongDanAnhBia")` returns non-null, this verification is invalidated.
+### 5. Invalidation Conditions
+- Any occurrence of `GiaoDien/` inside `_AdminLayout.cshtml`.
+- Any of the 8 Admin controller `Index()` methods throwing an unhandled exception when database is offline.
+- Failure of any test in `Tier1_AdminRoutingTests.cs`.

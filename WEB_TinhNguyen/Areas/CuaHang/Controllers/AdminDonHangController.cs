@@ -2,11 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WEB_TinhNguyen.DuLieu;
 using WEB_TinhNguyen.Areas.CuaHang.Models;
 using WEB_TinhNguyen.Areas.CuaHang.Helpers;
+using WEB_TinhNguyen.BoDieuKhien;
+using WEB_TinhNguyen.MoHinh;
 
 namespace WEB_TinhNguyen.Areas.CuaHang.Controllers
 {
@@ -16,6 +20,8 @@ namespace WEB_TinhNguyen.Areas.CuaHang.Controllers
     /// thống kê KPI doanh thu và đóng góp quỹ thiện nguyện với cơ chế tự động fallback In-Memory.
     /// </summary>
     [Area("CuaHang")]
+    [Authorize]
+    [PhanQuyenAdmin(QuyenAdmin.DonHang)]
     public class AdminDonHangController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -24,6 +30,8 @@ namespace WEB_TinhNguyen.Areas.CuaHang.Controllers
         {
             _context = context;
         }
+
+        private bool BiChanQuyen() => User?.Identity?.IsAuthenticated == true && !User.CoQuyen(QuyenAdmin.DonHang);
 
         private bool IsAjaxRequest()
         {
@@ -38,6 +46,7 @@ namespace WEB_TinhNguyen.Areas.CuaHang.Controllers
         [HttpGet]
         public async Task<IActionResult> Index(string? q, string? trangThai, string? thanhToan, string? sort)
         {
+            if (BiChanQuyen()) return StatusCode(StatusCodes.Status403Forbidden);
             List<DonHangGayQuy> allOrders;
 
             try
@@ -126,6 +135,7 @@ namespace WEB_TinhNguyen.Areas.CuaHang.Controllers
         [HttpGet]
         public async Task<IActionResult> ChiTiet(int id)
         {
+            if (BiChanQuyen()) return StatusCode(StatusCodes.Status403Forbidden);
             if (id <= 0)
             {
                 return NotFound();
@@ -162,6 +172,31 @@ namespace WEB_TinhNguyen.Areas.CuaHang.Controllers
                 return NotFound();
             }
 
+            // Resolve active Store payment QR config (Milestone 2 - Requirement R2)
+            CauHinhThanhToanQR? qrConfig = null;
+            try
+            {
+                if (_context.Database.CanConnect())
+                {
+                    qrConfig = await _context.CauHinhThanhToanQRs
+                        .Where(q => q.ApDungChoCuaHang && q.TrangThaiHoatDong)
+                        .OrderBy(q => q.ThuTu)
+                        .ThenBy(q => q.IDCauHinhQR)
+                        .FirstOrDefaultAsync();
+                }
+            }
+            catch
+            {
+                // Fallback khi database offline
+            }
+
+            if (qrConfig == null)
+            {
+                qrConfig = DbInitializer.GetActiveStoreQrConfig();
+            }
+
+            ViewBag.CauHinhQR = qrConfig;
+
             return View(order);
         }
 
@@ -169,8 +204,10 @@ namespace WEB_TinhNguyen.Areas.CuaHang.Controllers
         // 3. CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG & RESTOCK (CAP NHAT TRANG THAI)
         // =========================================================================
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CapNhatTrangThai(int id, string trangThaiDonHang, string? trangThaiThanhToan)
         {
+            if (BiChanQuyen()) return StatusCode(StatusCodes.Status403Forbidden);
             if (id <= 0 || string.IsNullOrWhiteSpace(trangThaiDonHang))
             {
                 if (IsAjaxRequest())
@@ -313,8 +350,10 @@ namespace WEB_TinhNguyen.Areas.CuaHang.Controllers
         // 4. XÓA ĐƠN HÀNG (XOA DON HANG)
         // =========================================================================
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> XoaDonHang(int id)
         {
+            if (BiChanQuyen()) return StatusCode(StatusCodes.Status403Forbidden);
             if (id <= 0)
             {
                 if (IsAjaxRequest())

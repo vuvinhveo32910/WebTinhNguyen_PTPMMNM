@@ -1,19 +1,17 @@
-# Progress Tracker
+# Progress Log - teamwork_explorer_survey_3
 
-Last visited: 2026-11-03T12:40:00Z
+Last visited: 2026-11-06T07:47:00Z
+Status: Survey completed - Writing comprehensive handoff report
 
-## Status
-- [x] Initialized BRIEFING.md and DISPATCH.md
-- [x] Verifying project build status (`dotnet build`)
-  - Command: `XDG_RUNTIME_DIR=/tmp dotnet build /home/hutech/Vinh_Offline/WEB_TinhNguyen/WEB_TinhNguyen/WEB_TinhNguyen.csproj`
-  - Result: Build succeeded (0 errors, 4 warnings).
-- [x] Inspecting Program.cs for Session / Cookie / Cache configuration
-  - Documented exact additions for `AddDistributedMemoryCache`, `AddSession`, `UseSession`, and Area route.
-- [x] Inspecting existing EF Core DbContext, entities, and seed data mechanisms
-  - Documented complete modeling for `SanPhamGayQuy`, `DonHangGayQuy`, `ChiTietDonHangGayQuy` and 4 charity seed products.
-- [x] Analyzing Storefront and Shopping Cart architecture
-  - Documented desktop header nav, mobile liquid bottom nav, cart view, checkout view, dynamic VietQR, and Admin sidebar.
-- [x] Documenting edge cases and UI/UX requirements
-  - Covered out-of-stock, extra donation, mobile padding, and dark mode compatibility.
-- [x] Producing comprehensive handoff.md report
-  - Written to `/home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_explorer_survey_3/handoff.md` following 5-component protocol.
+## Completed Steps:
+- [x] Initialized BRIEFING.md, DISPATCH.md, progress.md.
+- [x] Inspected project structure and all source files in WEB_TinhNguyen and tests.
+- [x] Surveyed all controllers, views, viewmodels, and Razor pages for Donation / Fundraising / Campaign.
+- [x] Located all QR display areas (Home/GayQuy, CuaHang/DatHangThanhCong, AdminDonHang/ChiTiet, AdminGayQuy/Edit).
+- [x] Cataloged every single hardcoded bank account, QR image path, bank name, account holder, and transfer syntax.
+- [x] Traced how campaign details and general donation options flow to the views.
+- [x] Analyzed VietQR generation vs static image usage and dynamic integration capability.
+- [x] Formulated detailed architectural design to switch to dynamic configuration from database/service.
+- [x] Verified compilation (`dotnet build WEB_TinhNguyen.csproj` -> 0 errors) and test execution (337 tests passed).
+- [x] Identified test assertions in `Tier1_AdminOrderTests.cs` that check for hardcoded strings.
+- [x] Composing final handoff.md report.

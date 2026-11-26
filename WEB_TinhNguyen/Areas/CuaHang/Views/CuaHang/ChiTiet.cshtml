@@ -114,17 +114,17 @@
                     </h1>
 
                     <!-- Pricing Banner -->
-                    <div class="flex items-baseline gap-3 p-4 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/40 mb-6">
-                        <span class="text-3xl sm:text-4xl font-black text-emerald-700 dark:text-emerald-400">
+                    <div class="flex flex-wrap items-baseline gap-2 sm:gap-3 p-4 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/40 mb-6">
+                        <span class="text-2xl sm:text-4xl font-black text-emerald-700 dark:text-emerald-400 break-all sm:break-words">
                             @Model.GiaBan.ToString("N0") VNĐ
                         </span>
 
                         @if (Model.GiaGoc.HasValue && Model.GiaGoc > Model.GiaBan)
                         {
-                            <span class="text-base sm:text-lg text-gray-400 line-through">
+                            <span class="text-sm sm:text-lg text-gray-400 line-through break-all sm:break-words">
                                 @Model.GiaGoc.Value.ToString("N0") VNĐ
                             </span>
-                            <span class="text-xs font-bold px-2 py-0.5 rounded-lg bg-rose-500 text-white">
+                            <span class="text-xs font-bold px-2 py-0.5 rounded-lg bg-rose-500 text-white break-all sm:break-words">
                                 Tiết kiệm @((Model.GiaGoc.Value - Model.GiaBan).ToString("N0"))₫
                             </span>
                         }

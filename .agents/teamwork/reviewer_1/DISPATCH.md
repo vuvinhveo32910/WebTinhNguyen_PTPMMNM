@@ -1,24 +1,36 @@
-## 2026-11-05T07:15:27Z
+## 2026-11-06T12:42:37Z
+You are teamwork_reviewer (Reviewer 1).
+Working directory: D:\web_tinh_nguyen\.agents\teamwork\reviewer_1
 
-You are Reviewer 1 (Code Correctness and EF Core Mapping Reviewer).
-Your working directory is: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/reviewer_1/
-Write only to your working directory (e.g. progress.md, handoff.md). Do not modify source code.
+MANDATORY FIRST STEP:
+Read the verbatim user request at:
+D:\web_tinh_nguyen\.agents\teamwork\ORIGINAL_REQUEST.md
 
-Read:
-- /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/ORIGINAL_REQUEST.md
-- /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/orchestrator_1/PROJECT.md
-- /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/worker_1/handoff.md
+CONTEXT & WORKER ARTIFACTS:
+- Project Plan: D:\web_tinh_nguyen\.agents\teamwork\PROJECT.md
+- Worker Changes: D:\web_tinh_nguyen\.agents\teamwork\worker_1\changes.md
+- Worker Handoff: D:\web_tinh_nguyen\.agents\teamwork\worker_1\handoff.md
 
-Review tasks:
-1. Examine the code changes made by Worker 1 in:
-   - `WEB_TinhNguyen/MoHinh/Entities.cs`
-   - `WEB_TinhNguyen/DuLieu/ApplicationDbContext.cs`
-   - `WEB_TinhNguyen/Migrations/ApplicationDbContextModelSnapshot.cs`
-2. Verify that the 8 invalid column names (`DuongDanAnhBia`, `DuongDanAnhLinhVat`, `HienThiHieuUng3D`, `HienThiLinhVat`, `KieuChuNoiDung`, `KieuChuTieuDe`, `VeDuAn_DuongDanAnh`, `ViTriLinhVat`) are completely excluded from EF Core column mapping via `[NotMapped]` and Fluent API `.Ignore(...)`.
-3. Verify that physical columns (`LinkAnhBia`, `FontTieuDe`, `FontNoiDung`, `HienThiCanvas3D`, `VeDuAn_LinkAnh`, `HienThiMascot`, `LinkAnhMascot`, `ViTriMascot`) are correctly mapped.
-4. Verify bidirectional proxy behavior and backward compatibility.
-5. Run build verification:
-   `TMPDIR=/tmp XDG_RUNTIME_DIR=/tmp DOTNET_CLI_HOME=/tmp dotnet build WEB_TinhNguyen.slnx`
-6. Provide an explicit verdict in your handoff.md: APPROVE or REQUEST_CHANGES.
-7. Write your handoff report to /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/reviewer_1/handoff.md and update progress.md.
-8. When complete, send a message to parent with your verdict and handoff path.
+YOUR MISSION:
+Independently review the work performed by Worker 1.
+1. Inspect the source code changes:
+   - `WEB_TinhNguyen/GiaoDien/Shared/_AdminLayout.cshtml` (verify controller names, area = "", active classes, no %2F or GiaoDien/ in links).
+   - `WEB_TinhNguyen/GiaoDien/Admin/Index.cshtml` (verify news management shortcut link).
+   - Controller resilience in `AdminTrangChuController.cs`, `AdminChuongTrinhController.cs`, `AdminGayQuyController.cs`, `AdminKyUcController.cs`, `AdminBanToChucController.cs`, `AdminTinTucController.cs`.
+   - Theme styling in `AdminChuongTrinh/Index.cshtml` and `AdminKyUc/Index.cshtml`.
+   - New test suite in `tests/E2ETests/Tier1/Tier1_AdminRoutingTests.cs`.
+2. Run build and tests:
+   - `dotnet build "D:\web_tinh_nguyen\WEB_TinhNguyen.slnx"`
+   - `dotnet run --project "D:\web_tinh_nguyen\tests\E2ETests\E2ETests.csproj"`
+   - Check if all tests pass and 0 errors occur.
+3. Check Acceptance Criteria:
+   - All 8 admin routes load with 200 OK.
+   - Sidebar links point to correct route without %2F or GiaoDien/.
+   - No runtime errors or broken layouts.
+4. Issue a clear, explicit verdict: `APPROVE` or `REQUEST_CHANGES`.
+
+OUTPUT REQUIREMENTS:
+- Write your evaluation report to `D:\web_tinh_nguyen\.agents\teamwork\reviewer_1\review.md`
+- Write your self-contained handoff report with explicit verdict (`APPROVE` or `REQUEST_CHANGES`) to `D:\web_tinh_nguyen\.agents\teamwork\reviewer_1\handoff.md`
+- Update `D:\web_tinh_nguyen\.agents\teamwork\reviewer_1\progress.md`
+- Send completion message to orchestrator when finished.

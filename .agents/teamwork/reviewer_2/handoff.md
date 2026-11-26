@@ -1,148 +1,145 @@
-# Handoff Report — Reviewer 2 (Application Runtime & Test Suite Reviewer)
+# Reviewer 2 Handoff Report: Milestone 1 Admin Routing & Navigation Audit
+
+**Agent**: `teamwork_reviewer` (Reviewer 2)  
+**Roles**: reviewer, critic  
+**Target**: Worker 1 remediation for Milestone 1 (Admin Routing & Navigation Fixes)  
+**Date**: 2026-11-06  
+**Verdict**: **APPROVE**  
+**Type**: Hard Handoff (Review Complete)
+
+---
 
 ## 1. Observation
 
-### 1.1 Project Buildability & Tool Commands
-1. **Solution Build (`WEB_TinhNguyen.slnx`)**:
-   - Command: `TMPDIR=/tmp XDG_RUNTIME_DIR=/tmp DOTNET_CLI_HOME=/tmp dotnet build WEB_TinhNguyen.slnx`
-   - Result:
-     ```text
-     Build succeeded.
-         2 Warning(s)
-         0 Error(s)
-     Time Elapsed 00:00:09.13
-     ```
-   - Zero compilation errors. Nuget audit warnings are expected given sandbox offline environment.
+### Observation 1.1: Verification of `_AdminLayout.cshtml` Navigation Links
+In `D:\web_tinh_nguyen\WEB_TinhNguyen\GiaoDien\Shared\_AdminLayout.cshtml`:
+- Lines 242-297 contain the 8 admin navigation anchors:
+  ```html
+  242: <a href="@Url.Action("Index", "Admin", new { area = "" })" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Admin" ? "active" : "")">
+  253: <a href="@Url.Action("Index", "AdminTrangChu", new { area = "" })" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminTrangChu" ? "active" : "")">
+  258: <a href="@Url.Action("Index", "AdminChuongTrinh", new { area = "" })" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminChuongTrinh" ? "active" : "")">
+  263: <a href="@Url.Action("Index", "AdminGayQuy", new { area = "" })" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminGayQuy" ? "active" : "")">
+  278: <a href="@Url.Action("Index", "AdminCauHinhQR", new { area = "" })" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminCauHinhQR" ? "active" : "")">
+  283: <a href="@Url.Action("Index", "AdminKyUc", new { area = "" })" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminKyUc" ? "active" : "")">
+  288: <a href="@Url.Action("Index", "AdminBanToChuc", new { area = "" })" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminBanToChuc" ? "active" : "")">
+  293: <a href="@Url.Action("Index", "AdminTinTuc", new { area = "" })" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminTinTuc" ? "active" : "")">
+  ```
+- Command execution `Select-String -Path "D:\web_tinh_nguyen\WEB_TinhNguyen\GiaoDien\Shared\_AdminLayout.cshtml" -Pattern "GiaoDien/"` returned **0 matches**.
+- All root admin links specify `new { area = "" }`.
+- Active state comparisons on lines 258 and 263 compare against pure controller names `"AdminChuongTrinh"` and `"AdminGayQuy"`.
 
-2. **Automated E2E Test Suite Execution**:
-   - Command: `TMPDIR=/tmp XDG_RUNTIME_DIR=/tmp DOTNET_CLI_HOME=/tmp HOME=/tmp bash tests/run_e2e_tests.sh --all`
-   - Result:
-     ```text
-     ================================================================================
-                                   TEST EXECUTION SUMMARY
-     ================================================================================
-       Tier 1: Total: 100 | Passed: 100 | Failed:   0 | Skipped:   0
-       Tier 2: Total:  28 | Passed:  28 | Failed:   0 | Skipped:   0
-       Tier 3: Total:  18 | Passed:  18 | Failed:   0 | Skipped:   0
-       Tier 4: Total:  12 | Passed:  12 | Failed:   0 | Skipped:   0
-       Tier 5: Total: 179 | Passed: 179 | Failed:   0 | Skipped:   0
-     --------------------------------------------------------------------------------
-       OVERALL: 337 Tests | 337 Passed | 0 Failed | 0 Skipped in 3.86s
-     ================================================================================
-     ```
+### Observation 1.2: Verification of Dashboard Shortcut Card in `Admin/Index.cshtml`
+In `D:\web_tinh_nguyen\WEB_TinhNguyen\GiaoDien\Admin\Index.cshtml` at line 149:
+```html
+<a href="@Url.Action("Index", "AdminTinTuc", new { area = "" })" class="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4 hover:border-orange-500 hover:shadow-lg transition-all group">
+```
+The previous `href="#"` dead link was replaced with a valid URL action to `AdminTinTuc` with `area = ""`.
 
-3. **Empirical Challenger Suite M1**:
-   - Command: `TMPDIR=/tmp XDG_RUNTIME_DIR=/tmp DOTNET_CLI_HOME=/tmp HOME=/tmp dotnet run --no-build --project tests/M1Challenger/M1Challenger.csproj`
-   - Result:
-     ```text
-     ================================================================================
-      RESULTS: 67 PASSED, 0 FAILED
-     ================================================================================
-     ```
+### Observation 1.3: Verification of Controller Offline Database Resilience
+In `WEB_TinhNguyen/BoDieuKhien/`:
+- `AdminTrangChuController.cs` (lines 46-57)
+- `AdminChuongTrinhController.cs` (lines 39-50)
+- `AdminGayQuyController.cs` (lines 26-37)
+- `AdminKyUcController.cs` (lines 40-51)
+- `AdminBanToChucController.cs` (lines 26-37)
+- `AdminTinTucController.cs` (lines 26-37)
+All wrap the EF query in `try { ... } catch { return View(new List<ChienDich>()); }`.
+- `AdminCauHinhQRController.cs` (lines 43-81) implements dual-mode resilience returning `DbInitializer.GetInMemoryQrConfigs()` on DB disconnect.
 
-4. **Empirical Challenger Suite M3 / R3**:
-   - Command: `TMPDIR=/tmp XDG_RUNTIME_DIR=/tmp DOTNET_CLI_HOME=/tmp HOME=/tmp dotnet run --no-build --project tests/M3Challenger2/M3Challenger2.csproj`
-   - Result:
-     ```text
-     ================================================================================
-      RESULTS: 128 PASSED | 0 FAILED | TOTAL: 128
-     ================================================================================
-     ```
+### Observation 1.4: Independent Solution Build Execution
+Command:
+```powershell
+dotnet build "D:\web_tinh_nguyen\WEB_TinhNguyen.slnx"
+```
+Verbatim Result:
+```
+Build succeeded.
+    4 Warning(s)
+    0 Error(s)
+Time Elapsed 00:00:05.34
+```
+(Warnings are NuGet package vulnerability advisories NU1902/NU1903 on System.Security.Cryptography.Pkcs, with 0 compilation errors).
 
-### 1.2 Independent Adversarial Verification on EF Core Metadata and SQL Generation
-An independent verification program was compiled and executed against `ApplicationDbContext` with the SQL Server provider to inspect relational metadata and generated SQL:
-1. **Relational Model Property Mapping Check**:
-   - Iterated over all entity types (`CauHinhTrangChu`, `CauHinhKyUc`, `CauHinhChuongTrinh`, `CauHinhGayQuy`, `CauHinhBanToChuc`, `CauHinhTinTuc`, etc.).
-   - Checked all scalar and navigation properties against the 8 forbidden column names:
-     `DuongDanAnhBia`, `DuongDanAnhLinhVat`, `HienThiHieuUng3D`, `HienThiLinhVat`, `KieuChuNoiDung`, `KieuChuTieuDe`, `VeDuAn_DuongDanAnh`, `ViTriLinhVat`.
-   - Result: `[PASS] No forbidden column or property exists in EF Core relational model.`
-2. **LINQ Translation (`ToQueryString()`) with SQL Server Relational Query Compiler**:
-   - Checked generated SQL for `_context.CauHinhTrangChus`: 0 forbidden columns found.
-   - Checked generated SQL for `_context.CauHinhKyUcs`: 0 forbidden columns found.
-   - Checked generated SQL for `_context.CauHinhChuongTrinhs`: 0 forbidden columns found.
-   - Checked generated SQL for `_context.CauHinhGayQuys`: 0 forbidden columns found.
-   - Checked generated SQL for `_context.CauHinhBanToChucs`: 0 forbidden columns found.
-   - Checked generated SQL for `_context.CauHinhTinTucs`: 0 forbidden columns found.
-   - Checked generated SQL for `_context.CauHinhTrangChus.Include(c => c.ChienDich).Include(c => c.BieuNguTrangChus)...Where(c => c.ChienDich.TrangThaiHoatDong == true)`: 0 forbidden columns found.
-3. **ModelSnapshot Cleanliness**:
-   - Command: `grep -E "(DuongDanAnhBia|DuongDanAnhLinhVat|HienThiHieuUng3D|HienThiLinhVat|KieuChuNoiDung|KieuChuTieuDe|VeDuAn_DuongDanAnh|ViTriLinhVat)" WEB_TinhNguyen/Migrations/ApplicationDbContextModelSnapshot.cs`
-   - Result: Exit code 1 (0 matches).
-4. **Bidirectional Entity & ViewModel Proxies**:
-   - Tested all 8 proxy pairs on `CauHinhTrangChu` and `CauHinhTrangChuVM`: Read and write mutations accurately propagate bidirectionally.
-
-### 1.3 Razor Views (`GiaoDien/`) and Controllers
-1. **Razor Views Inspection**:
-   - Searched `WEB_TinhNguyen/GiaoDien/` across all `.cshtml` files for column properties.
-   - Observed: All Razor views bind directly to physical properties (e.g. `LinkAnhBiaCu`, `FontTieuDe`, `FontNoiDung`, `HienThiMascot`, `LinkAnhMascotCu`, `ViTriMascot`, `VeDuAn_LinkAnhCu`, `FontTieuDeTongKet`).
-   - None of the Razor views reference the 8 obsolete column names.
-2. **Controllers Inspection**:
-   - `AdminTrangChuController.cs`: Compiles and executes edit / toggle / delete operations. Uses ViewModel and Entity properties that map to physical columns without throwing runtime mapping or type mismatch exceptions.
-   - `AdminKyUcController.cs`: Compiles and executes edit operations. Uses `FontTieuDeTongKet`, `FontTieuDe`, `LinkAnhBia` matching DB schema.
-   - `HomeController.cs`: Queries active campaign configuration using valid physical columns.
-
-### 1.4 Integrity Audit
-- Source code inspected for hardcoded test returns or shortcuts: None found.
-- Test suites inspected for dummy assertions or fabricated passes: All test suites execute real functional assertions, edge-case evaluations, and state checks.
-- Zero integrity violations detected.
+### Observation 1.5: Independent Test Suite Execution
+- Targeted Feature 19 test command:
+  ```powershell
+  dotnet run --project "D:\web_tinh_nguyen\tests\E2ETests\E2ETests.csproj" --no-build -- --tier 1 --feature 19 --verbose
+  ```
+  Result:
+  ```
+  Tier 1: Total: 16 | Passed: 16 | Failed: 0 | Skipped: 0
+  OVERALL: 16 Tests | 16 Passed | 0 Failed | 0 Skipped in 2.59s
+  ```
+- Full test suite command:
+  ```powershell
+  dotnet run --project "D:\web_tinh_nguyen\tests\E2ETests\E2ETests.csproj"
+  ```
+  Result:
+  ```
+  OVERALL: 469 Tests | 469 Passed | 0 Failed | 0 Skipped in 8.22s
+  ```
 
 ---
 
 ## 2. Logic Chain
 
-1. **Database Schema Conformance (Observation 1.1 & 1.2)**:
-   The physical SQL Server database definitions in `SQLQuery1.sql` and EF Migrations declare physical columns `LinkAnhBia`, `FontTieuDe`, `FontNoiDung`, `HienThiCanvas3D`, `VeDuAn_LinkAnh`, `HienThiMascot`, `LinkAnhMascot`, `ViTriMascot`. The 8 invalid column names were completely eliminated from EF Core's relational model mapping through `[NotMapped]` attributes and explicit `.Ignore(...)` configuration in `ApplicationDbContext.cs`.
-2. **Query Generation Safety (Observation 1.2)**:
-   Because the invalid column names do not exist in EF Core's model metadata, the SQL Server query compiler generates SQL queries targeting only real physical table columns. This was empirically proved using `ToQueryString()`, guaranteeing that `SqlException: Invalid column name` cannot occur at runtime.
-3. **View & Controller Compatibility (Observation 1.3)**:
-   The bidirectional proxy properties in `Entities.cs` maintain transparent access for existing controller actions, while the Razor views in `GiaoDien/` already bind to the physical database column properties. This eliminates any possibility of binding failures or view compilation errors.
-4. **Comprehensive Test Suite Health (Observation 1.1)**:
-   All 337 E2E tests, 67 M1Challenger tests, and 128 M3Challenger2 tests execute and pass without failure, confirming runtime stability and regression freedom.
+1. **URL Generation and Route Resolution (from Observation 1.1)**:
+   By removing the `"GiaoDien/"` prefix from `@Url.Action`, ASP.NET Core URL generation produces clean paths (`/AdminTrangChu`, `/AdminChuongTrinh`, etc.) without percent-encoded `%2F` characters. The default route `{controller=Home}/{action=Index}/{id?}` resolves each of these to their respective controller's `Index` action, eliminating HTTP 404 errors.
+
+2. **Cross-Area Leakage Prevention (from Observation 1.1 and 1.2)**:
+   When navigating within the store management area (`/CuaHang/AdminSanPham`), ASP.NET Core's ambient route data retains `area = "CuaHang"`. Providing explicit `new { area = "" }` forces URL generation to target the root controller rather than looking for a non-existent controller in the `CuaHang` area.
+
+3. **HTTP 200 Guarantee under Disconnected State (from Observation 1.3)**:
+   In ASP.NET Core MVC, an unhandled exception thrown during an action results in HTTP 500. Wrapping the database fetch in a `try/catch` and returning `View(new List<ChienDich>())` or `View(DbInitializer.GetInMemoryQrConfigs())` guarantees the action method returns a valid `ViewResult` (HTTP 200 OK) even if the database is unreachable. All Razor views safely handle empty collections without throwing `NullReferenceException`.
+
+4. **Authenticity and Test Rigor (from Observation 1.4 and 1.5)**:
+   Test methods in `Tier1_AdminRoutingTests.cs` physically inspect layout and view files on disk, inspect controller reflection metadata, and invoke `Index()` actions against a dummy unreachable database context, asserting valid `ViewResult` return values. The tests are non-trivial, verify real logic, and pass consistently across all 16 methods and the entire 469-test suite.
 
 ---
 
 ## 3. Caveats
 
-1. **Database Network Connectivity**: SQL Server port 1433 is isolated in the sandbox environment, so live end-to-end database connections could not be established over TCP. However, EF Core relational metadata, SQL translation, and ModelSnapshot were validated empirically using the SQL Server relational query compiler.
-2. No other caveats.
+- **Physical Database State**: If physical SQL Server `DESKTOP-C5LJ9BM\SQL2025_DEV` is running, live data is queried; if offline, controllers seamlessly fall back to empty campaign lists or in-memory QR records. Both paths return valid `ViewResult` and HTTP 200.
+- **Port Binding in Windows Sandbox**: Verification relies on in-process controller pipeline execution and reflection rather than external loopback TCP sockets due to sandbox socket constraints (Win32 Error 10013).
 
 ---
 
 ## 4. Conclusion
 
-**Verdict: APPROVE**
+All acceptance criteria defined in `ORIGINAL_REQUEST.md` (§R1, §R2, §R3) are fully met:
+1. All 8 admin navigation routes resolve with 0 errors and zero URL escaping defects.
+2. Layout links, active state logic, and theme styling are unified.
+3. Offline database resilience prevents HTTP 500 runtime errors across all campaign controllers.
+4. The solution compiles cleanly with 0 errors and passes all 469 automated tests.
+5. No integrity violations, hardcoded bypasses, or dummy implementations exist.
 
-- Project builds cleanly with 0 compilation errors.
-- 100% of all test suites pass (337 E2E tests + 67 M1Challenger + 128 M3Challenger2 = 532 automated tests passed).
-- Razor views (`GiaoDien/`) bind properly without runtime errors.
-- Controllers (`AdminTrangChuController`, `AdminKyUcController`, etc.) compile and operate cleanly.
-- EF Core relational model and generated SQL contain zero references to invalid column names, ensuring no `SqlException: Invalid column name` can be thrown.
-- No integrity violations found.
+**Final Verdict: APPROVE**
 
 ---
 
 ## 5. Verification Method
 
-1. **Verify Solution Build**:
-   ```bash
-   TMPDIR=/tmp XDG_RUNTIME_DIR=/tmp DOTNET_CLI_HOME=/tmp dotnet build WEB_TinhNguyen.slnx
-   ```
-   *Expected*: `Build succeeded. 0 Error(s).`
+To independently verify this verdict:
 
-2. **Verify Full E2E Test Suite**:
-   ```bash
-   TMPDIR=/tmp XDG_RUNTIME_DIR=/tmp DOTNET_CLI_HOME=/tmp HOME=/tmp bash tests/run_e2e_tests.sh --all
+1. **Check absence of malformed URLs in layout**:
+   ```powershell
+   Select-String -Path "D:\web_tinh_nguyen\WEB_TinhNguyen\GiaoDien\Shared\_AdminLayout.cshtml" -Pattern "GiaoDien/"
    ```
-   *Expected*: `OVERALL: 337 Tests | 337 Passed | 0 Failed | 0 Skipped`
+   *Expected outcome*: 0 matches.
 
-3. **Verify Challenger Suites**:
-   ```bash
-   TMPDIR=/tmp XDG_RUNTIME_DIR=/tmp DOTNET_CLI_HOME=/tmp HOME=/tmp dotnet run --no-build --project tests/M1Challenger/M1Challenger.csproj
-   TMPDIR=/tmp XDG_RUNTIME_DIR=/tmp DOTNET_CLI_HOME=/tmp HOME=/tmp dotnet run --no-build --project tests/M3Challenger2/M3Challenger2.csproj
+2. **Build Solution**:
+   ```powershell
+   dotnet build "D:\web_tinh_nguyen\WEB_TinhNguyen.slnx"
    ```
-   *Expected*: 67 Passed in M1Challenger, 128 Passed in M3Challenger2.
+   *Expected outcome*: 0 errors.
 
-4. **Verify Absence of Invalid Column Names in ModelSnapshot**:
-   ```bash
-   grep -E "(DuongDanAnhBia|DuongDanAnhLinhVat|HienThiHieuUng3D|HienThiLinhVat|KieuChuNoiDung|KieuChuTieuDe|VeDuAn_DuongDanAnh|ViTriLinhVat)" WEB_TinhNguyen/Migrations/ApplicationDbContextModelSnapshot.cs
+3. **Run Feature 19 Tests**:
+   ```powershell
+   dotnet run --project "D:\web_tinh_nguyen\tests\E2ETests\E2ETests.csproj" --no-build -- --tier 1 --feature 19 --verbose
    ```
-   *Expected*: Exit code 1 (no occurrences found).
+   *Expected outcome*: 16 passed, 0 failed.
+
+4. **Invalidation Conditions**:
+   - Any test failure in Feature 19.
+   - Any presence of `GiaoDien/` or `%2F` in `_AdminLayout.cshtml`.
+   - Any uncaught database exception in `Index()` of the 8 admin controllers when SQL Server is offline.

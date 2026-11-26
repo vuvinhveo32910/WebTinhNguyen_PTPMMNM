@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Hosting;
@@ -12,6 +13,8 @@ using WEB_TinhNguyen.MoHinh;
 
 namespace WEB_TinhNguyen.BoDieuKhien
 {
+    [Authorize]
+    [PhanQuyenAdmin(QuyenAdmin.TrangChu)]
     public class AdminTrangChuController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -22,6 +25,8 @@ namespace WEB_TinhNguyen.BoDieuKhien
             _context = context;
             _env = env;
         }
+
+        private bool BiChanQuyen() => User?.Identity?.IsAuthenticated == true && !User.CoQuyen(QuyenAdmin.TrangChu);
 
         private async Task<string?> UploadFileAsync(IFormFile file)
         {
@@ -46,8 +51,16 @@ namespace WEB_TinhNguyen.BoDieuKhien
         // ==========================================================
         public async Task<IActionResult> Index()
         {
-            var chienDichs = await _context.ChienDichs.OrderByDescending(c => c.Nam).ToListAsync();
-            return View(chienDichs);
+            if (BiChanQuyen()) return StatusCode(StatusCodes.Status403Forbidden);
+            try
+            {
+                var chienDichs = await _context.ChienDichs.OrderByDescending(c => c.Nam).ToListAsync();
+                return View(chienDichs);
+            }
+            catch
+            {
+                return View(new List<ChienDich>());
+            }
         }
 
         // ==========================================================
@@ -57,6 +70,7 @@ namespace WEB_TinhNguyen.BoDieuKhien
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateChienDich(int Nam, string TieuDe)
         {
+            if (BiChanQuyen()) return StatusCode(StatusCodes.Status403Forbidden);
             if (_context.ChienDichs.Any(c => c.Nam == Nam))
             {
                 TempData["Error"] = $"Chiến dịch năm {Nam} đã tồn tại trong hệ thống!";
@@ -85,6 +99,7 @@ namespace WEB_TinhNguyen.BoDieuKhien
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleStatus(int id)
         {
+            if (BiChanQuyen()) return StatusCode(StatusCodes.Status403Forbidden);
             var chienDich = await _context.ChienDichs.FindAsync(id);
             if (chienDich == null) return NotFound();
 
@@ -116,6 +131,7 @@ namespace WEB_TinhNguyen.BoDieuKhien
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteChienDich(int id)
         {
+            if (BiChanQuyen()) return StatusCode(StatusCodes.Status403Forbidden);
             var chienDich = await _context.ChienDichs.FindAsync(id);
             if (chienDich != null)
             {
@@ -132,6 +148,7 @@ namespace WEB_TinhNguyen.BoDieuKhien
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
+            if (BiChanQuyen()) return StatusCode(StatusCodes.Status403Forbidden);
             var chienDich = await _context.ChienDichs.FindAsync(id);
             if (chienDich == null) return NotFound();
 
@@ -204,6 +221,7 @@ namespace WEB_TinhNguyen.BoDieuKhien
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(CauHinhTrangChuVM vm)
         {
+            if (BiChanQuyen()) return StatusCode(StatusCodes.Status403Forbidden);
             ModelState.Clear();
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -277,6 +295,7 @@ namespace WEB_TinhNguyen.BoDieuKhien
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UploadHieuUngNhanh(int idChienDich, string tenHieuUng, IFormFile fileJS)
         {
+            if (BiChanQuyen()) return StatusCode(StatusCodes.Status403Forbidden);
             if (fileJS != null && fileJS.Length > 0 && fileJS.FileName.EndsWith(".js"))
             {
                 string uploadsFolder = Path.Combine(_env.WebRootPath, "effects");

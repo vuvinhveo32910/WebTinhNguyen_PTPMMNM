@@ -1,30 +1,23 @@
-# Dispatch Task for M1 Explorer 2 (Entities & ViewModels)
-
-## Objective
-Analyze and specify exact implementation details for:
-1. `Areas/CuaHang/Models/SanPhamGayQuy.cs`: Complete entity with properties, validation, column types, and navigation properties.
-2. `Areas/CuaHang/Models/DonHangGayQuy.cs`: Complete entity for orders, recipient info, payment methods, extra donation, and order items.
-3. `Areas/CuaHang/Models/ChiTietDonHangGayQuy.cs`: Complete entity for order line items.
-4. `Areas/CuaHang/Models/CartItem.cs`, `CartViewModel.cs`, `CheckoutViewModel.cs`, `SanPhamCrudViewModel.cs`: Complete ViewModels for storefront cart, checkout, and admin CRUD.
-
-## Input Files
-- `/home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/ORIGINAL_REQUEST.md`
-- `/home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/orchestrator/PROJECT.md`
-
-## Output
-Write detailed design to `/home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_explorer_m1_2/handoff.md`.
-
-
-## 2026-11-03T12:43:38Z
+## 2026-11-07T05:20:54Z
 You are teamwork_explorer_m1_2.
-Your working directory is: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_explorer_m1_2
-Your parent is the Project Orchestrator (Conversation ID: 108b9d81-1dd6-495f-84eb-99dbb197aebe).
+Working directory: D:\web_tinh_nguyen\.agents\teamwork\teamwork_explorer_m1_2
 
-MANDATORY INSTRUCTIONS:
-1. First read the original user request at: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/ORIGINAL_REQUEST.md
-2. Read the master project document at: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/orchestrator/PROJECT.md
-3. Read your specific dispatch instructions at: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_explorer_m1_2/DISPATCH.md
-4. Update your progress.md regularly with "Last visited: [timestamp]" as your heartbeat.
-5. Provide exact implementation designs for SanPhamGayQuy.cs, DonHangGayQuy.cs, ChiTietDonHangGayQuy.cs, and ViewModels (CartItem, CartViewModel, CheckoutViewModel, SanPhamCrudViewModel).
-6. Write your report to /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_explorer_m1_2/handoff.md following the Handoff Protocol.
-7. When finished, send a message to the orchestrator (Recipient: 108b9d81-1dd6-495f-84eb-99dbb197aebe).
+MANDATORY FIRST STEP:
+Read ORIGINAL_REQUEST.md at: D:\web_tinh_nguyen\.agents\teamwork\ORIGINAL_REQUEST.md
+Also read PROJECT.md at: D:\web_tinh_nguyen\PROJECT.md
+
+OBJECTIVE:
+Investigate and design the code changes for Milestone 1: Dual-Store Synchronization & DDL in `DbInitializer.cs`:
+1. `WEB_TinhNguyen/Areas/CuaHang/Helpers/DbInitializer.cs`:
+   - Inspect existing SQL Server DDL statements for `[dbo].[TaiKhoanAdmin]` and create idempotent ALTER TABLE script to add `[PhanQuyen] NVARCHAR(MAX) NULL` if it doesn't already exist.
+   - Inspect existing seed logic for default `admin` (`Admin@123`) to ensure it is seeded with `PhanQuyen = "ALL"`.
+   - Inspect `_inMemoryAdmins` static store:
+     - Check `CloneAdmin(TaiKhoanAdmin source)`: ensure `PhanQuyen` is copied.
+     - Check `GetDefaultAdmins()`: ensure default admin has `PhanQuyen = "ALL"`.
+     - Check methods `AddInMemoryAdmin`, `UpdateInMemoryAdmin`, `GetAdminByUsername`, `ValidateAdminCredentials`: ensure they properly handle and preserve `PhanQuyen`.
+2. Ensure full thread-safety and zero compilation errors.
+
+DELIVERABLES:
+- Write recommendations to D:\web_tinh_nguyen\.agents\teamwork\teamwork_explorer_m1_2\analysis.md
+- Write handoff report to D:\web_tinh_nguyen\.agents\teamwork\teamwork_explorer_m1_2\handoff.md
+- Notify parent orchestrator via send_message.

@@ -4,141 +4,153 @@
     var checkout = ViewBag.CheckoutModel as WEB_TinhNguyen.Areas.CuaHang.Models.CheckoutViewModel ?? new WEB_TinhNguyen.Areas.CuaHang.Models.CheckoutViewModel();
 }
 
-<div class="min-h-screen bg-slate-50 dark:bg-night py-8 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
+<div class="min-h-screen bg-slate-50/60 py-5 sm:py-8 px-2.5 sm:px-6 lg:px-8 transition-colors duration-200">
     <div class="max-w-7xl mx-auto">
         <!-- Breadcrumb Navigation -->
-        <nav class="flex items-center text-sm font-medium text-slate-500 dark:text-slate-400 mb-6 space-x-2">
-            <a href="/" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+        <nav class="flex items-center text-xs sm:text-sm font-medium text-slate-500 mb-4 sm:mb-6 space-x-2">
+            <a href="/" class="hover:text-[#e11d48] transition-colors">
                 <i class="fas fa-home mr-1"></i>Trang chủ
             </a>
             <span>/</span>
-            <a href="/CuaHang" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Cửa hàng Gây quỹ</a>
+            <a href="/CuaHang" class="hover:text-[#e11d48] transition-colors">Cửa hàng Gây quỹ</a>
             <span>/</span>
-            <span class="text-emerald-600 dark:text-emerald-400 font-semibold">Giỏ hàng &amp; Đặt mua</span>
+            <span class="text-[#e11d48] font-semibold">Giỏ hàng &amp; Đặt mua</span>
         </nav>
 
         <!-- Tiêu đề trang -->
-        <div class="mb-8">
-            <h1 class="text-3xl font-extrabold text-slate-900 dark:text-white flex items-center">
-                <i class="fas fa-shopping-basket text-emerald-600 dark:text-emerald-400 mr-3"></i>
+        <div class="mb-5 sm:mb-7">
+            <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 flex items-center">
+                <i class="fas fa-shopping-basket text-[#e11d48] mr-2.5"></i>
                 Giỏ hàng Sản phẩm Gây quỹ
             </h1>
-            <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
+            <p class="mt-1.5 text-xs sm:text-sm text-slate-600">
                 Mỗi món quà bạn chọn là sự góp sức trao gửi nụ cười và tương lai ấm áp cho 200 em nhỏ tại chân núi Langbiang.
             </p>
         </div>
 
         @if (TempData["SuccessMessage"] != null)
         {
-            <div class="mb-6 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-500/30 text-emerald-800 dark:text-emerald-200 flex items-center shadow-sm">
-                <i class="fas fa-check-circle text-emerald-600 text-xl mr-3"></i>
-                <span>@TempData["SuccessMessage"]</span>
+            <div class="mb-5 p-3.5 rounded-xl bg-emerald-50 border border-emerald-500/30 text-emerald-800 flex items-center shadow-xs text-xs sm:text-sm">
+                <i class="fas fa-check-circle text-emerald-600 text-lg mr-2.5 shrink-0"></i>
+                <span class="break-words min-w-0">@TempData["SuccessMessage"]</span>
             </div>
         }
 
         @if (TempData["ErrorMessage"] != null)
         {
-            <div class="mb-6 p-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-500/30 text-rose-800 dark:text-rose-200 flex items-center shadow-sm">
-                <i class="fas fa-exclamation-circle text-rose-600 text-xl mr-3"></i>
-                <span>@TempData["ErrorMessage"]</span>
+            <div class="mb-5 p-3.5 rounded-xl bg-rose-50 border border-rose-500/30 text-rose-800 flex items-center shadow-xs text-xs sm:text-sm">
+                <i class="fas fa-exclamation-circle text-rose-600 text-lg mr-2.5 shrink-0"></i>
+                <span class="break-words min-w-0">@TempData["ErrorMessage"]</span>
             </div>
         }
 
         <!-- KIỂM TRA TRẠNG THÁI GIỎ HÀNG TRỐNG -->
         @if (Model.Items == null || !Model.Items.Any())
         {
-            <div class="bg-white dark:bg-night-2 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-12 text-center my-8">
-                <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-emerald-50 dark:bg-emerald-950/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-4xl shadow-inner">
-                    <i class="fas fa-heart"></i>
+            <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-10 sm:p-12 text-center my-6">
+                <div class="w-20 h-20 mx-auto mb-5 rounded-full bg-rose-50 flex items-center justify-center text-[#e11d48] text-3xl shadow-inner">
+                    <i class="fas fa-shopping-cart"></i>
                 </div>
-                <h3 class="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">Giỏ hàng gây quỹ của bạn đang trống</h3>
-                <p class="text-slate-600 dark:text-slate-400 max-w-md mx-auto mb-8">
+                <h3 class="text-xl sm:text-2xl font-bold text-slate-800 mb-2">Giỏ hàng gây quỹ của bạn đang trống</h3>
+                <p class="text-xs sm:text-sm text-slate-600 max-w-md mx-auto mb-6">
                     Hiện bạn chưa có sản phẩm nào trong giỏ hàng. Hãy cùng khám phá những vật phẩm lưu niệm đong đầy yêu thương để ủng hộ chiến dịch bạn nhé!
                 </p>
-                <a href="/CuaHang" class="inline-flex items-center justify-center px-8 py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-lg shadow-emerald-600/30 transition-all duration-200 transform hover:-translate-y-0.5">
+                <a href="/CuaHang" class="inline-flex items-center justify-center px-6 py-3 rounded-xl font-bold text-sm text-white bg-[#e11d48] hover:bg-[#be123c] shadow-md transition-all duration-200">
                     <i class="fas fa-store mr-2"></i>Khám phá sản phẩm gây quỹ
                 </a>
             </div>
         }
         else
         {
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                <!-- CỘT TRÁI (7 COLS): DANH SÁCH MẶT HÀNG TRONG GIỎ -->
-                <div class="lg:col-span-7 space-y-6">
-                    <div class="bg-white dark:bg-night-2 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
-                        <div class="p-6 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
-                            <h2 class="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                <!-- CỘT TRÁI (7 COLS): DANH SÁCH MẶT HÀNG TRONG GIỎ (HIỂN THỊ DẠNG THẺ SẢN PHẨM ĐỒNG BỘ MOBILE & PC) -->
+                <div class="lg:col-span-7 space-y-4 min-w-0">
+                    <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-3 sm:p-5 overflow-hidden">
+                        <div class="pb-3.5 mb-3.5 border-b border-slate-100 flex items-center justify-between gap-2">
+                            <h2 class="text-sm sm:text-base font-bold text-slate-800 flex items-center truncate">
                                 <span id="displayHeaderCount">Danh sách sản phẩm (@Model.TongSoLuong món)</span>
                             </h2>
-                            <form asp-area="CuaHang" asp-controller="GioHang" asp-action="XoaGioHang" method="post" id="formClearCart"
+                            <form asp-area="CuaHang" asp-controller="GioHang" asp-action="XoaGioHang" method="post" id="formClearCart" class="shrink-0"
                                   onsubmit="return showClearCartConfirmModal(event) || confirm('Bạn có chắc chắn muốn làm trống toàn bộ giỏ hàng?');">
                                 @Html.AntiForgeryToken()
-                                <button type="submit" class="text-xs font-semibold text-rose-500 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 transition-colors">
+                                <button type="submit" class="text-xs font-semibold text-[#e11d48] hover:text-[#be123c] transition-colors">
                                     <i class="fas fa-trash-alt mr-1"></i>Xóa tất cả
                                 </button>
                             </form>
                         </div>
 
-                        <!-- Danh sách Cart Items -->
-                        <div class="divide-y divide-slate-100 dark:divide-slate-800/60" id="cartItemsContainer">
+                        <!-- Lưới Thẻ Sản Phẩm trong Giỏ Hàng (Đồng bộ 3 cột trên Mobile & PC giống ảnh tham chiếu) -->
+                        <div class="grid grid-cols-3 sm:grid-cols-3 gap-2 sm:gap-3.5" id="cartItemsContainer">
                             @foreach (var item in Model.Items)
                             {
-                                <div class="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4" id="cartRow_@item.IDSanPham">
-                                    <!-- Hình ảnh & Thông tin sản phẩm -->
-                                    <div class="flex items-center space-x-4 flex-1 min-w-0">
-                                        <img src="@(string.IsNullOrEmpty(item.LinkHinhAnh) ? "/assets/journey.jpg" : item.LinkHinhAnh)"
-                                             alt="@item.TenSanPham"
-                                             class="w-20 h-20 rounded-xl object-cover border border-slate-200 dark:border-slate-700 flex-shrink-0" />
-                                        <div class="min-w-0 flex-1">
-                                            <a href="/CuaHang/ChiTiet/@item.IDSanPham" class="text-base font-bold text-slate-900 dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors truncate block">
+                                <article class="group bg-white rounded-xl sm:rounded-2xl border border-gray-200/80 hover:border-rose-200 shadow-2xs hover:shadow-md transition-all duration-200 flex flex-col justify-between p-2 sm:p-3 min-w-0 overflow-hidden relative"
+                                         id="cartRow_@item.IDSanPham">
+
+                                    <div>
+                                        <!-- Khung Ảnh Vuông Sản Phẩm -->
+                                        <div class="relative aspect-square rounded-lg sm:rounded-xl overflow-hidden bg-gray-50/70 mb-2 flex items-center justify-center">
+                                            <a href="/CuaHang/ChiTiet/@item.IDSanPham" class="w-full h-full flex items-center justify-center p-1 sm:p-2">
+                                                <img src="@(string.IsNullOrEmpty(item.LinkHinhAnh) ? "/assets/journey.jpg" : item.LinkHinhAnh)"
+                                                     alt="@item.TenSanPham"
+                                                     class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />
+                                            </a>
+                                        </div>
+
+                                        <!-- Tên Sản Phẩm (2 dòng in đậm giống ảnh mẫu) -->
+                                        <h3 class="text-[11px] sm:text-[13px] font-bold text-gray-900 line-clamp-2 leading-snug min-h-[2.5em] group-hover:text-[#e11d48] transition break-all sm:break-words">
+                                            <a href="/CuaHang/ChiTiet/@item.IDSanPham">
                                                 @item.TenSanPham
                                             </a>
-                                            <p class="text-sm font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
-                                                @item.DonGia.ToString("N0") VNĐ
-                                            </p>
-                                            @if (!string.IsNullOrEmpty(item.ThongDiepGayQuy))
-                                            {
-                                                <div class="mt-1.5 inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/50">
-                                                    <i class="fas fa-heart text-rose-500 mr-1 text-[10px]"></i>
-                                                    @item.PhanTramDongGop% Quỹ (<span id="itemDonation_@item.IDSanPham">@item.TienDongGop.ToString("N0")</span>₫)
-                                                </div>
-                                            }
+                                        </h3>
+
+                                        <!-- Hàng Sao Đánh Giá & Phần Trăm Quỹ -->
+                                        <div class="flex items-center gap-1 mt-1 text-[9px] sm:text-[11px] text-gray-400 truncate">
+                                            <span class="inline-flex items-center text-gray-300 shrink-0 tracking-tighter">
+                                                <i class="fas fa-star text-[8px] sm:text-[10px]"></i>
+                                                <i class="fas fa-star text-[8px] sm:text-[10px]"></i>
+                                                <i class="fas fa-star text-[8px] sm:text-[10px]"></i>
+                                                <i class="fas fa-star text-[8px] sm:text-[10px]"></i>
+                                                <i class="fas fa-star text-[8px] sm:text-[10px]"></i>
+                                            </span>
+                                            <span class="truncate">@item.PhanTramDongGop% Quỹ</span>
+                                            <span id="itemDonation_@item.IDSanPham" class="sr-only">@item.TienDongGop.ToString("N0")</span>
                                         </div>
                                     </div>
 
-                                    <!-- Bộ điều khiển số lượng (AJAX Quantity controls) -->
-                                    <div class="flex items-center space-x-4 self-end sm:self-center">
-                                        <div class="flex items-center border border-slate-300 dark:border-slate-700 rounded-lg overflow-hidden bg-white dark:bg-night shadow-sm">
-                                            <!-- Nút giảm số lượng -->
+                                    <!-- Phần Dưới Thẻ: Giá + Nút Xóa Vuông Bo Góc + Bộ Tăng Giảm Số Lượng -->
+                                    <div class="pt-2 mt-1 space-y-1.5">
+                                        <!-- Hàng Giá (Trái) & Nút Icon Vuông Bo Góc (Phải) giống hệt ảnh 1 & 2 -->
+                                        <div class="flex items-center justify-between gap-1">
+                                            <div class="min-w-0 flex-1">
+                                                <div id="lineTotal_@item.IDSanPham" class="text-[11px] sm:text-sm font-bold text-[#e11d48] truncate">
+                                                    @item.ThanhTien.ToString("N0") <span class="underline text-[10px] sm:text-xs">đ</span>
+                                                </div>
+                                            </div>
+
+                                            <button type="button" onclick="openDeleteSingleItemModal(@item.IDSanPham, '@Html.Raw(Html.Encode(item.TenSanPham))')"
+                                                    class="w-6 h-6 sm:w-8 sm:h-8 shrink-0 rounded-lg bg-rose-50 hover:bg-[#e11d48] text-[#e11d48] hover:text-white border border-rose-100 flex items-center justify-center transition"
+                                                    title="Xóa khỏi giỏ">
+                                                <i class="fas fa-trash-alt text-[10px] sm:text-xs"></i>
+                                            </button>
+                                        </div>
+
+                                        <!-- Bộ Điều Khiển Số Lượng Thu Gọn -->
+                                        <div class="flex items-center justify-between border border-gray-200 rounded-lg overflow-hidden bg-gray-50/60 h-7 sm:h-8">
                                             <button type="button" onclick="stepQuantityAjax(@item.IDSanPham, -1, @item.SoLuongTon)"
-                                                    class="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="Giảm số lượng">
-                                                <i class="fas fa-minus text-xs"></i>
+                                                    class="w-6 sm:w-8 h-full flex items-center justify-center text-slate-500 hover:text-[#e11d48] hover:bg-gray-100 transition-colors shrink-0" title="Giảm số lượng">
+                                                <i class="fas fa-minus text-[9px] sm:text-[10px]"></i>
                                             </button>
 
-                                            <!-- Ô nhập số lượng -->
                                             <input type="number" id="inputQty_@item.IDSanPham" name="soLuong" value="@item.SoLuong" min="1" max="@item.SoLuongTon"
-                                                   class="w-12 h-8 text-center text-sm font-bold border-0 bg-transparent text-slate-900 dark:text-white focus:ring-0 p-0"
+                                                   aria-label="Số lượng @item.TenSanPham"
+                                                   class="w-full min-w-0 h-full text-center text-base sm:text-xs font-bold border-0 bg-transparent text-slate-900 focus:ring-0 p-0"
                                                    onchange="changeQuantityAjax(@item.IDSanPham, this.value, @item.SoLuongTon)" />
 
-                                            <!-- Nút tăng số lượng -->
                                             <button type="button" onclick="stepQuantityAjax(@item.IDSanPham, 1, @item.SoLuongTon)"
-                                                    class="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="Tăng số lượng">
-                                                <i class="fas fa-plus text-xs"></i>
+                                                    class="w-6 sm:w-8 h-full flex items-center justify-center text-slate-500 hover:text-[#e11d48] hover:bg-gray-100 transition-colors shrink-0" title="Tăng số lượng">
+                                                <i class="fas fa-plus text-[9px] sm:text-[10px]"></i>
                                             </button>
                                         </div>
-
-                                        <!-- Thành tiền dòng -->
-                                        <div class="text-right min-w-[90px]">
-                                            <span id="lineTotal_@item.IDSanPham" class="text-base font-extrabold text-slate-900 dark:text-white">
-                                                @item.ThanhTien.ToString("N0")₫
-                                            </span>
-                                        </div>
-
-                                        <!-- Nút xóa khỏi giỏ -->
-                                        <button type="button" onclick="openDeleteSingleItemModal(@item.IDSanPham, '@Html.Raw(Html.Encode(item.TenSanPham))')"
-                                                class="text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 p-1.5 transition-colors" title="Xóa khỏi giỏ">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </button>
 
                                         <!-- Hidden fallback form for tests and noscript -->
                                         <form asp-area="CuaHang" asp-controller="GioHang" asp-action="CapNhatSoLuong" method="post" id="fallbackForm_@item.IDSanPham" class="hidden">
@@ -151,27 +163,25 @@
                                             <input type="hidden" name="id" value="@item.IDSanPham" />
                                         </form>
                                     </div>
-                                </div>
+                                </article>
                             }
                         </div>
 
-                        <!-- Footer liên kết tiếp tục mua sắm -->
-                        <div class="p-6 bg-slate-50/70 dark:bg-night/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                            <a href="/CuaHang" class="inline-flex items-center text-sm font-semibold text-emerald-600 dark:text-emerald-400 hover:underline">
-                                <i class="fas fa-arrow-left mr-2"></i>Chọn thêm quà gây quỹ khác
+                        <!-- Dòng tổng kết số lượng kết quả giống ảnh 1 & 2 -->
+                        <div class="pt-3 mt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+                            <span>Hiển thị 1-@Model.Items.Count của @Model.Items.Count kết quả</span>
+                            <a href="/CuaHang" class="inline-flex items-center font-semibold text-[#e11d48] hover:underline">
+                                <i class="fas fa-arrow-left mr-1.5"></i>Chọn thêm sản phẩm khác
                             </a>
-                            <span class="text-xs text-slate-500 dark:text-slate-400">
-                                Toàn bộ sản phẩm được đóng gói trang trọng gửi đến bạn
-                            </span>
                         </div>
                     </div>
                 </div>
 
                 <!-- CỘT PHẢI (5 COLS): BIỂU MẪU ĐẶT HÀNG & THANH TOÁN (CHECKOUT FORM) -->
-                <div class="lg:col-span-5">
-                    <div class="bg-white dark:bg-night-2 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 sticky top-6">
-                        <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center pb-4 border-b border-slate-100 dark:border-slate-800">
-                            <i class="fas fa-clipboard-check text-emerald-600 dark:text-emerald-400 mr-2.5"></i>
+                <div class="lg:col-span-5 min-w-0">
+                    <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-4 sm:p-6 sticky top-6">
+                        <h2 class="text-lg sm:text-xl font-bold text-slate-900 mb-5 flex items-center pb-3.5 border-b border-slate-100">
+                            <i class="fas fa-clipboard-check text-[#e11d48] mr-2.5"></i>
                             Thông tin Đặt hàng &amp; Ủng hộ
                         </h2>
 
@@ -180,105 +190,105 @@
 
                             <!-- Họ và tên -->
                             <div>
-                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
                                     Họ và tên người nhận <span class="text-rose-500">*</span>
                                 </label>
                                 <input type="text" name="HoTen" value="@checkout.HoTen" required
                                        placeholder="Nguyễn Văn An"
-                                       class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-night text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" />
+                                       class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 text-base sm:text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition-colors" />
                             </div>
 
                             <!-- Số điện thoại & Email -->
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
                                         Số điện thoại <span class="text-rose-500">*</span>
                                     </label>
                                     <input type="tel" name="SoDienThoai" value="@checkout.SoDienThoai" required
                                            placeholder="0901234567"
-                                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-night text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" />
+                                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 text-base sm:text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition-colors" />
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
                                         Email (nhận mã đơn)
                                     </label>
                                     <input type="email" name="Email" value="@checkout.Email"
                                            placeholder="email@example.com"
-                                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-night text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" />
+                                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 text-base sm:text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition-colors" />
                                 </div>
                             </div>
 
                             <!-- Địa chỉ nhận hàng -->
                             <div>
-                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
                                     Địa chỉ nhận hàng chi tiết <span class="text-rose-500">*</span>
                                 </label>
                                 <textarea name="DiaChi" rows="2" required
                                           placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố"
-                                          class="w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-night text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors">@checkout.DiaChi</textarea>
+                                          class="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-slate-900 text-base sm:text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition-colors">@checkout.DiaChi</textarea>
                             </div>
 
                             <!-- Lời nhắn gửi / Lời chúc -->
                             <div>
-                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
                                     Lời chúc gửi tới các em nhỏ &amp; BTC
                                 </label>
                                 <input type="text" name="GhiChu" value="@checkout.GhiChu"
                                        placeholder="Chúc các em Trung thu thật ấm áp và luôn vui tươi..."
-                                       class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-night text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" />
+                                       class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 text-base sm:text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition-colors" />
                             </div>
 
                             <!-- ỦNG HỘ THÊM TÙY TÂM CHO QUỸ -->
-                            <div class="pt-3 pb-2 border-t border-slate-100 dark:border-slate-800">
-                                <label class="block text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-1.5 flex items-center">
+                            <div class="pt-3 pb-2 border-t border-slate-100">
+                                <label class="block text-xs font-bold uppercase tracking-wider text-amber-600 mb-1.5 flex items-center">
                                     <i class="fas fa-hand-holding-heart mr-1.5"></i>Ủng hộ thêm tùy tâm cho quỹ (VNĐ)
                                 </label>
                                 <div class="relative">
                                     <input type="number" id="inputTienUngHoThem" name="TienUngHoThem"
                                            value="@checkout.TienUngHoThem" min="0" step="10000"
                                            placeholder="0"
-                                           class="w-full pl-3.5 pr-14 py-2.5 rounded-xl border border-amber-300 dark:border-amber-700/60 bg-amber-50/30 dark:bg-amber-950/20 text-slate-900 dark:text-white font-bold text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors" />
-                                    <span class="absolute right-3.5 top-2.5 text-xs font-bold text-amber-600 dark:text-amber-400">VNĐ</span>
+                                           class="w-full pl-3.5 pr-14 py-2.5 rounded-xl border border-amber-300 bg-amber-50/30 text-slate-900 font-bold text-base sm:text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors" />
+                                    <span class="absolute right-3.5 top-2.5 text-xs font-bold text-amber-600">VNĐ</span>
                                 </div>
                                 <div class="flex flex-wrap gap-1.5 mt-2">
-                                    <button type="button" onclick="setExtraDonation(20000)" class="text-xs px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-amber-100 dark:hover:bg-amber-950 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-colors">+20k</button>
-                                    <button type="button" onclick="setExtraDonation(50000)" class="text-xs px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-amber-100 dark:hover:bg-amber-950 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-colors">+50k</button>
-                                    <button type="button" onclick="setExtraDonation(100000)" class="text-xs px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-amber-100 dark:hover:bg-amber-950 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-colors">+100k</button>
-                                    <button type="button" onclick="setExtraDonation(200000)" class="text-xs px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-amber-100 dark:hover:bg-amber-950 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-colors">+200k</button>
+                                    <button type="button" onclick="setExtraDonation(20000)" class="text-xs px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-amber-100 text-slate-700 border border-slate-200 transition-colors">+20k</button>
+                                    <button type="button" onclick="setExtraDonation(50000)" class="text-xs px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-amber-100 text-slate-700 border border-slate-200 transition-colors">+50k</button>
+                                    <button type="button" onclick="setExtraDonation(100000)" class="text-xs px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-amber-100 text-slate-700 border border-slate-200 transition-colors">+100k</button>
+                                    <button type="button" onclick="setExtraDonation(200000)" class="text-xs px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-amber-100 text-slate-700 border border-slate-200 transition-colors">+200k</button>
                                 </div>
                             </div>
 
                             <!-- PHƯƠNG THỨC THANH TOÁN (VIETQR VS COD) -->
-                            <div class="pt-3 pb-2 border-t border-slate-100 dark:border-slate-800">
-                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
+                            <div class="pt-3 pb-2 border-t border-slate-100">
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
                                     Phương thức thanh toán <span class="text-rose-500">*</span>
                                 </label>
                                 <div class="space-y-2.5">
                                     <!-- Chuyển khoản VietQR -->
-                                    <label class="flex items-center p-3 rounded-xl border border-emerald-500/40 bg-emerald-50/50 dark:bg-emerald-950/20 cursor-pointer hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors">
+                                    <label class="flex items-center p-3 rounded-xl border border-rose-500/40 bg-rose-50/40 cursor-pointer hover:bg-rose-50 transition-colors">
                                         <input type="radio" name="PhuongThucThanhToan" value="ChuyenKhoanQR" checked
-                                               class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-slate-300" />
+                                               class="h-4 w-4 text-[#e11d48] focus:ring-rose-500 border-slate-300" />
                                         <div class="ml-3">
-                                            <span class="block text-sm font-bold text-slate-900 dark:text-white flex items-center">
-                                                <i class="fas fa-qrcode text-emerald-600 mr-1.5"></i>
+                                            <span class="block text-sm font-bold text-slate-900 flex items-center">
+                                                <i class="fas fa-qrcode text-[#e11d48] mr-1.5"></i>
                                                 Chuyển khoản VietQR (Khuyên dùng)
                                             </span>
-                                            <span class="block text-xs text-slate-500 dark:text-slate-400">
+                                            <span class="block text-xs text-slate-500">
                                                 Quét mã QR tiện lợi qua app ngân hàng/MoMo, xác nhận đơn lập tức
                                             </span>
                                         </div>
                                     </label>
 
                                     <!-- Tiền mặt khi nhận hàng (COD) -->
-                                    <label class="flex items-center p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-night cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                    <label class="flex items-center p-3 rounded-xl border border-slate-200 bg-white cursor-pointer hover:bg-slate-50 transition-colors">
                                         <input type="radio" name="PhuongThucThanhToan" value="COD"
-                                               class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-slate-300" />
+                                               class="h-4 w-4 text-[#e11d48] focus:ring-rose-500 border-slate-300" />
                                         <div class="ml-3">
-                                            <span class="block text-sm font-bold text-slate-900 dark:text-white flex items-center">
-                                                <i class="fas fa-truck text-slate-600 dark:text-slate-400 mr-1.5"></i>
+                                            <span class="block text-sm font-bold text-slate-900 flex items-center">
+                                                <i class="fas fa-truck text-slate-600 mr-1.5"></i>
                                                 Thanh toán khi nhận hàng (COD / Tiền mặt)
                                             </span>
-                                            <span class="block text-xs text-slate-500 dark:text-slate-400">
+                                            <span class="block text-xs text-slate-500">
                                                 Thanh toán tiền mặt cho shipper khi nhận được bưu phẩm
                                             </span>
                                         </div>
@@ -287,36 +297,36 @@
                             </div>
 
                             <!-- BẢNG TỔNG KẾT TÀI CHÍNH -->
-                            <div class="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-2 text-sm">
-                                <div class="flex justify-between text-slate-600 dark:text-slate-400">
+                            <div class="pt-4 border-t border-slate-200 space-y-2 text-sm">
+                                <div class="flex justify-between text-slate-600">
                                     <span>Tiền hàng:</span>
-                                    <span id="displayTongTienHang" class="font-semibold text-slate-900 dark:text-white">@Model.TongTienHang.ToString("N0") VNĐ</span>
+                                    <span id="displayTongTienHang" class="font-semibold text-slate-900">@Model.TongTienHang.ToString("N0") VNĐ</span>
                                 </div>
-                                <div class="flex justify-between text-slate-600 dark:text-slate-400">
+                                <div class="flex justify-between text-slate-600">
                                     <span>Phí giao hàng:</span>
-                                    <span class="font-semibold text-emerald-600 dark:text-emerald-400">Miễn phí (Tài trợ)</span>
+                                    <span class="font-semibold text-emerald-600">Miễn phí (Tài trợ)</span>
                                 </div>
-                                <div class="flex justify-between text-slate-600 dark:text-slate-400">
+                                <div class="flex justify-between text-slate-600">
                                     <span>Ủng hộ thêm:</span>
-                                    <span id="displayExtraDonation" class="font-semibold text-amber-600 dark:text-amber-400">0 VNĐ</span>
+                                    <span id="displayExtraDonation" class="font-semibold text-amber-600">0 VNĐ</span>
                                 </div>
-                                <div class="pt-2 border-t border-dashed border-slate-200 dark:border-slate-700 flex justify-between items-baseline">
-                                    <span class="text-base font-bold text-slate-900 dark:text-white">Tổng thanh toán:</span>
-                                    <span id="displayTongThanhToan" class="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">
+                                <div class="pt-2 border-t border-dashed border-slate-200 flex justify-between items-baseline gap-2 flex-wrap">
+                                    <span class="text-base font-bold text-slate-900">Tổng thanh toán:</span>
+                                    <span id="displayTongThanhToan" class="text-xl sm:text-2xl font-extrabold text-[#e11d48] break-all sm:break-words">
                                         @Model.TongThanhToan.ToString("N0") VNĐ
                                     </span>
                                 </div>
-                                <div class="p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-500/20 text-xs text-emerald-800 dark:text-emerald-300 flex items-center">
-                                    <i class="fas fa-heart text-rose-500 mr-2 flex-shrink-0"></i>
+                                <div class="p-2.5 rounded-lg bg-rose-50/70 border border-rose-200/60 text-xs text-rose-900 flex items-center">
+                                    <i class="fas fa-heart text-[#e11d48] mr-2 flex-shrink-0"></i>
                                     <span>Dự kiến đóng góp trực tiếp vào quỹ: <strong id="displayTotalCharity">@Model.TongTienDongGop.ToString("N0") VNĐ</strong></span>
                                 </div>
                             </div>
 
                             <!-- NÚT XÁC NHẬN ĐẶT HÀNG (VỚI ANTI-DOUBLE-CLICK SPINNER) -->
                             <button type="submit" id="btnSubmitOrder"
-                                    class="w-full mt-4 py-4 px-6 rounded-xl font-extrabold text-white bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-700 hover:to-teal-800 shadow-xl shadow-emerald-600/30 transition-all duration-200 transform hover:-translate-y-0.5 text-center flex items-center justify-center space-x-2">
+                                    class="w-full mt-4 py-3.5 px-6 rounded-xl font-extrabold text-white bg-[#e11d48] hover:bg-[#be123c] shadow-lg shadow-rose-600/25 transition-all duration-200 text-center flex items-center justify-center space-x-2">
                                 <i class="fas fa-check-circle text-lg" id="submitOrderIcon"></i>
-                                <span class="tracking-wide" id="submitOrderText">XÁC NHẬN ĐẶT HÀNG &amp; ỦNG HỘ QUỸ</span>
+                                <span class="tracking-wide text-sm sm:text-base" id="submitOrderText">XÁC NHẬN ĐẶT HÀNG &amp; ỦNG HỘ QUỸ</span>
                             </button>
                         </form>
                     </div>
@@ -332,22 +342,22 @@
         <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-xs transition-opacity" onclick="closeClearCartModal()"></div>
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
 
-        <div class="inline-block align-bottom bg-white dark:bg-night-2 rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full border border-slate-200 dark:border-slate-800">
+        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full border border-slate-200">
             <div class="p-6">
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center text-xl shrink-0">
                         <i class="fas fa-trash-alt"></i>
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-slate-900 dark:text-white">Làm trống giỏ hàng?</h3>
-                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        <h3 class="text-lg font-bold text-slate-900">Làm trống giỏ hàng?</h3>
+                        <p class="text-sm text-slate-500 mt-1">
                             Tất cả sản phẩm gây quỹ sẽ được xóa khỏi giỏ quà của bạn. Bạn có muốn tiếp tục không?
                         </p>
                     </div>
                 </div>
             </div>
-            <div class="bg-slate-50 dark:bg-night px-6 py-4 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
-                <button type="button" onclick="closeClearCartModal()" class="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-night-2 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800">
+            <div class="bg-slate-50 px-6 py-4 flex items-center justify-end gap-3 border-t border-slate-100">
+                <button type="button" onclick="closeClearCartModal()" class="px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-100">
                     Giữ lại
                 </button>
                 <button type="button" onclick="executeClearCart()" class="px-5 py-2 text-sm font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-sm transition">
@@ -364,22 +374,22 @@
         <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-xs transition-opacity" onclick="closeDeleteSingleItemModal()"></div>
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
 
-        <div class="inline-block align-bottom bg-white dark:bg-night-2 rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full border border-slate-200 dark:border-slate-800">
+        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full border border-slate-200">
             <div class="p-6">
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center text-xl shrink-0">
                         <i class="fas fa-exclamation-triangle"></i>
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-slate-900 dark:text-white">Xóa món quà này?</h3>
-                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        <h3 class="text-lg font-bold text-slate-900">Xóa món quà này?</h3>
+                        <p class="text-sm text-slate-500 mt-1">
                             Bạn có chắc chắn muốn bỏ <strong id="deleteItemName" class="text-rose-600"></strong> khỏi giỏ quà không?
                         </p>
                     </div>
                 </div>
             </div>
-            <div class="bg-slate-50 dark:bg-night px-6 py-4 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
-                <button type="button" onclick="closeDeleteSingleItemModal()" class="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-night-2 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800">
+            <div class="bg-slate-50 px-6 py-4 flex items-center justify-end gap-3 border-t border-slate-100">
+                <button type="button" onclick="closeDeleteSingleItemModal()" class="px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-100">
                     Hủy
                 </button>
                 <button type="button" onclick="executeDeleteSingleItem()" class="px-5 py-2 text-sm font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-sm transition">
@@ -489,11 +499,9 @@
             if (response.ok) {
                 const data = await response.json();
                 if (data && data.success) {
-                    // Xóa dòng DOM
                     const row = document.getElementById(`cartRow_${id}`);
                     if (row) row.remove();
 
-                    // Cập nhật số lượng và tổng tiền
                     baseSubtotal = data.cartSubtotal;
                     updateTotals();
 
@@ -503,7 +511,6 @@
                     const headerCount = document.getElementById('displayHeaderCount');
                     if (headerCount) headerCount.textContent = `Danh sách sản phẩm (${data.totalQuantity} món)`;
 
-                    // Nếu giỏ hết món, reload lại để hiển thị empty state
                     if (data.totalQuantity <= 0) {
                         window.location.reload();
                         return;
@@ -523,7 +530,6 @@
                     return;
                 }
             }
-            // Fallback submit
             const fallbackForm = document.getElementById(`fallbackDeleteForm_${id}`);
             if (fallbackForm) fallbackForm.submit();
         } catch (err) {
@@ -571,9 +577,8 @@
             if (response.ok) {
                 const data = await response.json();
                 if (data && data.success) {
-                    // Update dòng item
                     const lineEl = document.getElementById(`lineTotal_${id}`);
-                    if (lineEl) lineEl.textContent = data.lineTotal.toLocaleString('vi-VN') + '₫';
+                    if (lineEl) lineEl.innerHTML = data.lineTotal.toLocaleString('vi-VN') + ' <span class="underline text-[10px] sm:text-xs">đ</span>';
 
                     baseSubtotal = data.cartSubtotal;
                     baseCharity = data.totalDonation;
@@ -587,7 +592,6 @@
                     return;
                 }
             }
-            // Fallback submit
             const fb = document.getElementById(`fallbackForm_${id}`);
             if (fb) {
                 fb.querySelector('input[name="soLuong"]').value = newQty;

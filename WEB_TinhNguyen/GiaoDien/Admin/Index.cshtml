@@ -1,10 +1,25 @@
+@model WEB_TinhNguyen.MoHinh.AdminDashboardViewModel
+@using WEB_TinhNguyen.MoHinh
+@using System.Globalization
 @{
     ViewData["Title"] = "Tổng quan Dashboard";
     Layout = "~/GiaoDien/Shared/_AdminLayout.cshtml";
 
+    var viCulture = new CultureInfo("vi-VN");
+
     // Lấy ngày hiện tại
     var today = DateTime.Now.ToString("dd/MM/yyyy");
-    var dayOfWeek = DateTime.Now.ToString("dddd", new System.Globalization.CultureInfo("vi-VN"));
+    var dayOfWeek = DateTime.Now.ToString("dddd", viCulture);
+
+    // Lấy số liệu thống kê thực tế từ Model (hoặc fallback an toàn sang ViewBag/0)
+    var soYeuCauMoi = Model?.SoYeuCauMoi ?? (ViewBag.SoYeuCauMoi != null ? Convert.ToInt32(ViewBag.SoYeuCauMoi) : (ViewBag.YeuCauMoi != null ? Convert.ToInt32(ViewBag.YeuCauMoi) : 0));
+    var soBaiViet = Model?.SoBaiViet ?? (ViewBag.SoBaiViet != null ? Convert.ToInt32(ViewBag.SoBaiViet) : (ViewBag.BaiViet != null ? Convert.ToInt32(ViewBag.BaiViet) : 0));
+    var soMuaDuAn = Model?.SoMuaDuAn ?? (ViewBag.SoMuaDuAn != null ? Convert.ToInt32(ViewBag.SoMuaDuAn) : (ViewBag.MuaDuAn != null ? Convert.ToInt32(ViewBag.MuaDuAn) : 0));
+    var tongQuyDongGop = Model?.TongQuyDongGop ?? (ViewBag.TongQuyDongGop != null ? Convert.ToDecimal(ViewBag.TongQuyDongGop) : (ViewBag.TongQuy != null ? Convert.ToDecimal(ViewBag.TongQuy) : 0m));
+    var tongQuyFormatted = Model?.TongQuyDongGopFormatted ?? (ViewBag.TongQuyFormatted as string) ?? (ViewBag.TongQuyDongGopFormatted as string) ?? (tongQuyDongGop.ToString("N0", viCulture) + "đ");
+    var soTinhNguyenVien = Model?.SoTinhNguyenVien ?? (ViewBag.SoTinhNguyenVien != null ? Convert.ToInt32(ViewBag.SoTinhNguyenVien) : (ViewBag.TinhNguyenVien != null ? Convert.ToInt32(ViewBag.TinhNguyenVien) : 0));
+    var soLoiChuc = Model?.SoLoiChuc ?? (ViewBag.SoLoiChuc != null ? Convert.ToInt32(ViewBag.SoLoiChuc) : (ViewBag.LoiChuc != null ? Convert.ToInt32(ViewBag.LoiChuc) : 0));
+    var soHinhAnhKhoanhKhac = Model?.SoHinhAnhKhoanhKhac ?? (ViewBag.SoHinhAnhKhoanhKhac != null ? Convert.ToInt32(ViewBag.SoHinhAnhKhoanhKhac) : (ViewBag.HinhAnhKhoanhKhac != null ? Convert.ToInt32(ViewBag.HinhAnhKhoanhKhac) : 0));
 }
 
 <div class="max-w-7xl mx-auto space-y-6">
@@ -26,17 +41,17 @@
 
         <!-- Thống kê nhanh trên banner -->
         <div class="relative z-10 hidden md:flex gap-4">
-            <div class="bg-black/20 backdrop-blur-md border border-white/10 rounded-xl p-4 text-center min-w-[120px]">
-                <div class="text-3xl font-bold text-yellow-400 mb-1">12</div>
-                <div class="text-xs font-bold uppercase tracking-wider text-green-50">Yêu cầu mới</div>
+            <div class="bg-black/20 backdrop-blur-md border border-white/10 rounded-xl p-4 text-center min-w-[120px] max-w-[160px]">
+                <div class="text-3xl font-bold text-yellow-400 mb-1 truncate" title="@soYeuCauMoi.ToString("N0", viCulture)">@soYeuCauMoi.ToString("N0", viCulture)</div>
+                <div class="text-xs font-bold uppercase tracking-wider text-green-50 truncate" title="Yêu cầu mới">Yêu cầu mới</div>
             </div>
-            <div class="bg-black/20 backdrop-blur-md border border-white/10 rounded-xl p-4 text-center min-w-[120px]">
-                <div class="text-3xl font-bold text-white mb-1">45</div>
-                <div class="text-xs font-bold uppercase tracking-wider text-green-50">Bài viết</div>
+            <div class="bg-black/20 backdrop-blur-md border border-white/10 rounded-xl p-4 text-center min-w-[120px] max-w-[160px]">
+                <div class="text-3xl font-bold text-white mb-1 truncate" title="@soBaiViet.ToString("N0", viCulture)">@soBaiViet.ToString("N0", viCulture)</div>
+                <div class="text-xs font-bold uppercase tracking-wider text-green-50 truncate" title="Bài viết">Bài viết</div>
             </div>
-            <div class="bg-black/20 backdrop-blur-md border border-white/10 rounded-xl p-4 text-center min-w-[120px]">
-                <div class="text-3xl font-bold text-white mb-1">2</div>
-                <div class="text-xs font-bold uppercase tracking-wider text-green-50">Mùa dự án</div>
+            <div class="bg-black/20 backdrop-blur-md border border-white/10 rounded-xl p-4 text-center min-w-[120px] max-w-[160px]">
+                <div class="text-3xl font-bold text-white mb-1 truncate" title="@soMuaDuAn.ToString("N0", viCulture)">@soMuaDuAn.ToString("N0", viCulture)</div>
+                <div class="text-xs font-bold uppercase tracking-wider text-green-50 truncate" title="Mùa dự án">Mùa dự án</div>
             </div>
         </div>
     </div>
@@ -44,57 +59,57 @@
     <!-- Các thẻ thống kê (Stats Cards) -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Card 1 -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center justify-between hover:shadow-md transition">
-            <div>
-                <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">TỔNG QUỸ ĐÓNG GÓP</p>
-                <h3 class="text-2xl font-extrabold text-gray-800">125.500K</h3>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center justify-between gap-3 hover:shadow-md transition">
+            <div class="min-w-0 flex-1">
+                <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1 truncate">TỔNG QUỸ ĐÓNG GÓP</p>
+                <h3 class="text-xl sm:text-2xl font-extrabold text-gray-800 truncate" title="@tongQuyFormatted">@tongQuyFormatted</h3>
                 <p class="text-xs text-green-600 font-semibold mt-2 flex items-center gap-1">
                     <i class="fas fa-arrow-up"></i> Tăng so với mùa trước
                 </p>
             </div>
-            <div class="w-12 h-12 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center text-xl">
+            <div class="w-12 h-12 shrink-0 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center text-xl">
                 <i class="fas fa-donate"></i>
             </div>
         </div>
 
         <!-- Card 2 -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center justify-between hover:shadow-md transition">
-            <div>
-                <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">TÌNH NGUYỆN VIÊN</p>
-                <h3 class="text-2xl font-extrabold text-gray-800">150</h3>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center justify-between gap-3 hover:shadow-md transition">
+            <div class="min-w-0 flex-1">
+                <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1 truncate">TÌNH NGUYỆN VIÊN</p>
+                <h3 class="text-xl sm:text-2xl font-extrabold text-gray-800 truncate" title="@soTinhNguyenVien.ToString("N0", viCulture)">@soTinhNguyenVien.ToString("N0", viCulture)</h3>
                 <p class="text-xs text-blue-600 font-semibold mt-2 flex items-center gap-1">
                     <i class="fas fa-users"></i> Đã đăng ký tham gia
                 </p>
             </div>
-            <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-xl">
+            <div class="w-12 h-12 shrink-0 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-xl">
                 <i class="fas fa-user-friends"></i>
             </div>
         </div>
 
         <!-- Card 3 -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center justify-between hover:shadow-md transition">
-            <div>
-                <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">LỜI CHÚC ĐÃ NHẬN</p>
-                <h3 class="text-2xl font-extrabold text-gray-800">342</h3>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center justify-between gap-3 hover:shadow-md transition">
+            <div class="min-w-0 flex-1">
+                <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1 truncate">LỜI CHÚC ĐÃ NHẬN</p>
+                <h3 class="text-xl sm:text-2xl font-extrabold text-gray-800 truncate" title="@soLoiChuc.ToString("N0", viCulture)">@soLoiChuc.ToString("N0", viCulture)</h3>
                 <p class="text-xs text-pink-600 font-semibold mt-2 flex items-center gap-1">
                     <i class="fas fa-heart"></i> Lời yêu thương gửi đến
                 </p>
             </div>
-            <div class="w-12 h-12 rounded-full bg-pink-50 text-pink-500 flex items-center justify-center text-xl">
+            <div class="w-12 h-12 shrink-0 rounded-full bg-pink-50 text-pink-500 flex items-center justify-center text-xl">
                 <i class="fas fa-envelope-open-text"></i>
             </div>
         </div>
 
         <!-- Card 4 -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center justify-between hover:shadow-md transition">
-            <div>
-                <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">HÌNH ẢNH KHOẢNH KHẮC</p>
-                <h3 class="text-2xl font-extrabold text-gray-800">1,248</h3>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center justify-between gap-3 hover:shadow-md transition">
+            <div class="min-w-0 flex-1">
+                <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1 truncate">HÌNH ẢNH KHOẢNH KHẮC</p>
+                <h3 class="text-xl sm:text-2xl font-extrabold text-gray-800 truncate" title="@soHinhAnhKhoanhKhac.ToString("N0", viCulture)">@soHinhAnhKhoanhKhac.ToString("N0", viCulture)</h3>
                 <p class="text-xs text-purple-600 font-semibold mt-2 flex items-center gap-1">
                     <i class="fas fa-camera"></i> Đã lưu trữ trong Ký ức
                 </p>
             </div>
-            <div class="w-12 h-12 rounded-full bg-purple-50 text-purple-500 flex items-center justify-center text-xl">
+            <div class="w-12 h-12 shrink-0 rounded-full bg-purple-50 text-purple-500 flex items-center justify-center text-xl">
                 <i class="fas fa-images"></i>
             </div>
         </div>
@@ -104,7 +119,9 @@
     <h3 class="text-lg font-bold text-gray-800 pt-4 pb-2 border-b border-gray-200">Lựa chọn Chức năng Quản trị</h3>
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
 
-        <a href="@Url.Action("Index", "AdminTrangChu")" class="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4 hover:border-green-500 hover:shadow-lg transition-all group">
+        @if (User.CoQuyen(QuyenAdmin.TrangChu))
+        {
+        <a href="@Url.Action("Index", "AdminTrangChu", new { area = "" })" class="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4 hover:border-green-500 hover:shadow-lg transition-all group">
             <div class="w-12 h-12 rounded-full bg-green-50 text-green-600 flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-colors">
                 <i class="fas fa-home text-lg"></i>
             </div>
@@ -113,7 +130,10 @@
                 <p class="text-xs text-gray-500">Banner, Form đếm ngược...</p>
             </div>
         </a>
+        }
 
+        @if (User.CoQuyen(QuyenAdmin.SanPham))
+        {
         <!-- Lối tắt Quản lý Sản phẩm Gây Quỹ -->
         <a href="/CuaHang/AdminSanPham" class="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4 hover:border-emerald-500 hover:shadow-lg transition-all group">
             <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
@@ -124,7 +144,10 @@
                 <p class="text-xs text-gray-500">Quản lý kho, thêm/sửa...</p>
             </div>
         </a>
+        }
 
+        @if (User.CoQuyen(QuyenAdmin.DonHang))
+        {
         <!-- Lối tắt Quản lý Đơn hàng Gây Quỹ -->
         <a href="/CuaHang/AdminDonHang" class="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4 hover:border-emerald-500 hover:shadow-lg transition-all group">
             <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
@@ -135,8 +158,11 @@
                 <p class="text-xs text-gray-500">Tra cứu, duyệt đơn, VietQR...</p>
             </div>
         </a>
+        }
 
-        <a href="@Url.Action("Index", "AdminKyUc")" class="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4 hover:border-blue-500 hover:shadow-lg transition-all group">
+        @if (User.CoQuyen(QuyenAdmin.KyUc))
+        {
+        <a href="@Url.Action("Index", "AdminKyUc", new { area = "" })" class="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4 hover:border-blue-500 hover:shadow-lg transition-all group">
             <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
                 <i class="fas fa-history text-lg"></i>
             </div>
@@ -145,8 +171,11 @@
                 <p class="text-xs text-gray-500">Thêm năm dự án, Gallery...</p>
             </div>
         </a>
+        }
 
-        <a href="#" class="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4 hover:border-orange-500 hover:shadow-lg transition-all group">
+        @if (User.CoQuyen(QuyenAdmin.TinTuc))
+        {
+        <a href="@Url.Action("Index", "AdminTinTuc", new { area = "" })" class="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4 hover:border-orange-500 hover:shadow-lg transition-all group">
             <div class="w-12 h-12 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center group-hover:bg-orange-600 group-hover:text-white transition-colors">
                 <i class="fas fa-newspaper text-lg"></i>
             </div>
@@ -155,16 +184,20 @@
                 <p class="text-xs text-gray-500">Đăng bài viết mới</p>
             </div>
         </a>
+        }
 
-        <a href="#" class="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4 hover:border-pink-500 hover:shadow-lg transition-all group">
-            <div class="w-12 h-12 rounded-full bg-pink-50 text-pink-600 flex items-center justify-center group-hover:bg-pink-600 group-hover:text-white transition-colors">
-                <i class="fas fa-heart text-lg"></i>
+        @if (User.CoQuyen(QuyenAdmin.QuanLyTaiKhoan))
+        {
+        <a href="@Url.Action("Index", "AdminTaiKhoan", new { area = "" })" class="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4 hover:border-amber-500 hover:shadow-lg transition-all group">
+            <div class="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition-colors">
+                <i class="fas fa-user-shield text-lg"></i>
             </div>
             <div>
-                <p class="font-bold text-gray-800 text-sm mb-0.5 group-hover:text-pink-700 transition-colors">Duyệt Lời chúc</p>
-                <p class="text-xs text-gray-500">Ẩn/hiện lời chúc TNV</p>
+                <p class="font-bold text-gray-800 text-sm mb-0.5 group-hover:text-amber-700 transition-colors">Tài khoản &amp; Phân quyền</p>
+                <p class="text-xs text-gray-500">Thêm admin, phân quyền...</p>
             </div>
         </a>
+        }
 
     </div>
 </div>

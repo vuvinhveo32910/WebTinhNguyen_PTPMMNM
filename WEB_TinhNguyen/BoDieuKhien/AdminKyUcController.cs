@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,6 +13,8 @@ using WEB_TinhNguyen.MoHinh;
 
 namespace WEB_TinhNguyen.BoDieuKhien
 {
+    [Authorize]
+    [PhanQuyenAdmin(QuyenAdmin.KyUc)]
     public class AdminKyUcController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -21,6 +25,8 @@ namespace WEB_TinhNguyen.BoDieuKhien
             _context = context;
             _env = env;
         }
+
+        private bool BiChanQuyen() => User?.Identity?.IsAuthenticated == true && !User.CoQuyen(QuyenAdmin.KyUc);
 
         private async Task<string> UploadFileAsync(IFormFile file)
         {
@@ -39,13 +45,22 @@ namespace WEB_TinhNguyen.BoDieuKhien
         // Danh sách các năm để Edit
         public async Task<IActionResult> Index()
         {
-            var chienDichs = await _context.ChienDichs.OrderByDescending(c => c.Nam).ToListAsync();
-            return View(chienDichs);
+            if (BiChanQuyen()) return StatusCode(StatusCodes.Status403Forbidden);
+            try
+            {
+                var chienDichs = await _context.ChienDichs.OrderByDescending(c => c.Nam).ToListAsync();
+                return View(chienDichs);
+            }
+            catch
+            {
+                return View(new List<ChienDich>());
+            }
         }
 
         [HttpGet]
         public async Task<IActionResult> Edit(int id) // id ở đây là IDChienDich
         {
+            if (BiChanQuyen()) return StatusCode(StatusCodes.Status403Forbidden);
             var cd = await _context.ChienDichs.FindAsync(id);
             if (cd == null) return NotFound();
 
@@ -96,6 +111,7 @@ namespace WEB_TinhNguyen.BoDieuKhien
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(CauHinhKyUcVM vm)
         {
+            if (BiChanQuyen()) return StatusCode(StatusCodes.Status403Forbidden);
             // Bỏ qua validate các trường file và trường text không bắt buộc
             var keys = ModelState.Keys.ToList();
             foreach (var key in keys) { ModelState.Remove(key); }

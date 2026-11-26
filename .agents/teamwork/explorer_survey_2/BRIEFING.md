@@ -1,49 +1,48 @@
-# BRIEFING — 2026-11-05T06:54:30Z
+# BRIEFING — 2026-11-07T02:25:00Z
 
 ## Mission
-Analyze C# Models, DbContext configurations, entity mapping, and attributes ([Column], [NotMapped], Fluent API) related to the 8 invalid columns (DuongDanAnhBia, DuongDanAnhLinhVat, HienThiHieuUng3D, HienThiLinhVat, KieuChuNoiDung, KieuChuTieuDe, VeDuAn_DuongDanAnh, ViTriLinhVat), and provide architectural/technical synchronization strategies.
+Comprehensive survey of existing codebase at D:\web_tinh_nguyen focusing on Admin Routes, Controllers, CRUD actions, existing authorization mechanisms, and login/logout structure.
 
 ## 🔒 My Identity
-- Archetype: Explorer
-- Roles: Models and DbContext Analyst
-- Working directory: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/explorer_survey_2
-- Original parent: 13941881-5ddb-4ef5-85c6-23bd414f7662
-- Milestone: Survey & Analysis
+- Archetype: explorer
+- Roles: Teamwork explorer (Admin Routes & Controllers Explorer)
+- Working directory: D:\web_tinh_nguyen\.agents\teamwork\explorer_survey_2
+- Original parent: 8cd06411-5097-4e95-b532-893861716fb8
+- Milestone: Investigation & Analysis
 
 ## 🔒 Key Constraints
-- Read-only investigation — do NOT implement / do NOT modify source code
-- Write only to /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/explorer_survey_2/
-- Produce structured 5-component handoff.md and maintain progress.md
+- Read-only investigation — do NOT implement
+- Write only to D:\web_tinh_nguyen\.agents\teamwork\explorer_survey_2
+- Produce structured handoff.md in working directory
+- Communicate completion to parent via send_message
 
 ## Current Parent
-- Conversation ID: 13941881-5ddb-4ef5-85c6-23bd414f7662
-- Updated: 2026-11-05T06:54:30Z
+- Conversation ID: 8cd06411-5097-4e95-b532-893861716fb8
+- Updated: 2026-11-07T02:25:00Z
 
 ## Investigation State
 - **Explored paths**:
-  - `WEB_TinhNguyen/MoHinh/Entities.cs`
-  - `WEB_TinhNguyen/MoHinh/CauHinhTrangChuVM.cs`
-  - `WEB_TinhNguyen/DuLieu/ApplicationDbContext.cs`
-  - `WEB_TinhNguyen/DuLieu/Compatibility.cs`
-  - `WEB_TinhNguyen/BoDieuKhien/` (HomeController, AdminTrangChuController, AdminKyUcController, AdminChuongTrinhController, AdminGayQuyController, AdminBanToChucController, AdminTinTucController)
-  - `WEB_TinhNguyen/GiaoDien/` (Home/Index, Shared/_Layout, etc.)
-  - `WEB_TinhNguyen/Migrations/` (20261104000000_XoaCotMauVaVietHoaTenBangCot, ApplicationDbContextModelSnapshot)
-  - `SQLQuery1.sql`
-  - `tests/E2ETests/`
+  - `WEB_TinhNguyen/Areas/` (only `CuaHang` exists; NO `Areas/Admin`)
+  - `WEB_TinhNguyen/BoDieuKhien/` (all 9 root controllers including 8 admin controllers)
+  - `WEB_TinhNguyen/Areas/CuaHang/Controllers/` (`AdminSanPhamController`, `AdminDonHangController`, `CuaHangController`, `GioHangController`)
+  - `WEB_TinhNguyen/GiaoDien/` (Views for Admin, AdminTrangChu, AdminChuongTrinh, AdminGayQuy, AdminCauHinhQR, AdminKyUc, AdminBanToChuc, AdminTinTuc, AdminHieuUng, Home, Shared)
+  - `WEB_TinhNguyen/Areas/CuaHang/Views/` (Views for AdminDonHang, AdminSanPham, CuaHang, GioHang, Shared)
+  - `WEB_TinhNguyen/Program.cs` (Routing, session, authorization middleware)
+  - `WEB_TinhNguyen/DuLieu/ApplicationDbContext.cs` & `MoHinh/Entities.cs`
+  - `tests/E2ETests/` (Tier 1-5 test suites, 477 passing tests)
 - **Key findings**:
-  - All 8 properties are declared in `CauHinhTrangChu` as unannotated public auto-properties.
-  - Several properties are also declared across `CauHinhKyUc`, `CauHinhChuongTrinh`, `CauHinhGayQuy`, `CauHinhBanToChuc`, and `CauHinhTinTuc`.
-  - Zero Fluent API configuration exists in `ApplicationDbContext.OnModelCreating` for these entities; EF Core uses convention and reflects properties to SQL columns matching their C# names.
-  - The previous migration `20261104000000_XoaCotMauVaVietHoaTenBangCot.cs` renamed columns in C# but was not applied to the actual database schema.
-  - Zero Razor Views consume the 8 renamed names; all views use the legacy aliases (`LinkAnhBia`, `FontTieuDe`, etc.).
-  - Recommended strategy: Apply `[NotMapped]` to all 8 properties across all affected entities, supplemented by Fluent API `.Ignore()` in `ApplicationDbContext.OnModelCreating`, and remove them from `ApplicationDbContextModelSnapshot.cs`.
-- **Unexplored areas**: None within the survey scope for Models and DbContext.
+  - Exactly 11 admin controllers exist across `BoDieuKhien` (9) and `Areas/CuaHang/Controllers` (2).
+  - Exactly 21 CRUD data mutation actions exist across these controllers.
+  - Zero `[Authorize]` attributes and zero authentication schemes currently exist in the codebase; all admin routes are open to anonymous access.
+  - No user/admin entity or login/logout view currently exists.
+  - `/admin/login` should be routed to `AdminController.Login()` and rendered at `~/GiaoDien/Admin/Login.cshtml`.
+  - Compatibility requirement: `AdminController` must maintain a parameterless constructor (or optional parameters) to avoid breaking existing unit tests in `Tier1_AdminRoutingTests.cs`.
+- **Unexplored areas**: None within the scope of Admin Routes & Controllers survey.
 
 ## Key Decisions Made
-- Confirmed that `[NotMapped]` + Fluent API `.Ignore()` is vastly superior to complete property deletion because it prevents `SqlException: Invalid column name` with zero cascading compilation breakage across controllers and ViewModels.
+- Completed exhaustive cataloging of all controllers, routes, CRUD endpoints, authorization state, and edge cases into `handoff.md`.
 
 ## Artifact Index
-- /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/explorer_survey_2/DISPATCH.md — Incoming parent dispatches
-- /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/explorer_survey_2/BRIEFING.md — Working memory & state
-- /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/explorer_survey_2/progress.md — Liveness & status tracking
-- /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/explorer_survey_2/handoff.md — Final 5-component report
+- DISPATCH.md — Recorded instructions from parent
+- progress.md — Task checklist and liveness heartbeat
+- handoff.md — 5-component self-contained handoff report

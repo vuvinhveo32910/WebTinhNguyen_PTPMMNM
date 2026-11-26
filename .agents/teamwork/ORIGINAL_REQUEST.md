@@ -1,29 +1,28 @@
 # Original User Request
 
-## Initial Request — 2026-11-05T06:42:09Z
+## Initial Request — 2026-11-07T09:10:13Z
 
-Sửa lỗi SqlException về các cột không hợp lệ (DuongDanAnhBia, DuongDanAnhLinhVat, HienThiHieuUng3D, HienThiLinhVat, KieuChuNoiDung, KieuChuTieuDe, VeDuAn_DuongDanAnh, ViTriLinhVat) bằng cách cập nhật mã nguồn (Models, DbContext, truy vấn) khớp với cơ sở dữ liệu hiện tại, đồng thời khắc phục toàn bộ lỗi để dự án biên dịch và khởi chạy thành công.
+Đồng bộ và tối ưu hóa toàn bộ giao diện người dùng bên ngoài của dự án web hiện tại để hiển thị trực quan, dễ nhìn và thuận tiện thao tác trên trình duyệt di động theo chuẩn responsive web, giữ nguyên hoàn toàn khu vực quản trị (admin).
 
+Working directory: D:\web_tinh_nguyen
 Integrity mode: development
 
 ## Requirements
 
-### R1. Đồng bộ mã nguồn C# với cấu trúc cơ sở dữ liệu hiện tại
-Loại bỏ hoặc cập nhật các thuộc tính trong Models, DbContext và các câu truy vấn LINQ/SQL tương ứng với các cột không tồn tại trong cơ sở dữ liệu: `DuongDanAnhBia`, `DuongDanAnhLinhVat`, `HienThiHieuUng3D`, `HienThiLinhVat`, `KieuChuNoiDung`, `KieuChuTieuDe`, `VeDuAn_DuongDanAnh`, `ViTriLinhVat`, đảm bảo không còn phát sinh `SqlException: Invalid column name`.
+### R1. Tối ưu hóa Responsive Web cho toàn bộ giao diện người dùng bên ngoài
+Điều chỉnh bố cục, thanh điều hướng (navigation/menu), phông chữ, khoảng cách, các biểu mẫu (forms) và bảng/danh sách trên toàn bộ các trang công khai phía người dùng để tương thích tối đa với màn hình điện thoại di động. Giao diện phải đảm bảo tính dễ đọc, các thành phần tương tác (nút bấm, liên kết) dễ chạm bấm bằng ngón tay và nội dung vừa vặn với kích thước màn hình di động mà không phát sinh hiện tượng tràn màn hình theo chiều ngang.
 
-### R2. Khắc phục toàn bộ lỗi và đảm bảo dự án chạy được
-Rà soát và giải quyết triệt để tất cả các lỗi biên dịch và lỗi runtime còn lại trong dự án để toàn bộ ứng dụng web có thể biên dịch và khởi chạy ổn định.
-
-### R3. Thiết lập và thực thi kịch bản kiểm thử
-Đội ngũ tự thiết lập các kịch bản kiểm thử độc lập để xác minh các truy vấn dữ liệu hoạt động chính xác và ứng dụng không gặp lỗi máy chủ (HTTP 500) khi truy cập các chức năng.
+### R2. Bảo toàn khu vực quản trị (Admin)
+Tuyệt đối không thay đổi mã nguồn, bố cục, kiểu dáng (CSS) hoặc hành vi của các trang và route thuộc khu vực quản trị (`/admin`).
 
 ## Acceptance Criteria
 
-### Đồng bộ cơ sở dữ liệu & Mã nguồn
-- [ ] Không còn thuộc tính hoặc truy vấn tham chiếu đến các cột không tồn tại (`DuongDanAnhBia`, `DuongDanAnhLinhVat`, `HienThiHieuUng3D`, `HienThiLinhVat`, `KieuChuNoiDung`, `KieuChuTieuDe`, `VeDuAn_DuongDanAnh`, `ViTriLinhVat`) gây lỗi trong Models, DbContext và các controller/service.
-- [ ] Không phát sinh lỗi `SqlException: Invalid column name` khi ứng dụng thực thi truy vấn cơ sở dữ liệu.
+### Khả năng tương thích và hiển thị trên màn hình di động
+- [ ] Bộ kiểm thử tự động trên trình duyệt (automated browser tests) kiểm tra trên các kích thước viewport di động tiêu chuẩn (chiều rộng từ 375px đến 430px) vượt qua 100% cho toàn bộ các trang công khai bên ngoài.
+- [ ] Không có trang công khai nào bị thanh cuộn ngang ngoài ý muốn (`document.scrollingElement.scrollWidth <= window.innerWidth`) trên các viewport di động từ 375px trở lên.
+- [ ] Menu điều hướng trên di động hiển thị gọn gàng (dạng hamburger hoặc drawer di động) và đóng/mở hoạt động chính xác khi tương tác trên màn hình nhỏ.
+- [ ] Văn bản, hình ảnh, bảng dữ liệu và form nhập liệu trên các trang người dùng co giãn phù hợp, không bị che khuất, méo mó hoặc tràn lề màn hình di động.
 
-### Vận hành & Kiểm thử
-- [ ] Lệnh `dotnet build` thực thi thành công với 0 lỗi (0 errors).
-- [ ] Lệnh `dotnet run` khởi chạy ứng dụng web thành công.
-- [ ] Kịch bản kiểm thử do đội ngũ thiết lập xác nhận các trang web chính tải và truy vấn dữ liệu thành công mà không phát sinh lỗi 500 Internal Server Error.
+### Tính toàn vẹn khu vực Admin và hệ thống
+- [ ] Toàn bộ các view, controller và style thuộc khu vực Admin không bị chỉnh sửa hoặc phát sinh lỗi hiển thị/chức năng.
+- [ ] Dự án biên dịch (`dotnet build`) và toàn bộ các bộ kiểm thử tự động hiện có cũng như kiểm thử mới đều vượt qua thành công.

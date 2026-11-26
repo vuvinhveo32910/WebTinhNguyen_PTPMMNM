@@ -1,29 +1,23 @@
-# Dispatch Task for M1 Explorer 1 (Program.cs, DbContext & Tailwind)
-
-## Objective
-Analyze and specify exact implementation details for:
-1. `WEB_TinhNguyen/Program.cs`: Adding DistributedMemoryCache, Session service with options, HttpContextAccessor, `app.UseSession()`, and Area route `{area:exists}/{controller=CuaHang}/{action=Index}/{id?}`.
-2. `WEB_TinhNguyen/Data/ApplicationDbContext.cs`: Adding DbSets for `SanPhamGayQuy`, `DonHangGayQuy`, `ChiTietDonHangGayQuy`.
-3. `tailwind.config.js`: Adding `"./Areas/**/*.cshtml"` to `content` array.
-4. Verify compilation command `XDG_RUNTIME_DIR=/tmp dotnet build`.
-
-## Input Files
-- `/home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/ORIGINAL_REQUEST.md`
-- `/home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/orchestrator/PROJECT.md`
-
-## Output
-Write detailed design to `/home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_explorer_m1_1/handoff.md`.
-
-## 2026-11-03T12:43:31Z
+## 2026-11-07T05:20:47Z
 You are teamwork_explorer_m1_1.
-Your working directory is: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_explorer_m1_1
-Your parent is the Project Orchestrator (Conversation ID: 108b9d81-1dd6-495f-84eb-99dbb197aebe).
+Working directory: D:\web_tinh_nguyen\.agents\teamwork\teamwork_explorer_m1_1
 
-MANDATORY INSTRUCTIONS:
-1. First read the original user request at: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/ORIGINAL_REQUEST.md
-2. Read the master project document at: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/orchestrator/PROJECT.md
-3. Read your specific dispatch instructions at: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_explorer_m1_1/DISPATCH.md
-4. Update your progress.md regularly with "Last visited: [timestamp]" as your heartbeat.
-5. Provide exact implementation designs for Program.cs, ApplicationDbContext.cs, and tailwind.config.js for Milestone 1.
-6. Write your report to /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_explorer_m1_1/handoff.md following the Handoff Protocol.
-7. When finished, send a message to the orchestrator (Recipient: 108b9d81-1dd6-495f-84eb-99dbb197aebe).
+MANDATORY FIRST STEP:
+Read ORIGINAL_REQUEST.md at: D:\web_tinh_nguyen\.agents\teamwork\ORIGINAL_REQUEST.md
+Also read PROJECT.md at: D:\web_tinh_nguyen\PROJECT.md
+
+OBJECTIVE:
+Investigate and design the code changes for Milestone 1: Permissions Schema & Model:
+1. `WEB_TinhNguyen/MoHinh/TaiKhoanAdmin.cs`:
+   - Design addition of `public string? PhanQuyen { get; set; } = "ALL";` or equivalent.
+   - Verify all existing properties (IDTaiKhoan, TenDangNhap, MatKhauHash, MuoiBaoMat, HoTen, Email, VaiTro, TrangThaiHoatDong, NgayTao, LanDangNhapCuoi) are preserved intact.
+2. `WEB_TinhNguyen/MoHinh/QuyenAdmin.cs`:
+   - Design canonical constants for all 11 modules: TrangChu, ChuongTrinh, GayQuy, CauHinhQR, KyUc, BanToChuc, TinTuc, HieuUng, SanPham, DonHang, QuanLyTaiKhoan, plus ALL / SuperAdmin.
+   - Design helper methods `TatCaQuyen()`, `DanhSachQuyen()`, and label descriptions for UI display.
+3. `WEB_TinhNguyen/DuLieu/ApplicationDbContext.cs`:
+   - Verify DbSet<TaiKhoanAdmin> configuration and any OnModelCreating mappings.
+
+DELIVERABLES:
+- Write recommendations to D:\web_tinh_nguyen\.agents\teamwork\teamwork_explorer_m1_1\analysis.md
+- Write handoff report to D:\web_tinh_nguyen\.agents\teamwork\teamwork_explorer_m1_1\handoff.md
+- Notify parent orchestrator via send_message.

@@ -20,3 +20,41 @@ Challenger tasks:
 3. Provide an explicit verdict in your handoff.md: APPROVE or REJECT.
 4. Write your full report to /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/challenger_1/handoff.md and update progress.md.
 5. When complete, send a message to parent with your verdict and handoff path.
+
+
+## 2026-11-06T12:43:04Z
+You are teamwork_challenger (Challenger 1).
+Working directory: D:\web_tinh_nguyen\.agents\teamwork\challenger_1
+
+MANDATORY FIRST STEP:
+Read the verbatim user request at:
+D:\web_tinh_nguyen\.agents\teamwork\ORIGINAL_REQUEST.md
+
+CONTEXT & WORKER ARTIFACTS:
+- Project Plan: D:\web_tinh_nguyen\.agents\teamwork\PROJECT.md
+- Worker Changes: D:\web_tinh_nguyen\.agents\teamwork\worker_1\changes.md
+- Worker Handoff: D:\web_tinh_nguyen\.agents\teamwork\worker_1\handoff.md
+
+YOUR MISSION:
+Empirically verify the correctness of the admin navigation, routing, and controller execution for all 8 Admin pages:
+1. AdminTrangChu
+2. AdminChuongTrinh
+3. AdminGayQuy
+4. AdminCauHinhQR
+5. AdminKyUc
+6. AdminBanToChuc
+7. AdminTinTuc
+8. Admin (Bảng điều khiển)
+
+ADVERSARIAL VERIFICATION TASKS:
+1. Check that NO invalid links (%2F, GiaoDien/, dead links #) exist in `_AdminLayout.cshtml` or `Admin/Index.cshtml`.
+2. Empirically verify that invoking each of the 8 controller actions (simulating both normal and offline database scenarios, simulated route data with area = "CuaHang" and area = "") results in a valid `ViewResult` with correct ViewName and non-null model, without throwing any unhandled exceptions.
+3. Test edge conditions: what happens if RouteData is null? What happens if `ChienDichs` is empty or throws a database timeout/exception?
+4. Run the full build (`dotnet build`) and test suite (`dotnet run --project tests\E2ETests\E2ETests.csproj`).
+5. Deliver a verdict: `APPROVE` (correctness confirmed) or `REJECT` (flaws found).
+
+OUTPUT REQUIREMENTS:
+- Write your empirical verification report to `D:\web_tinh_nguyen\.agents\teamwork\challenger_1\challenge.md`
+- Write your self-contained handoff report to `D:\web_tinh_nguyen\.agents\teamwork\challenger_1\handoff.md`
+- Update `D:\web_tinh_nguyen\.agents\teamwork\challenger_1\progress.md`
+- Send completion message to orchestrator when finished.

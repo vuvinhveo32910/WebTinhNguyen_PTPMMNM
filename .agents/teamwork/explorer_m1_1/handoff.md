@@ -1,0 +1,335 @@
+# Handoff Report: Entity Model `TaiKhoanAdmin` & `ApplicationDbContext` Design (Milestone 1)
+
+**Agent**: `explorer_m1_1` (Role: Entity & DbContext Explorer)  
+**Target Milestone**: M1 (Database Setup & Admin Seeding)  
+**Recipient**: Orchestrator / Implementer (`coder_m1_1`)  
+**Date**: 2026-11-07  
+
+---
+
+## 1. Observation
+
+### 1.1 Existing Architecture & Project Specifications
+- **Target Framework**: .NET 10.0 (`net10.0`), ASP.NET Core MVC with Entity Framework Core 10.0.12 (`Microsoft.EntityFrameworkCore.SqlServer` 10.0.12).
+- **Project File** (`WEB_TinhNguyen/WEB_TinhNguyen.csproj` lines 3-6):
+  ```xml
+  <TargetFramework>net10.0</TargetFramework>
+  <Nullable>enable</Nullable>
+  <ImplicitUsings>enable</ImplicitUsings>
+  ```
+- **Existing Entity Models** (`WEB_TinhNguyen/MoHinh/`):
+  - `Entities.cs` (lines 1-716) defines domain entities with namespace `WEB_TinhNguyen.MoHinh`, using `[Table]`, `[Key]`, `[ForeignKey]`, and `[NotMapped]`.
+  - `CauHinhThanhToanQR.cs` (lines 1-114) demonstrates modern annotation conventions: `[Table("CauHinhThanhToanQR")]`, `[Key]`, `[DatabaseGenerated(DatabaseGeneratedOption.Identity)]`, `[Required]`, `[StringLength]`, `[Display(Name = "...")]`, and non-nullable strings initialized with `= string.Empty;` to ensure 0 CS8618 warnings under `<Nullable>enable</Nullable>`.
+  - File `WEB_TinhNguyen/MoHinh/TaiKhoanAdmin.cs` does not yet exist (`Test-Path` returned `False`).
+- **Existing Razor Import Configuration** (`WEB_TinhNguyen/GiaoDien/_ViewImports.cshtml` line 2 & `WEB_TinhNguyen/Areas/CuaHang/Views/_ViewImports.cshtml` line 2):
+  - Both import `@using WEB_TinhNguyen.MoHinh`. Therefore, classes defined in `WEB_TinhNguyen.MoHinh` (both `TaiKhoanAdmin` and `AdminLoginViewModel`) will be immediately resolvable across all Razor views without explicit namespaces.
+- **Existing `ApplicationDbContext.cs`** (`WEB_TinhNguyen/DuLieu/ApplicationDbContext.cs` lines 1-221):
+  - Imports: `using Microsoft.EntityFrameworkCore;`, `using WEB_TinhNguyen.MoHinh;`, `using WEB_TinhNguyen.Areas.CuaHang.Models;`.
+  - Constructor (lines 9-11):
+    ```csharp
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
+    {
+    }
+    ```
+  - Warning configuration (lines 53-57):
+    ```csharp
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        base.OnConfiguring(optionsBuilder);
+        optionsBuilder.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+    }
+    ```
+  - Contains 23+ `DbSet` properties (lines 16-51) including `CauHinhThanhToanQRs`, `SanPhamGayQuys`, `DonHangGayQuys`, etc.
+  - Does NOT yet contain `DbSet<TaiKhoanAdmin> TaiKhoanAdmins`.
+  - Existing test fixtures across `tests/E2ETests/` (e.g. `Tier1_AdminRoutingTests.cs:46`, `Tier5_ChallengerTests.cs:597`, `Tier5_Challenger2_AdminAdversarialHarness.cs:55`) instantiate `ApplicationDbContext` exclusively via `new ApplicationDbContext(options)`.
+- **Existing Test Status**:
+  - `dotnet build WEB_TinhNguyen.slnx` compiles with **0 Errors** (4 third-party package advisories).
+  - `dotnet run --project tests\E2ETests\E2ETests.csproj --no-build` executes **477 Tests: 477 Passed, 0 Failed, 0 Skipped**.
+  - EF Core model compilation tests in `Tier5_ChallengerTests.cs` (C32, C33, C34, C35) assert that entities registered in `ApplicationDbContext` have proper table names, keys, column types, and navigation constraints.
+
+---
+
+## 2. Logic Chain
+
+1. **Namespace & Co-location**:
+   - `ORIGINAL_REQUEST.md` (§R1) and `PROJECT.md` (Code Layout line 67) dictate: `WEB_TinhNguyen/MoHinh/TaiKhoanAdmin.cs`: Admin entity model and login view model.
+   - All models in `WEB_TinhNguyen/MoHinh/` are in `namespace WEB_TinhNguyen.MoHinh`.
+   - By placing both `TaiKhoanAdmin` (Entity) and `AdminLoginViewModel` (ViewModel) in `WEB_TinhNguyen/MoHinh/TaiKhoanAdmin.cs` under `namespace WEB_TinhNguyen.MoHinh`:
+     - They will be auto-imported into all Razor views via `_ViewImports.cshtml`.
+     - Code remains cleanly partitioned without cluttering other files.
+     - Controllers (`AdminController` in M2) can directly bind `AdminLoginViewModel` without requiring separate ViewModel folder references.
+
+2. **`TaiKhoanAdmin` Field Type, Constraint & Index Strategy**:
+   - `IDTaiKhoan`: `int`, `[Key]`, `[DatabaseGenerated(DatabaseGeneratedOption.Identity)]` mapped to `[IDTaiKhoan] INT IDENTITY(1,1) PRIMARY KEY`.
+   - `TenDangNhap`: `string`, required, max length 100. Must have a UNIQUE constraint/index. We should apply both `[Index(nameof(TenDangNhap), IsUnique = true)]` attribute on the class AND `entity.HasIndex(e => e.TenDangNhap).IsUnique();` in `OnModelCreating` to ensure EF Core and tests detect the unique index regardless of inspection method.
+   - `MatKhauHash`: `string`, required, max length 500. Stores PBKDF2 HMAC-SHA256 hash.
+   - `MuoiBaoMat`: `string`, required, max length 100. Stores salt generated by `BaoMatMatKhau`.
+   - `HoTen`: `string?`, max length 150. Optional display name for admin user.
+   - `Email`: `string?`, max length 150, decorated with `[EmailAddress]` for UI validation.
+   - `VaiTro`: `string`, max length 50, required, initialized to `"Admin"`.
+   - `TrangThaiHoatDong`: `bool`, default `true`. Allows disabling admin accounts if needed.
+   - `NgayTao`: `DateTime`, initialized to `DateTime.Now`. In SQL Server DDL: `DEFAULT GETDATE()`.
+   - `LanDangNhapCuoi`: `DateTime?`, nullable, updated upon each successful login.
+   - `Clone()` method: An explicit deep-copy helper `public TaiKhoanAdmin Clone()` should be provided so that `DbInitializer` can clone objects in the in-memory fallback store (`List<TaiKhoanAdmin> _inMemoryAdmins`) without mutating internal references, matching the pattern in `DbInitializer.cs:877` (`CloneQrConfig`).
+
+3. **`AdminLoginViewModel` Design**:
+   - `TenDangNhap`: `[Required(ErrorMessage = "Vui lòng nhập tên đăng nhập")]`, `[StringLength(100)]`, `[Display(Name = "Tên đăng nhập")]`.
+   - `MatKhau`: `[Required(ErrorMessage = "Vui lòng nhập mật khẩu")]`, `[DataType(DataType.Password)]`, `[Display(Name = "Mật khẩu")]`.
+   - `GhiNhoDangNhap`: `[Display(Name = "Ghi nhớ đăng nhập")]`, `bool`, default `false`.
+   - `ReturnUrl`: `string?`, optional redirect destination upon successful login.
+
+4. **`ApplicationDbContext.cs` Registration & Backward Compatibility**:
+   - `DbSet` registration:
+     ```csharp
+     public DbSet<TaiKhoanAdmin> TaiKhoanAdmins { get; set; }
+     ```
+     Also add an alias property for singular access to prevent naming mismatches:
+     ```csharp
+     public DbSet<TaiKhoanAdmin> TaiKhoanAdmin { get => TaiKhoanAdmins; set => TaiKhoanAdmins = value; }
+     ```
+   - In `OnModelCreating`:
+     ```csharp
+     modelBuilder.Entity<TaiKhoanAdmin>(entity =>
+     {
+         entity.ToTable("TaiKhoanAdmin");
+         entity.HasKey(e => e.IDTaiKhoan);
+         entity.Property(e => e.IDTaiKhoan).ValueGeneratedOnAdd();
+         entity.HasIndex(e => e.TenDangNhap).IsUnique();
+         entity.Property(e => e.TenDangNhap).IsRequired().HasMaxLength(100);
+         entity.Property(e => e.MatKhauHash).IsRequired().HasMaxLength(500);
+         entity.Property(e => e.MuoiBaoMat).IsRequired().HasMaxLength(100);
+         entity.Property(e => e.HoTen).HasMaxLength(150);
+         entity.Property(e => e.Email).HasMaxLength(150);
+         entity.Property(e => e.VaiTro).IsRequired().HasMaxLength(50).HasDefaultValue("Admin");
+         entity.Property(e => e.TrangThaiHoatDong).HasDefaultValue(true);
+     });
+     ```
+   - **Backward Compatibility**:
+     - The existing constructor `public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)` is 100% retained.
+     - `OnConfiguring` with `PendingModelChangesWarning` suppression is 100% preserved.
+     - All 23 existing `DbSet` declarations and `OnModelCreating` configuration blocks for `BannerTrangChu`, `TVKhoanhKhac`, `FAQTrangChu`, `CauHinhTrangChu`, `CauHinhKyUc`, `CauHinhChuongTrinh`, `CauHinhGayQuy`, `CauHinhBanToChuc`, `CauHinhTinTuc`, `SanPhamGayQuy`, `DonHangGayQuy`, `ChiTietDonHangGayQuy`, and `CauHinhThanhToanQR` remain completely untouched.
+
+5. **SQL Server DDL Alignment with `DbInitializer.cs`**:
+   - The entity definition matches the SQL DDL that `explorer_m1_2` / `coder_m1_2` will inject into `DbInitializer.Seed`:
+     ```sql
+     IF OBJECT_ID(N'[dbo].[TaiKhoanAdmin]', N'U') IS NULL
+     BEGIN
+         CREATE TABLE [dbo].[TaiKhoanAdmin] (
+             [IDTaiKhoan] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+             [TenDangNhap] NVARCHAR(100) NOT NULL,
+             [MatKhauHash] NVARCHAR(500) NOT NULL,
+             [MuoiBaoMat] NVARCHAR(100) NOT NULL,
+             [HoTen] NVARCHAR(150) NULL,
+             [Email] NVARCHAR(150) NULL,
+             [VaiTro] NVARCHAR(50) NOT NULL DEFAULT N'Admin',
+             [TrangThaiHoatDong] BIT NOT NULL DEFAULT 1,
+             [NgayTao] DATETIME2 NOT NULL DEFAULT GETDATE(),
+             [LanDangNhapCuoi] DATETIME2 NULL,
+             CONSTRAINT [UQ_TaiKhoanAdmin_TenDangNhap] UNIQUE ([TenDangNhap])
+         );
+     END;
+     ```
+
+---
+
+## 3. Caveats
+
+1. **Nullable Reference Types**: `<Nullable>enable</Nullable>` is enabled project-wide. Non-nullable string fields (`TenDangNhap`, `MatKhauHash`, `MuoiBaoMat`, `VaiTro`, `MatKhau`) must be initialized with `= string.Empty;` or `= "Admin";` to avoid compiler warnings CS8618.
+2. **Entity Framework Core Warning Suppression**: `ApplicationDbContext` suppresses `PendingModelChangesWarning`. Thus, modifying `ApplicationDbContext` will not trigger runtime EF model sync crashes even if no new EF migration file is added to `Migrations/`.
+3. **Password Security**: Neither `TaiKhoanAdmin` nor `AdminLoginViewModel` should ever expose plain-text passwords in properties mapped to the database. The database entity only contains `MatKhauHash` and `MuoiBaoMat`.
+
+---
+
+## 4. Conclusion & Proposed Implementation
+
+### 4.1 Proposed Content for `WEB_TinhNguyen/MoHinh/TaiKhoanAdmin.cs`
+
+Create new file `WEB_TinhNguyen/MoHinh/TaiKhoanAdmin.cs` with the following verbatim code:
+
+```csharp
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
+
+namespace WEB_TinhNguyen.MoHinh
+{
+    /// <summary>
+    /// Thực thể quản lý tài khoản quản trị viên hệ thống.
+    /// Lưu trữ thông tin định danh, thông tin bảo mật mật khẩu (được băm bằng PBKDF2),
+    /// phân quyền và trạng thái hoạt động.
+    /// </summary>
+    [Table("TaiKhoanAdmin")]
+    [Index(nameof(TenDangNhap), IsUnique = true)]
+    public class TaiKhoanAdmin
+    {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Display(Name = "Mã tài khoản")]
+        public int IDTaiKhoan { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng nhập tên đăng nhập")]
+        [StringLength(100, ErrorMessage = "Tên đăng nhập không được vượt quá 100 ký tự")]
+        [Display(Name = "Tên đăng nhập")]
+        public string TenDangNhap { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Mật khẩu băm không được để trống")]
+        [StringLength(500, ErrorMessage = "Mật khẩu băm không được vượt quá 500 ký tự")]
+        [Display(Name = "Mật khẩu băm")]
+        public string MatKhauHash { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Muối bảo mật không được để trống")]
+        [StringLength(100, ErrorMessage = "Muối bảo mật không được vượt quá 100 ký tự")]
+        [Display(Name = "Muối bảo mật")]
+        public string MuoiBaoMat { get; set; } = string.Empty;
+
+        [StringLength(150, ErrorMessage = "Họ và tên không được vượt quá 150 ký tự")]
+        [Display(Name = "Họ và tên")]
+        public string? HoTen { get; set; }
+
+        [EmailAddress(ErrorMessage = "Địa chỉ email không hợp lệ")]
+        [StringLength(150, ErrorMessage = "Email không được vượt quá 150 ký tự")]
+        [Display(Name = "Email")]
+        public string? Email { get; set; }
+
+        [Required]
+        [StringLength(50, ErrorMessage = "Vai trò không được vượt quá 50 ký tự")]
+        [Display(Name = "Vai trò")]
+        public string VaiTro { get; set; } = "Admin";
+
+        [Display(Name = "Trạng thái hoạt động")]
+        public bool TrangThaiHoatDong { get; set; } = true;
+
+        [Display(Name = "Ngày tạo")]
+        public DateTime NgayTao { get; set; } = DateTime.Now;
+
+        [Display(Name = "Lần đăng nhập cuối")]
+        public DateTime? LanDangNhapCuoi { get; set; }
+
+        /// <summary>
+        /// Tạo bản sao dữ liệu phục vụ bộ nhớ dự phòng In-Memory store trong DbInitializer.
+        /// </summary>
+        public TaiKhoanAdmin Clone()
+        {
+            return new TaiKhoanAdmin
+            {
+                IDTaiKhoan = this.IDTaiKhoan,
+                TenDangNhap = this.TenDangNhap,
+                MatKhauHash = this.MatKhauHash,
+                MuoiBaoMat = this.MuoiBaoMat,
+                HoTen = this.HoTen,
+                Email = this.Email,
+                VaiTro = this.VaiTro,
+                TrangThaiHoatDong = this.TrangThaiHoatDong,
+                NgayTao = this.NgayTao,
+                LanDangNhapCuoi = this.LanDangNhapCuoi
+            };
+        }
+    }
+
+    /// <summary>
+    /// ViewModel dùng cho form đăng nhập quản trị viên (/admin/login).
+    /// Hỗ trợ validation và binding tự động.
+    /// </summary>
+    public class AdminLoginViewModel
+    {
+        [Required(ErrorMessage = "Vui lòng nhập tên đăng nhập")]
+        [StringLength(100, ErrorMessage = "Tên đăng nhập không được vượt quá 100 ký tự")]
+        [Display(Name = "Tên đăng nhập")]
+        public string TenDangNhap { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Vui lòng nhập mật khẩu")]
+        [DataType(DataType.Password)]
+        [Display(Name = "Mật khẩu")]
+        public string MatKhau { get; set; } = string.Empty;
+
+        [Display(Name = "Ghi nhớ đăng nhập")]
+        public bool GhiNhoDangNhap { get; set; } = false;
+
+        public string? ReturnUrl { get; set; }
+    }
+}
+```
+
+---
+
+### 4.2 Proposed Changes for `WEB_TinhNguyen/DuLieu/ApplicationDbContext.cs`
+
+#### A. Add DbSet Registration (around line 52):
+```csharp
+        // =========================================================================
+        // PHÂN HỆ: CẤU HÌNH THANH TOÁN QR & VIETQR ĐỘNG
+        // =========================================================================
+        public DbSet<CauHinhThanhToanQR> CauHinhThanhToanQRs { get; set; }
+
+        // =========================================================================
+        // PHÂN HỆ: QUẢN TRỊ VIÊN & PHÂN QUYỀN (ADMIN AUTHENTICATION & AUTHORIZATION)
+        // =========================================================================
+        public DbSet<TaiKhoanAdmin> TaiKhoanAdmins { get; set; }
+        public DbSet<TaiKhoanAdmin> TaiKhoanAdmin { get => TaiKhoanAdmins; set => TaiKhoanAdmins = value; }
+```
+
+#### B. Add OnModelCreating Configuration (around line 219, before closing bracket of `OnModelCreating`):
+```csharp
+            // Cấu hình bảng CauHinhThanhToanQR
+            modelBuilder.Entity<CauHinhThanhToanQR>(entity =>
+            {
+                entity.ToTable("CauHinhThanhToanQR");
+            });
+
+            // Cấu hình bảng TaiKhoanAdmin
+            modelBuilder.Entity<TaiKhoanAdmin>(entity =>
+            {
+                entity.ToTable("TaiKhoanAdmin");
+                entity.HasKey(e => e.IDTaiKhoan);
+                entity.Property(e => e.IDTaiKhoan).ValueGeneratedOnAdd();
+                entity.HasIndex(e => e.TenDangNhap).IsUnique();
+                entity.Property(e => e.TenDangNhap).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.MatKhauHash).IsRequired().HasMaxLength(500);
+                entity.Property(e => e.MuoiBaoMat).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.HoTen).HasMaxLength(150);
+                entity.Property(e => e.Email).HasMaxLength(150);
+                entity.Property(e => e.VaiTro).IsRequired().HasMaxLength(50).HasDefaultValue("Admin");
+                entity.Property(e => e.TrangThaiHoatDong).HasDefaultValue(true);
+            });
+        }
+```
+
+---
+
+## 5. Verification Method
+
+To independently verify the implementation once applied by `coder_m1_1`:
+
+1. **Compilation Verification**:
+   ```powershell
+   dotnet build D:\web_tinh_nguyen\WEB_TinhNguyen.slnx
+   ```
+   **Pass Condition**: 0 compilation errors, 0 warnings related to uninitialized non-nullable properties (CS8618).
+
+2. **Reflection & Entity Contract Verification**:
+   Execute the following PowerShell one-liner or inline C# script:
+   ```powershell
+   $asm = [System.Reflection.Assembly]::LoadFrom("D:\web_tinh_nguyen\WEB_TinhNguyen\bin\Debug\net10.0\WEB_TinhNguyen.dll")
+   $adminType = $asm.GetType("WEB_TinhNguyen.MoHinh.TaiKhoanAdmin")
+   $loginVmType = $asm.GetType("WEB_TinhNguyen.MoHinh.AdminLoginViewModel")
+   $ctxType = $asm.GetType("WEB_TinhNguyen.DuLieu.ApplicationDbContext")
+   
+   Write-Host "TaiKhoanAdmin: $([bool]$adminType)"
+   Write-Host "AdminLoginViewModel: $([bool]$loginVmType)"
+   Write-Host "DbSet<TaiKhoanAdmin>: $([bool]$ctxType.GetProperty('TaiKhoanAdmins'))"
+   ```
+   **Pass Condition**: All three evaluations return `True`.
+
+3. **EF Core Model Building Verification**:
+   Execute the existing test suite:
+   ```powershell
+   dotnet run --project D:\web_tinh_nguyen\tests\E2ETests\E2ETests.csproj --no-build
+   ```
+   **Pass Condition**: All 477 existing tests pass with 0 regressions, including DbContext model compilation tests C32-C36.
+
+4. **Invalidation Conditions**:
+   - Any compiler error or CS8618 warning.
+   - Any failure in existing test suite C32-C36 or regression across the 477 tests.
+   - Missing unique index on `TenDangNhap`.
+   - Renaming or removing the existing `ApplicationDbContext(DbContextOptions<ApplicationDbContext>)` constructor.

@@ -90,8 +90,8 @@
             <span class="mb-4 inline-block rounded-full px-5 py-2 text-xs font-black uppercase tracking-[0.2em] bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shadow-xs">
                 @(Model?.Hero_Nhan ?? "Bản tin")
             </span>
-            <h1 class="tintuc-display pb-3 font-bold leading-[1.18] sm:pb-5 text-volunteer-text dark:text-white"
-                style="font-size: @(Model?.Hero_CoChuTieuDe ?? "64px");">
+            <h1 class="tintuc-display pb-3 font-bold leading-[1.2] sm:pb-5 text-volunteer-text dark:text-white"
+                style="font-size: clamp(1.875rem, 6vw, @(Model?.Hero_CoChuTieuDe ?? "64px"));">
                 @(Model?.Hero_TieuDe ?? "Câu chuyện từ hành trình")
             </h1>
             <p class="mx-auto mt-5 max-w-xl text-base sm:text-lg leading-relaxed text-volunteer-text/80 dark:text-slate-300 font-medium">
@@ -163,8 +163,8 @@
 
                         <!-- Nội dung Card -->
                         <div class="flex flex-1 flex-col p-5 sm:p-6">
-                            <h3 class="mt-1 font-bold leading-snug"
-                                style="color: #1b5e20; font-size: @(news.CoChuTieuDe ?? "18px");">
+                            <h3 class="mt-1 font-bold leading-snug line-clamp-2 break-words"
+                                style="color: #1b5e20; font-size: clamp(1rem, 2.5vw, @(news.CoChuTieuDe ?? "18px"));">
                                 @news.TieuDe
                             </h3>
                             <p class="mt-2.5 flex-1 text-sm leading-relaxed text-gray-700 line-clamp-4">
@@ -183,7 +183,7 @@
                                 <div class="relative z-20" onclick="event.stopPropagation();">
                                     <button type="button" onclick="likePost(@news.IDBaiViet, this)"
                                             aria-label="Thích bài viết"
-                                            class="inline-flex items-center gap-1.5 text-xs font-semibold transition-all hover:scale-110 text-gray-700 hover:text-rose-500">
+                                            class="inline-flex items-center justify-center min-h-[40px] min-w-[40px] p-2 -mr-2 gap-1.5 text-xs font-semibold transition-all hover:scale-105 text-gray-700 hover:text-rose-500 cursor-pointer">
                                         <svg viewBox="0 0 24 24" class="h-4 w-4 transition-transform fill-none stroke-current" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"></path>
                                         </svg>
@@ -223,7 +223,7 @@
         <div class="flex items-start justify-between gap-4 px-6 sm:px-8 pt-6 pb-4 border-b border-gray-100 bg-white sticky top-0 z-10">
             <h2 id="modalPostTitle" class="text-lg sm:text-xl font-extrabold leading-snug uppercase tracking-tight"></h2>
             <button type="button" onclick="closeNewsModal()"
-                    class="h-9 w-9 shrink-0 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-800 flex items-center justify-center transition">
+                    class="h-10 w-10 min-w-[40px] min-h-[40px] shrink-0 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-800 flex items-center justify-center transition focus:outline-none">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
@@ -241,7 +241,7 @@
             <!-- 3. Nút xem bài gốc trên Fanpage (nếu có) -->
             <div id="modalPostFbWrapper" class="mt-6 pt-4 border-t border-gray-100 text-right hidden">
                 <a id="modalPostFbLink" href="#" target="_blank" rel="noopener noreferrer"
-                   class="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-emerald-700 hover:text-emerald-800 hover:underline">
+                   class="inline-flex items-center justify-center min-h-[44px] px-4 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:hover:bg-emerald-900 dark:text-emerald-300 font-bold text-xs sm:text-sm transition">
                     Xem bài đăng gốc trên Fanpage ↗
                 </a>
             </div>

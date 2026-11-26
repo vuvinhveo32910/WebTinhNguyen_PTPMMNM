@@ -1,138 +1,109 @@
-## 2026-11-03T12:28:44Z
+## 2026-11-07T02:15:22Z
 
-[Message] timestamp=2026-11-03T12:28:44Z sender=b3e3006a-fa2e-49bf-8124-bab9842d493f priority=MESSAGE_PRIORITY_HIGH content=Xây dựng giao diện và hệ thống mua bán sản phẩm gây quỹ tình nguyện cho đồ án website, bao gồm liên kết điều hướng trên thanh điều hướng/slide bar ngang hàng trang chủ, trang cửa hàng cho người dùng (xem sản phẩm, chi tiết, giỏ hàng, đặt mua) và phân hệ quản trị Admin cho phép thêm, sửa, xóa sản phẩm chi tiết trong thư mục riêng biệt (ASP.NET Core Area).
+Xây dựng và tích hợp hệ thống phân quyền quản trị (Admin Authentication & Authorization) cho ứng dụng: yêu cầu đăng nhập bằng tài khoản quản trị để truy cập vào toàn bộ khu vực quản trị `/admin` và thực hiện các chức năng thêm, xóa, sửa. Tự động thiết lập cơ sở dữ liệu SQL Server, lưu trữ tài khoản admin mặc định với mật khẩu được băm bảo mật, và xây dựng giao diện đăng nhập quản trị dành riêng cho hệ thống vận hành thực tế.
 
-Working directory: /home/hutech/Vinh_Offline/WEB_TinhNguyen
-Integrity mode: demo
-The team must NOT: copy code from existing open-source projects for core logic
-
-## Requirements
-
-### R1. Điều hướng và Giao diện cửa hàng gây quỹ (Storefront)
-Tạo liên kết trên thanh điều hướng/slide bar trên cùng ngang hàng với Trang chủ dẫn vào trang mua bán sản phẩm gây quỹ. Giao diện cửa hàng hiển thị danh sách sản phẩm với hình ảnh, giá, mô tả, hỗ trợ xem chi tiết sản phẩm, thêm vào giỏ hàng và thực hiện quy trình đặt mua/ủng hộ gây quỹ với trải nghiệm hiện đại, trực quan và chuẩn responsive.
-
-### R2. Phân hệ quản trị sản phẩm cho Admin (Admin Management)
-Xây dựng trang quản lý sản phẩm gây quỹ trong phân hệ Admin cho phép quản trị viên xem danh sách, thêm mới, chỉnh sửa thông tin chi tiết (tên, giá, số lượng, mô tả, hình ảnh) và xóa sản phẩm. Giao diện quản trị đồng bộ phong cách trang Admin, trực quan và dễ thao tác.
-
-### R3. Tích hợp dữ liệu và Cấu trúc thư mục riêng biệt
-Triển khai lưu trữ dữ liệu sản phẩm và đơn đặt mua vào cơ sở dữ liệu của dự án với đầy đủ logic xử lý CRUD. Tổ chức toàn bộ mã nguồn của tính năng trong thư mục riêng biệt theo kiến trúc Area của ASP.NET Core để dễ quản lý.
-
-## Acceptance Criteria
-
-### Điều hướng và Giao diện người dùng
-- [ ] Mục dẫn tới trang mua bán sản phẩm gây quỹ hiển thị trên thanh điều hướng/slide bar trên cùng, ngang hàng với Trang chủ trong `_Layout.cshtml`.
-- [ ] Trang danh sách sản phẩm hiển thị đầy đủ hình ảnh, tên sản phẩm, giá bán và thông tin gây quỹ tình nguyện trên cả máy tính và thiết bị di động.
-- [ ] Trang chi tiết sản phẩm hiển thị đầy đủ thông tin chi tiết và cho phép người dùng thêm sản phẩm vào giỏ hàng.
-- [ ] Có giao diện giỏ hàng và biểu mẫu đặt mua/ủng hộ gây quỹ, cho phép người dùng điền thông tin và gửi đơn đặt hàng thành công.
-
-### Quản trị Admin
-- [ ] Trang quản lý sản phẩm trong Admin hiển thị bảng danh sách sản phẩm với các thao tác Thêm, Sửa, Xóa.
-- [ ] Form thêm sản phẩm mới ghi nhận đầy đủ các trường (tên, giá, hình ảnh, mô tả, số lượng) và lưu thành công vào cơ sở dữ liệu.
-- [ ] Form chỉnh sửa cập nhật đúng thông tin sản phẩm đã chọn và lưu thay đổi vào cơ sở dữ liệu.
-- [ ] Chức năng xóa loại bỏ sản phẩm khỏi cơ sở dữ liệu và danh sách hiển thị sau khi có xác nhận.
-
-### Kiến trúc thư mục và Vận hành
-- [ ] Toàn bộ Controllers, Views, Models/ViewModels liên quan đến tính năng mới được đặt trong thư mục riêng biệt theo cấu trúc ASP.NET Core Area.
-- [ ] Dự án biên dịch (`dotnet build`) thành công, không có lỗi.
-- [ ] Có dữ liệu mẫu ban đầu (seed data) gồm ít nhất 3 sản phẩm gây quỹ để kiểm thử hiển thị và thao tác.
-
-## 2026-11-03T17:26:34Z
-
-[Message] timestamp=2026-11-03T17:26:34Z sender=b3e3006a-fa2e-49bf-8124-bab9842d493f priority=MESSAGE_PRIORITY_HIGH content=VICTORY REJECTED by independent post-victory audit. Please resume the team and address the findings below:
-
-Report path: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/victory_auditor/handoff.md
-
-=== VICTORY AUDIT REPORT ===
-VERDICT: VICTORY REJECTED
-- Discrepancy: 280 tests executed vs 246 claimed; 1 failure observed vs 0 claimed.
-- Failing test in Tier 5:
-  `[FAIL] Tier 5 | F09 | M3_C34: High-concurrency cart mutations and order placement stress (50 parallel tasks)`
-  `Reason: Assert.Equal Failed: Expected '150', Got '185'. DaBan must increase exactly by 150 (50 * 3)`
-- Location:
-  `/home/hutech/Vinh_Offline/WEB_TinhNguyen/tests/E2ETests/Tier5/Tier5_ChallengerM3_2Harness.cs:940`
-- Root Cause:
-  In line 940 of `Tier5_ChallengerM3_2Harness.cs`, the test assertion checks `Assert.Equal(50 * 3, updatedProduct.DaBan)` assuming initial `DaBan == 0`. However, Product 1 initializes with `DaBan == 35` in `DbInitializer.cs:45`. With 50 orders of 3 items, `DaBan` increases to `35 + 150 = 185`. While the application code functions correctly, the defective test assertion in the active repository test suite causes independent execution to exit with code 1.
-
-Action required: Address the findings, ensure all tests compile and pass cleanly (280/280 or clean up as appropriate), and report back when ready for re-audit.
-
-## 2026-11-04T02:19:07Z
-
-[Message] timestamp=2026-11-04T02:19:07Z sender=13e142e6-9ec4-415f-8ba5-0e0f474aa0f8 priority=MESSAGE_PRIORITY_HIGH content=Phân công vai trò giữa Kiến trúc sư Cơ sở dữ liệu (EF Core), Chuyên gia UI/UX (Tailwind CSS) và Lập trình viên C# (.NET 10) để tái cấu trúc Website Tình Nguyện ASP.NET Core MVC hướng tới môi trường production.
-
+Working directory: D:\web_tinh_nguyen
 Integrity mode: development
 
 ## Requirements
 
-### R1. Tái cấu trúc cơ sở dữ liệu và dọn dẹp mã nguồn
-Xóa toàn bộ thuộc tính lưu màu chữ, màu nền trong Models và DbContext. Tạo và thực thi bản Code First Migration để xóa các cột màu chữ, màu nền khỏi cơ sở dữ liệu SQL. Đổi tên toàn bộ bảng, cột trong SQL và cập nhật lại toàn bộ các câu truy vấn LINQ/SQL sang tiếng Việt thực tế trong dự án.
+### R1. Thiết lập Cơ sở dữ liệu và Khởi tạo Tài khoản Admin trong SQL Server
+Tạo cấu trúc bảng dữ liệu người dùng / quản trị trong SQL Server phù hợp với kiến trúc dự án hiện tại. Tự động khởi tạo (seed) sẵn một tài khoản quản trị mặc định (tên đăng nhập: `admin`, mật khẩu: `Admin@123` hoặc tương đương) với mật khẩu được băm (hash) bảo mật trong cơ sở dữ liệu, đảm bảo chuỗi kết nối và cơ sở dữ liệu sẵn sàng hoạt động.
 
-### R2. Việt hóa cấu trúc thư mục và cấu hình MVC
-Đổi tên các thư mục Controllers, Models, Views, Data sang tiếng Việt (đội ngũ tự chọn tên tiếng Việt chuẩn mực, ví dụ: Controllers -> BoDieuKhien, Models -> MoHinh, Views -> GiaoDien, Data -> DuLieu). Cấu hình lại Razor ViewEngine và routing để ứng dụng phân giải đúng view và controller theo đường dẫn mới.
+### R2. Giao diện và Cơ chế Đăng nhập Quản trị
+Cung cấp giao diện đăng nhập dành riêng cho quản trị viên (form nhập tài khoản và mật khẩu có giao diện thân thiện, hiển thị thông báo lỗi rõ ràng khi thông tin không chính xác). Khi người dùng nhập đúng thông tin tài khoản admin, hệ thống xác thực từ SQL Server, thiết lập phiên đăng nhập an toàn (cookie/session) và chuyển hướng vào trang quản trị `/admin`. Cung cấp chức năng đăng xuất để xóa phiên đăng nhập.
 
-### R3. Đổi mới giao diện người dùng và bảo toàn phân hệ bán hàng
-Làm mới toàn bộ giao diện sang phong cách hiện đại, truyền cảm hứng, bổ sung animations mượt mà và mang đậm bản sắc tình nguyện sử dụng Tailwind CSS. Mặc định toàn trang có nền trắng với màu chữ mới hài hòa hợp chủ đề tình nguyện. Bảo toàn 100% cấu trúc MVC/DOM và giữ nguyên toàn bộ giao diện hiện tại của phân hệ bán hàng (Areas/CuaHang/), cô lập hoàn toàn vùng này khỏi giao diện mới.
+### R3. Phân quyền và Bảo vệ Tuyến đường Quản trị (/admin) cùng các Tác vụ Thêm, Xóa, Sửa
+Áp dụng cơ chế kiểm soát truy cập (Authorization) cho toàn bộ các route thuộc khu vực quản trị `/admin` và tất cả các action/endpoint thực hiện thao tác thêm, xóa, sửa dữ liệu. Khi người dùng chưa đăng nhập hoặc không có vai trò quản trị truy cập vào bất kỳ trang nào thuộc `/admin` hoặc gửi yêu cầu thêm/xóa/sửa, hệ thống phải chặn truy cập và tự động chuyển hướng về trang đăng nhập `/admin/login` (kèm thông báo yêu cầu đăng nhập). Sau khi đăng nhập thành công bằng tài khoản admin, người dùng có toàn quyền truy cập và thao tác đầy đủ các chức năng quản trị.
 
-### R4. Tính năng chuyển đổi Sáng/Tối (Light/Dark Mode)
-Xây dựng nút chuyển đổi Sáng/Tối trên Layout chung bằng JavaScript và CSS variables (áp dụng toàn trang trừ phân hệ bán hàng). Khi nhấn Tối: nền tối chữ sáng; khi nhấn Sáng: nền trắng chữ màu mới mang bản sắc tình nguyện. Quá trình chuyển đổi tuyệt đối không làm ảnh hưởng đến giao diện phân hệ bán hàng.
+### R4. Kịch bản Kiểm thử Tự động Xác minh Toàn diện
+Xây dựng và thực thi bộ kịch bản kiểm thử tự động (integration / E2E / HTTP test suite) để xác minh khách quan: kiểm tra kết nối SQL Server và tài khoản admin, kiểm tra đăng nhập thành công và đăng nhập thất bại, kiểm tra cơ chế chặn và chuyển hướng đối với tất cả các route `/admin` khi chưa xác thực, và xác nhận truy cập thành công sau khi xác thực.
 
 ## Acceptance Criteria
 
-### Database & Migrations
-- [ ] Không còn thuộc tính lưu màu chữ, màu nền trong Models và DbContext.
-- [ ] Bản Migration EF Core mới được tạo và loại bỏ hoàn toàn các cột màu chữ, màu nền khỏi SQL.
-- [ ] Tên bảng, cột trong cơ sở dữ liệu và các câu truy vấn LINQ/SQL được chuyển đổi sang tiếng Việt nhất quán và hợp lệ.
+### Cơ sở dữ liệu và Dữ liệu mẫu (Database & Seed Data)
+- [ ] Bảng dữ liệu người dùng / quản trị được tạo thành công trong SQL Server và kết nối hoạt động bình thường từ ứng dụng.
+- [ ] Tài khoản admin mặc định tồn tại trong cơ sở dữ liệu với mật khẩu được lưu trữ dưới dạng băm (hashed password, không lưu plain-text), sẵn sàng dùng để đăng nhập.
 
-### MVC Structure & Build
-- [ ] Các thư mục Controllers, Models, Views, Data được đổi tên sang tiếng Việt và Razor ViewEngine được cấu hình để định tuyến và render views chính xác.
-- [ ] Lệnh `dotnet build` chạy thành công không có lỗi biên dịch.
+### Giao diện và Xác thực Đăng nhập (Admin Login UI & Auth)
+- [ ] Truy cập đường dẫn đăng nhập quản trị (ví dụ: `/admin/login` hoặc `/Account/Login`) hiển thị đầy đủ giao diện form đăng nhập tài khoản và mật khẩu.
+- [ ] Nhập thông tin đăng nhập admin hợp lệ: hệ thống xác thực thành công, tạo phiên đăng nhập (session/cookie) và chuyển hướng người dùng vào giao diện quản trị `/admin`.
+- [ ] Nhập sai tài khoản hoặc mật khẩu: hệ thống từ chối đăng nhập và hiển thị thông báo lỗi rõ ràng trên giao diện, không tạo phiên đăng nhập.
+- [ ] Thực hiện chức năng đăng xuất: hệ thống hủy phiên đăng nhập an toàn và chuyển hướng ra khỏi khu vực quản trị.
 
-### UI & Dark Mode
-- [ ] Giao diện các trang ngoài phân hệ bán hàng hiển thị giao diện mới với nền trắng mặc định và màu chữ tình nguyện hài hòa.
-- [ ] Phân hệ bán hàng (`Areas/CuaHang/`) giữ nguyên vẹn 100% giao diện và cấu trúc DOM hiện tại.
-- [ ] Nút chuyển đổi Sáng/Tối hoạt động ổn định trên toàn trang (trừ phân hệ bán hàng) và chuyển đổi đúng phối màu quy định.
+### Phân quyền và Kiểm soát truy cập (Authorization & Route Protection)
+- [ ] Khi chưa đăng nhập tài khoản admin, mọi yêu cầu truy cập (GET/POST) đến bất kỳ route nào thuộc `/admin` hoặc các endpoint thêm, xóa, sửa đều bị từ chối và tự động chuyển hướng (HTTP redirect 302) về trang đăng nhập `/admin/login`.
+- [ ] Sau khi đăng nhập bằng tài khoản admin, người dùng có thể truy cập thành công vào tất cả các trang quản trị `/admin` (HTTP status code 200 OK) và thực hiện đầy đủ các chức năng thêm, xóa, sửa dữ liệu.
+
+### Kiểm thử và Biên dịch (Build & Automated Verification)
+- [ ] Dự án biên dịch thành công (`dotnet build`) không phát sinh bất kỳ lỗi nào (0 errors).
+- [ ] Bộ kịch bản kiểm thử tự động được thực thi thành công 100%, tự động kiểm tra và xác nhận: chặn truy cập khi chưa đăng nhập, đăng nhập admin thành công, và truy cập hợp lệ sau khi đăng nhập.
 
 
-## 2026-11-04T06:03:02Z
+## 2026-11-07T05:08:43Z
 
-[Message] timestamp=2026-11-04T06:03:02Z sender=13e142e6-9ec4-415f-8ba5-0e0f474aa0f8 priority=MESSAGE_PRIORITY_HIGH content=Phân công vai trò giữa Kiến trúc sư Cơ sở dữ liệu (EF Core), Chuyên gia UI/UX (Tailwind CSS) và Lập trình viên C# (.NET 10) để tái cấu trúc Website Tình Nguyện ASP.NET Core MVC hướng tới môi trường production.
+Xây dựng chức năng quản lý tài khoản quản trị và hệ thống phân quyền chi tiết cho từng tài khoản trong khu vực admin (`/admin`), đảm bảo mỗi tài khoản chỉ có thể truy cập và thao tác đúng các phân hệ chức năng được admin chỉ định.
 
+Working directory: D:\web_tinh_nguyen
 Integrity mode: development
 
 ## Requirements
 
-### R1. Tái cấu trúc cơ sở dữ liệu và dọn dẹp mã nguồn
-Xóa toàn bộ thuộc tính lưu màu chữ, màu nền trong Models và DbContext. Tạo và thực thi bản Code First Migration để xóa các cột màu chữ, màu nền khỏi cơ sở dữ liệu SQL. Đổi tên toàn bộ bảng, cột trong SQL và cập nhật lại toàn bộ các câu truy vấn LINQ/SQL sang tiếng Việt thực tế trong dự án.
+### R1. Quản lý Tài khoản Quản trị và Phân quyền (Admin Account & Role Management)
+Trong khu vực quản trị, cung cấp giao diện và tính năng cho phép quản trị viên thêm mới tài khoản quản trị, thiết lập thông tin đăng nhập và linh hoạt lựa chọn phân quyền các phân hệ chức năng mà tài khoản đó được phép quản lý (bao gồm quyền toàn bộ cấu hình/hệ thống hoặc 1 hay nhiều phân hệ tùy chọn). Danh sách phân quyền bao gồm tất cả các phân hệ quản trị hiện có trong hệ thống (Trang chủ, Chương trình, Gây quỹ, Cấu hình QR, Ký ức, Ban tổ chức, Tin tức, Hiệu ứng, Quản lý sản phẩm, Đơn hàng, Quản lý tài khoản quản trị). Thông tin tài khoản và phân quyền phải được lưu trữ bền vững trong cơ sở dữ liệu với mật khẩu được băm bảo mật.
 
-### R2. Việt hóa cấu trúc thư mục và cấu hình MVC
-Đổi tên các thư mục Controllers, Models, Views, Data sang tiếng Việt (đội ngũ tự chọn tên tiếng Việt chuẩn mực, ví dụ: Controllers -> BoDieuKhien, Models -> MoHinh, Views -> GiaoDien, Data -> DuLieu). Cấu hình lại Razor ViewEngine và routing để ứng dụng phân giải đúng view và controller theo đường dẫn mới.
+### R2. Kiểm soát Quyền Truy cập và Thực thi theo Phân hệ (Granular Authorization Enforcement)
+Khi người dùng đăng nhập bằng tài khoản quản trị, hệ thống kiểm tra phân quyền của tài khoản đó đối với từng yêu cầu HTTP (GET, POST và các thao tác thêm, sửa, xóa dữ liệu). Tài khoản chỉ được phép truy cập và thực thi đúng các phân hệ chức năng đã được cấp quyền. Mọi yêu cầu truy cập trực tiếp vào các tuyến đường (routes/endpoints) của phân hệ không được phân quyền đều phải bị chặn (trả về mã trạng thái từ chối truy cập HTTP 403 Forbidden hoặc chuyển hướng kèm thông báo không có quyền).
 
-### R3. Đổi mới giao diện người dùng và bảo toàn phân hệ bán hàng
-Làm mới toàn bộ giao diện sang phong cách hiện đại, truyền cảm hứng, bổ sung animations mượt mà và mang đậm bản sắc tình nguyện sử dụng Tailwind CSS. Mặc định toàn trang có nền trắng với màu chữ mới hài hòa hợp chủ đề tình nguyện. Bảo toàn 100% cấu trúc MVC/DOM và giữ nguyên toàn bộ giao diện hiện tại của phân hệ bán hàng (Areas/CuaHang/), cô lập hoàn toàn vùng này khỏi giao diện mới.
+### R3. Hiển thị Giao diện và Điều hướng theo Phân quyền (Dynamic Navigation Menu)
+Thanh điều hướng/menu của khu vực quản trị tự động cập nhật động theo quyền hạn của tài khoản đang đăng nhập: chỉ hiển thị các liên kết dẫn đến những phân hệ chức năng mà tài khoản đó được phép quản lý, đồng thời ẩn toàn bộ các liên kết đến các phân hệ không được cấp quyền.
 
-### R4. Tính năng chuyển đổi Sáng/Tối (Light/Dark Mode)
-Xây dựng nút chuyển đổi Sáng/Tối trên Layout chung bằng JavaScript và CSS variables (áp dụng toàn trang trừ phân hệ bán hàng). Khi nhấn Tối: nền tối chữ sáng; khi nhấn Sáng: nền trắng chữ màu mới mang bản sắc tình nguyện. Quá trình chuyển đổi tuyệt đối không làm ảnh hưởng đến giao diện phân hệ bán hàng.
+### R4. Kịch bản Kiểm thử Tự động Xác minh (Automated Verification)
+Tận dụng hạ tầng kiểm thử hiện có của dự án (`tests/`) để xây dựng và thực thi bộ kịch bản kiểm thử tự động (integration/E2E test suite) nhằm xác minh khách quan tính năng tạo tài khoản, gán quyền, đăng nhập và kiểm soát quyền truy cập: xác nhận tài khoản truy cập thành công vào các phân hệ được cấp quyền và bị chặn truy cập đối với các phân hệ không được cấp quyền.
 
 ## Acceptance Criteria
 
-### Database & Migrations
-- [ ] Không còn thuộc tính lưu màu chữ, màu nền trong Models và DbContext.
-- [ ] Bản Migration EF Core mới được tạo và loại bỏ hoàn toàn các cột màu chữ, màu nền khỏi SQL.
-- [ ] Tên bảng, cột trong cơ sở dữ liệu và các câu truy vấn LINQ/SQL được chuyển đổi sang tiếng Việt nhất quán và hợp lệ.
+### Quản lý Tài khoản và Gán quyền
+- [ ] Giao diện admin cho phép thêm mới tài khoản quản trị với đầy đủ thông tin xác thực và danh sách chọn các quyền/phân hệ quản lý cụ thể.
+- [ ] Mật khẩu của tài khoản mới được mã hóa/băm bằng thuật toán an toàn trước khi lưu vào cơ sở dữ liệu, không lưu trữ plain-text.
+- [ ] Tài khoản mới tạo cùng danh sách quyền hạn được lưu trữ và truy vấn chính xác từ cơ sở dữ liệu.
 
-### MVC Structure & Build
-- [ ] Các thư mục Controllers, Models, Views, Data được đổi tên sang tiếng Việt và Razor ViewEngine được cấu hình để định tuyến và render views chính xác.
-- [ ] Lệnh `dotnet build` chạy thành công không có lỗi biên dịch.
+### Kiểm soát Truy cập theo Quyền hạn
+- [ ] Tài khoản được cấp quyền cho phân hệ X: đăng nhập và gửi yêu cầu (GET/POST) đến các endpoint của phân hệ X nhận được phản hồi thành công (HTTP 200 OK).
+- [ ] Tài khoản không được cấp quyền cho phân hệ Y: gửi yêu cầu (GET/POST) đến bất kỳ endpoint nào của phân hệ Y bị hệ thống chặn truy cập (HTTP 403 Forbidden hoặc HTTP 302 chuyển hướng kèm thông báo từ chối truy cập), không cho phép thực hiện thao tác dữ liệu.
+- [ ] Tài khoản được phân quyền quản trị toàn bộ hệ thống (toàn quyền) có thể truy cập và thao tác trên tất cả các phân hệ admin.
 
-### UI & Dark Mode
-- [ ] Giao diện các trang ngoài phân hệ bán hàng hiển thị giao diện mới với nền trắng mặc định và màu chữ tình nguyện hài hòa.
-- [ ] Phân hệ bán hàng (`Areas/CuaHang/`) giữ nguyên vẹn 100% giao diện và cấu trúc DOM hiện tại.
-- [ ] Nút chuyển đổi Sáng/Tối hoạt động ổn định trên toàn trang (trừ phân hệ bán hàng) và chuyển đổi đúng phối màu quy định.
+### Giao diện Điều hướng Menu
+- [ ] Khi đăng nhập bằng tài khoản chỉ có quyền trên một số phân hệ nhất định, thanh menu quản trị chỉ hiển thị các mục tương ứng với những phân hệ đó, ẩn các mục phân hệ không có quyền.
 
----
-## Continuation Context & State (Quota refreshed, resume execution)
-- Đọc kỹ `.agents/teamwork/orchestrator/PROJECT.md` và `.agents/teamwork/orchestrator/progress.md`.
-- Milestone M1 đã đạt 100% GATE PASS.
-- Tiếp tục thực thi ngay từ Mốc M2: Tái cấu trúc CSDL và EF Core (xóa các cột màu chữ/nền, tạo Code First Migration, Việt hóa bảng/cột và câu truy vấn LINQ/SQL).
-- Tiếp tục sang M3: Giao diện Tailwind CSS & bảo toàn phân hệ bán hàng (Areas/CuaHang/).
-- Tiếp tục sang M4: Chuyển đổi Sáng/Tối (Light/Dark Mode).
-- M5: E2E Testing, Adversarial Verification & Forensic Audit Gate.
+### Kiểm thử và Biên dịch
+- [ ] Dự án biên dịch thành công (`dotnet build`) không phát sinh bất kỳ lỗi nào (0 errors).
+- [ ] Toàn bộ kịch bản kiểm thử tự động xác minh phân quyền và các kịch bản kiểm thử hiện có của dự án được thực thi thành công 100%.
+
+
+## 2026-11-07T09:11:05Z
+
+Đồng bộ và tối ưu hóa toàn bộ giao diện người dùng bên ngoài của dự án web hiện tại để hiển thị trực quan, dễ nhìn và thuận tiện thao tác trên trình duyệt di động theo chuẩn responsive web, giữ nguyên hoàn toàn khu vực quản trị (admin).
+
+Working directory: D:\web_tinh_nguyen
+Integrity mode: development
+
+## Requirements
+
+### R1. Tối ưu hóa Responsive Web cho toàn bộ giao diện người dùng bên ngoài
+Điều chỉnh bố cục, thanh điều hướng (navigation/menu), phông chữ, khoảng cách, các biểu mẫu (forms) và bảng/danh sách trên toàn bộ các trang công khai phía người dùng để tương thích tối đa với màn hình điện thoại di động. Giao diện phải đảm bảo tính dễ đọc, các thành phần tương tác (nút bấm, liên kết) dễ chạm bấm bằng ngón tay và nội dung vừa vặn với kích thước màn hình di động mà không phát sinh hiện tượng tràn màn hình theo chiều ngang.
+
+### R2. Bảo toàn khu vực quản trị (Admin)
+Tuyệt đối không thay đổi mã nguồn, bố cục, kiểu dáng (CSS) hoặc hành vi của các trang và route thuộc khu vực quản trị (`/admin`).
+
+## Acceptance Criteria
+
+### Khả năng tương thích và hiển thị trên màn hình di động
+- [ ] Bộ kiểm thử tự động trên trình duyệt (automated browser tests) kiểm tra trên các kích thước viewport di động tiêu chuẩn (chiều rộng từ 375px đến 430px) vượt qua 100% cho toàn bộ các trang công khai bên ngoài.
+- [ ] Không có trang công khai nào bị thanh cuộn ngang ngoài ý muốn (`document.scrollingElement.scrollWidth <= window.innerWidth`) trên các viewport di động từ 375px trở lên.
+- [ ] Menu điều hướng trên di động hiển thị gọn gàng (dạng hamburger hoặc drawer di động) và đóng/mở hoạt động chính xác khi tương tác trên màn hình nhỏ.
+- [ ] Văn bản, hình ảnh, bảng dữ liệu và form nhập liệu trên các trang người dùng co giãn phù hợp, không bị che khuất, méo mó hoặc tràn lề màn hình di động.
+
+### Tính toàn vẹn khu vực Admin và hệ thống
+- [ ] Toàn bộ các view, controller và style thuộc khu vực Admin không bị chỉnh sửa hoặc phát sinh lỗi hiển thị/chức năng.
+- [ ] Dự án biên dịch (`dotnet build`) và toàn bộ các bộ kiểm thử tự động hiện có cũng như kiểm thử mới đều vượt qua thành công.

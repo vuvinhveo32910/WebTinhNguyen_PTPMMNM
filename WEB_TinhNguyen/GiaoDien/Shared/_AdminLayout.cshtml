@@ -1,3 +1,4 @@
+@using WEB_TinhNguyen.MoHinh
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -239,7 +240,7 @@
 
             <ul class="sidebar-links">
                 <li>
-                    <a href="@Url.Action("Index", "Admin")" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Admin" ? "active" : "")">
+                    <a href="@Url.Action("Index", "Admin", new { area = "" })" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Admin" ? "active" : "")">
                         <i class="fas fa-tachometer-alt"></i> <span class="link-text">Bảng điều khiển</span>
                     </a>
                 </li>
@@ -249,46 +250,94 @@
                     <div class="menu-separator"></div>
                 </h4>
 
+                @if (User.CoQuyen(QuyenAdmin.TrangChu))
+                {
                 <li>
-                    <a href="@Url.Action("Index", "AdminTrangChu")" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminTrangChu" ? "active" : "")">
+                    <a href="@Url.Action("Index", "AdminTrangChu", new { area = "" })" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminTrangChu" ? "active" : "")">
                         <i class="fas fa-home"></i> <span class="link-text">Cấu hình Trang chủ</span>
                     </a>
                 </li>
+                }
+                @if (User.CoQuyen(QuyenAdmin.ChuongTrinh))
+                {
                 <li>
-                    <a href="@Url.Action("Index", "AdminChuongTrinh")" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminChuongTrinh" ? "active" : "")">
+                    <a href="@Url.Action("Index", "AdminChuongTrinh", new { area = "" })" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminChuongTrinh" ? "active" : "")">
                         <i class="fas fa-calendar-alt"></i> <span class="link-text">Cấu hình Chương trình</span>
                     </a>
                 </li>
+                }
+                @if (User.CoQuyen(QuyenAdmin.GayQuy))
+                {
                 <li>
-                    <a href="@Url.Action("Index", "AdminGayQuy")" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminGayQuy" ? "active" : "")">
+                    <a href="@Url.Action("Index", "AdminGayQuy", new { area = "" })" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminGayQuy" ? "active" : "")">
                         <i class="fas fa-hand-holding-heart"></i> <span class="link-text">Cấu hình Đóng Góp</span>
                     </a>
                 </li>
+                }
+                @if (User.CoQuyen(QuyenAdmin.SanPham))
+                {
                 <li>
                     <a href="/CuaHang/AdminSanPham" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminSanPham" ? "active" : "")">
                         <i class="fas fa-boxes"></i> <span class="link-text">Sản phẩm Gây Quỹ</span>
                     </a>
                 </li>
+                }
+                @if (User.CoQuyen(QuyenAdmin.DonHang))
+                {
                 <li>
                     <a href="/CuaHang/AdminDonHang" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminDonHang" ? "active" : "")">
                         <i class="fas fa-receipt"></i> <span class="link-text">Đơn hàng Gây Quỹ</span>
                     </a>
                 </li>
+                }
+                @if (User.CoQuyen(QuyenAdmin.CauHinhQR))
+                {
                 <li>
-                    <a href="@Url.Action("Index", "AdminKyUc")" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminKyUc" ? "active" : "")">
+                    <a href="@Url.Action("Index", "AdminCauHinhQR", new { area = "" })" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminCauHinhQR" ? "active" : "")">
+                        <i class="fas fa-qrcode"></i> <span class="link-text">Cấu hình Thanh toán QR</span>
+                    </a>
+                </li>
+                }
+                @if (User.CoQuyen(QuyenAdmin.KyUc))
+                {
+                <li>
+                    <a href="@Url.Action("Index", "AdminKyUc", new { area = "" })" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminKyUc" ? "active" : "")">
                         <i class="fas fa-images"></i> <span class="link-text">Cấu hình Ký ức</span>
                     </a>
                 </li>
+                }
+                @if (User.CoQuyen(QuyenAdmin.BanToChuc))
+                {
                 <li>
-                    <a href="@Url.Action("Index", "AdminBanToChuc")" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminBanToChuc" ? "active" : "")">
+                    <a href="@Url.Action("Index", "AdminBanToChuc", new { area = "" })" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminBanToChuc" ? "active" : "")">
                         <i class="fas fa-sitemap"></i> <span class="link-text">Cấu hình Ban Tổ Chức</span>
                     </a>
                 </li>
+                }
+                @if (User.CoQuyen(QuyenAdmin.TinTuc))
+                {
                 <li>
-                    <a href="@Url.Action("Index", "AdminTinTuc")" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminTinTuc" ? "active" : "")">
+                    <a href="@Url.Action("Index", "AdminTinTuc", new { area = "" })" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminTinTuc" ? "active" : "")">
                         <i class="fas fa-newspaper"></i> <span class="link-text">Cấu hình Tin tức</span>
                     </a>
                 </li>
+                }
+                @if (User.CoQuyen(QuyenAdmin.HieuUng))
+                {
+                <li>
+                    <a href="@Url.Action("Index", "AdminHieuUng", new { area = "" })" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminHieuUng" ? "active" : "")">
+                        <i class="fas fa-magic"></i> <span class="link-text">Thư viện Hiệu ứng</span>
+                    </a>
+                </li>
+                }
+                @if (User.CoQuyen(QuyenAdmin.QuanLyTaiKhoan))
+                {
+                <li>
+                    <a href="@Url.Action("Index", "AdminTaiKhoan", new { area = "" })" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminTaiKhoan" ? "active" : "")">
+                        <i class="fas fa-user-shield"></i> <span class="link-text">Tài khoản &amp; Phân quyền</span>
+                    </a>
+                </li>
+                }
 
                 <h4>
                     <span>Tương tác</span>
@@ -305,7 +354,7 @@
                     <div class="menu-separator"></div>
                 </h4>
                 <li>
-                    <a href="@Url.Action("Index", "Home")" target="_blank" class="btn-highlight">
+                    <a href="@Url.Action("Index", "Home", new { area = "" })" target="_blank" class="btn-highlight">
                         <i class="fas fa-external-link-alt"></i> <span class="link-text">Xem trang ngoài</span>
                     </a>
                 </li>
@@ -327,15 +376,15 @@
                 <!-- Info user -->
                 <div class="hidden sm:flex items-center gap-3 bg-white px-4 py-2 rounded-2xl shadow-sm border border-gray-100">
                     <div class="h-8 w-8 rounded-xl bg-[#161a2d] text-white flex items-center justify-center font-bold text-sm shadow-md">
-                        A
+                        @(User.Identity?.Name?.Length > 0 ? User.Identity.Name.Substring(0, 1).ToUpper() : "A")
                     </div>
                     <div class="flex flex-col">
-                        <span class="text-sm font-bold text-gray-800 leading-none">Admin Hệ thống</span>
-                        <span class="text-[10px] text-gray-500 font-medium mt-1">Quản trị viên</span>
+                        <span class="text-sm font-bold text-gray-800 leading-none">@(User.Identity?.Name ?? "Quản trị viên")</span>
+                        <span class="text-[10px] text-gray-500 font-medium mt-1">@(User.LaToanQuyen() ? "Toàn quyền hệ thống" : "Quản trị phân hệ")</span>
                     </div>
                 </div>
                 <!-- Logout -->
-                <a href="#" title="Đăng xuất" class="w-10 h-10 rounded-full bg-white text-gray-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center shadow-sm border border-gray-100 transition-all">
+                <a href="/admin/logout" title="Đăng xuất" class="w-10 h-10 rounded-full bg-white text-gray-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center shadow-sm border border-gray-100 transition-all">
                     <i class="fas fa-sign-out-alt"></i>
                 </a>
             </div>

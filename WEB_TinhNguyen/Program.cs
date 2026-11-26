@@ -2,6 +2,7 @@ using WEB_TinhNguyen.DuLieu;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Razor;
 using WEB_TinhNguyen.Areas.CuaHang.Helpers;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +21,21 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
     options.Cookie.Name = ".WEB_TinhNguyen.Session";
 });
+
+// Cấu hình Cookie Authentication cho Quản trị viên
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.Cookie.Name = ".WEB_TinhNguyen.AdminAuth";
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.IsEssential = true;
+        options.LoginPath = "/admin/login";
+        options.LogoutPath = "/admin/logout";
+        options.AccessDeniedPath = "/admin/login";
+        options.ExpireTimeSpan = TimeSpan.FromHours(8);
+        options.SlidingExpiration = true;
+    });
 
 // Đăng ký HttpContextAccessor để truy cập session và context từ view/service
 builder.Services.AddHttpContextAccessor();
@@ -66,7 +82,12 @@ app.UseRouting();
 // Middleware Session: Dat sau UseRouting va truoc phan quyen
 app.UseSession();
 
+// Middleware Xac thuc va Phan quyen (Bao ve toan dien theo dung thu tu CH19)
+app.UseAuthentication();
 app.UseAuthorization();
+
+// Phục vụ tệp tĩnh (bao gồm thư mục upload ảnh QR động /uploads/)
+app.UseStaticFiles();
 
 app.MapStaticAssets();
 

@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using WEB_TinhNguyen.DuLieu;
 using WEB_TinhNguyen.Areas.CuaHang.Models;
 using WEB_TinhNguyen.Areas.CuaHang.Helpers;
+using WEB_TinhNguyen.MoHinh;
 
 namespace WEB_TinhNguyen.Areas.CuaHang.Controllers
 {
@@ -454,6 +455,31 @@ namespace WEB_TinhNguyen.Areas.CuaHang.Controllers
                 TempData["ErrorMessage"] = "Không tìm thấy thông tin đơn hàng.";
                 return RedirectToAction("Index", "CuaHang");
             }
+
+            // Resolve active Store payment QR config (Milestone 2 - Requirement R2)
+            CauHinhThanhToanQR? qrConfig = null;
+            try
+            {
+                if (_context.Database.CanConnect())
+                {
+                    qrConfig = await _context.CauHinhThanhToanQRs
+                        .Where(q => q.ApDungChoCuaHang && q.TrangThaiHoatDong)
+                        .OrderBy(q => q.ThuTu)
+                        .ThenBy(q => q.IDCauHinhQR)
+                        .FirstOrDefaultAsync();
+                }
+            }
+            catch
+            {
+                // Fallback khi database offline
+            }
+
+            if (qrConfig == null)
+            {
+                qrConfig = DbInitializer.GetActiveStoreQrConfig();
+            }
+
+            ViewBag.CauHinhQR = qrConfig;
 
             return View(order);
         }

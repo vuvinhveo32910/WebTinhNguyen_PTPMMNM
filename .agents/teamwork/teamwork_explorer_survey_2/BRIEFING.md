@@ -1,44 +1,54 @@
-# BRIEFING — 2026-11-03T12:37:00Z
+# BRIEFING — 2026-11-07T05:21:00Z
 
 ## Mission
-Investigate ASP.NET Core Areas, Admin controllers/views/layouts/styles, routing configuration, and authentication/authorization requirements for fundraising product shop and management.
+Investigate and design Data Model, Permissions Schema, and Authorization Pipeline for Granular Admin Permissions (R1, R2).
 
 ## 🔒 My Identity
 - Archetype: explorer
-- Roles: survey, investigation, synthesis
-- Working directory: /home/hutech/Vinh_Offline/WEB_TinhNguyen/.agents/teamwork/teamwork_explorer_survey_2
-- Original parent: 108b9d81-1dd6-495f-84eb-99dbb197aebe
-- Milestone: Survey & Architectural Analysis
+- Roles: investigator, synthesizer
+- Working directory: D:\web_tinh_nguyen\.agents\teamwork\teamwork_explorer_survey_2
+- Original parent: 3ebaa881-f84a-47af-9d40-eda26cf6ddcc
+- Milestone: Granular Admin Permissions - Survey 2 (Data Model, Schema & Authorization Pipeline)
 
 ## 🔒 Key Constraints
-- Read-only investigation — do NOT implement
-- Strictly read-only on project source code
-- Files for content delivery, messages for coordination
+- Read-only investigation — do NOT implement or modify source code
+- Strictly confine writes to working directory (.agents/teamwork/teamwork_explorer_survey_2/)
+- Provide complete evidence chain with exact file paths and line numbers
 
 ## Current Parent
-- Conversation ID: 108b9d81-1dd6-495f-84eb-99dbb197aebe
-- Updated: 2026-11-03T12:30:34Z
+- Conversation ID: 3007f0a1-1a91-4596-8f2a-fc29176756e7
+- Updated: 2026-11-07T05:21:00Z
 
 ## Investigation State
 - **Explored paths**:
-  - `WEB_TinhNguyen/Program.cs` & `Startup` (only Program.cs exists, .NET 10 minimal API, only default route)
-  - `WEB_TinhNguyen/Controllers/Admin*Controller.cs` (7 Admin controllers, none in an Area, no [Authorize])
-  - `WEB_TinhNguyen/Views/Shared/_AdminLayout.cshtml` & `_Layout.cshtml` (Layout structures, sidebar navigation, top navigation)
-  - `WEB_TinhNguyen/Views/Admin*` (Admin UI views, styling, scripts, modals)
-  - `WEB_TinhNguyen/Models/Entities.cs` & `Data/ApplicationDbContext.cs` (Data models, DbSets, SQL schema)
-  - `tailwind.config.js`, `package.json`, `WEB_TinhNguyen.csproj` (Build targets, CSS build, CDN Tailwind)
+  - `WEB_TinhNguyen/MoHinh/TaiKhoanAdmin.cs`
+  - `WEB_TinhNguyen/DuLieu/ApplicationDbContext.cs`
+  - `WEB_TinhNguyen/Areas/CuaHang/Helpers/DbInitializer.cs`
+  - `WEB_TinhNguyen/DuLieu/BaoMatMatKhau.cs`
+  - `WEB_TinhNguyen/Areas/CuaHang/Helpers/BaoMatMatKhau.cs`
+  - `WEB_TinhNguyen/BoDieuKhien/AdminController.cs`
+  - `WEB_TinhNguyen/Program.cs`
+  - `WEB_TinhNguyen/GiaoDien/Shared/_AdminLayout.cshtml`
+  - `WEB_TinhNguyen/BoDieuKhien/*.cs` & `WEB_TinhNguyen/Areas/CuaHang/Controllers/*.cs`
+  - `tests/E2ETests/Tier1/Tier1_AdminRoutingTests.cs`
+  - `tests/E2ETests/Tier1/Tier1_AdminTests.cs`
+  - `tests/E2ETests/Tier5/Tier5_ChallengerM2_3_AuthPipelineHarness.cs`
+  - `tests/E2ETests/Tier5/Tier5_ChallengerM2_2_RouteProtectionHarness.cs`
+  - `tests/E2ETests/Tier5/Tier5_ChallengerM1_2_AdminConcurrencyStressHarness.cs`
 - **Key findings**:
-  1. No existing ASP.NET Core Areas exist. All existing controllers reside in root `Controllers/`.
-  2. Program.cs has only `name: "default"` route; Area routing is absent and must be mapped via `MapControllerRoute` with `{area:exists}` before default route.
-  3. No Authentication/Authorization configured in Program.cs (`[Authorize]` is absent across entire project; project runs in open demo mode).
-  4. Admin views share `Views/Shared/_AdminLayout.cshtml` which uses Tailwind CDN, FontAwesome 6, custom sidebar (hover-expandable 85px -> 280px).
-  5. Recommended Area structure: `Areas/CuaHang/` (or `Areas/Shop/`) containing User Storefront (SanPham, GioHang), Admin Management (AdminSanPham), Models, and Views, integrating seamlessly with `_Layout.cshtml` and `_AdminLayout.cshtml`.
-- **Unexplored areas**: None within the survey scope.
+  - `TaiKhoanAdmin` lacks permission column: Adding `QuyenHan NVARCHAR(MAX) NULL` as a delimited string is the cleanest, most resilient solution for both SQL Server and in-memory dual-mode persistence.
+  - Defined all 11 module constants in `QuyenAdmin`: `TrangChu`, `ChuongTrinh`, `GayQuy`, `CauHinhQR`, `KyUc`, `BanToChuc`, `TinTuc`, `HieuUng`, `SanPham`, `DonHang`, `QuanLyTaiKhoan`, plus `SuperAdmin` / `All`.
+  - Default `admin` account seeded with `QuyenHan = "All"`, guaranteeing SuperAdmin access across all modules.
+  - Authorization pipeline design: `PhanQuyenAdminAttribute(string module)` inheriting `AuthorizeAttribute` and implementing `IAsyncActionFilter`, enforcing HTTP 403 Forbidden (`StatusCodeResult(403)`) for unauthorized GET and POST requests.
+  - Discovered critical test constraints: `AccessDeniedPath` must remain `"/admin/login"` (asserted by test `M2_3_04`), middleware order in `Program.cs` must not change (`M2_3_05`), and `_AdminLayout.cshtml` must keep static pure controller tokens (`F19_T01`, `F19_T02`).
+- **Unexplored areas**: None within survey scope.
 
 ## Key Decisions Made
-- Fully documented 5 core dispatch questions with file citations, line numbers, code snippets, and clear architectural blueprint for the implementer.
+- Designed comprehensive data model, permissions schema, and authorization enforcement pipeline.
+- Produced detailed analysis report (`analysis.md`) and hard handoff report (`handoff.md`).
 
 ## Artifact Index
-- DISPATCH.md — Task dispatch instructions
-- progress.md — Heartbeat and activity log
-- handoff.md — Comprehensive survey report
+- D:\web_tinh_nguyen\.agents\teamwork\teamwork_explorer_survey_2\DISPATCH.md — Dispatch history
+- D:\web_tinh_nguyen\.agents\teamwork\teamwork_explorer_survey_2\progress.md — Progress log
+- D:\web_tinh_nguyen\.agents\teamwork\teamwork_explorer_survey_2\analysis.md — Comprehensive analysis report
+- D:\web_tinh_nguyen\.agents\teamwork\teamwork_explorer_survey_2\handoff.md — Final handoff report

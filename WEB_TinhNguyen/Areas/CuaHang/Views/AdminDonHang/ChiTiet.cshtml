@@ -6,7 +6,12 @@
     var isBankTransfer = Model.PhuongThucThanhToan != "COD";
     var cleanAmount = (long)Model.TongThanhToan;
     var cleanMemo = Uri.EscapeDataString(Model.MaDonHang);
-    var qrUrl = $"https://img.vietqr.io/image/MB-0924044283-compact2.png?amount={cleanAmount}&addInfo={cleanMemo}&accountName=NGUYEN%20THAI%20VINH";
+    var defaultQr = $"https://img.vietqr.io/image/MB-0924044283-compact2.png?amount={cleanAmount}&addInfo={cleanMemo}&accountName=NGUYEN%20THAI%20VINH";
+    var qrConfig = ViewBag.CauHinhQR as WEB_TinhNguyen.MoHinh.CauHinhThanhToanQR;
+    var qrUrl = qrConfig != null ? qrConfig.GetQrUrl(cleanAmount, Model.MaDonHang, qrConfig.TenChuTaiKhoan) : defaultQr;
+    var tenNganHang = qrConfig?.TenNganHang ?? "Quân Đội (MBBank)";
+    var soTaiKhoan = qrConfig?.SoTaiKhoan ?? "0924044283";
+    var tenChuTaiKhoan = qrConfig?.TenChuTaiKhoan ?? "NGUYEN THAI VINH";
 
     var totalItemsCharity = Model.ChiTietDonHangs?.Sum(c => c.TienDongGop) ?? 0m;
     var totalDonation = Model.TienUngHoThem + totalItemsCharity;
@@ -370,13 +375,13 @@
                     <div class="bg-gray-50 rounded-xl p-3 space-y-2 text-xs">
                         <div class="flex justify-between items-center py-1 border-b border-gray-200">
                             <span class="text-gray-500">Ngân hàng:</span>
-                            <span class="font-bold text-gray-900">Quân Đội (MBBank)</span>
+                            <span class="font-bold text-gray-900">@tenNganHang</span>
                         </div>
                         <div class="flex justify-between items-center py-1 border-b border-gray-200">
                             <span class="text-gray-500">Số tài khoản:</span>
                             <div class="flex items-center gap-1.5">
-                                <span class="font-mono font-extrabold text-emerald-700 text-sm">0924044283</span>
-                                <button type="button" onclick="navigator.clipboard.writeText('0924044283'); if(window.Swal) Swal.fire({toast:true, position:'top-end', icon:'success', title:'Đã sao chép STK', showConfirmButton:false, timer:1500});"
+                                <span class="font-mono font-extrabold text-emerald-700 text-sm">@soTaiKhoan</span>
+                                <button type="button" onclick="navigator.clipboard.writeText('@soTaiKhoan'); if(window.Swal) Swal.fire({toast:true, position:'top-end', icon:'success', title:'Đã sao chép STK', showConfirmButton:false, timer:1500});"
                                         class="text-gray-400 hover:text-gray-600 p-0.5" title="Sao chép STK">
                                     <i class="far fa-copy"></i>
                                 </button>
@@ -384,7 +389,7 @@
                         </div>
                         <div class="flex justify-between items-center py-1 border-b border-gray-200">
                             <span class="text-gray-500">Chủ tài khoản:</span>
-                            <span class="font-bold text-gray-900 uppercase">NGUYEN THAI VINH</span>
+                            <span class="font-bold text-gray-900 uppercase">@tenChuTaiKhoan</span>
                         </div>
                         <div class="flex justify-between items-center py-1 border-b border-gray-200">
                             <span class="text-gray-500">Số tiền:</span>
